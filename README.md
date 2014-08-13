@@ -1,6 +1,6 @@
 # Enot
 
-Enot is an _e_vent _not_ation system. Rules are the same as CSS, but for events.
+Enot is an <em>e</em>vent <em>not</em>ation system. Rules are the same as CSS, but for events.
 
 
 ##### Examples
