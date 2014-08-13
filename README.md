@@ -1,9 +1,9 @@
 # Enot
 
-Enot is a *e*vent *not*ation system. Rules are the same as CSS, but for events.
+Enot is an _e_vent _not_ation system. Rules are the same as CSS, but for events.
 
 
-###### Examples of notation
+##### Examples
 
 `click` - simple click event
 
@@ -61,6 +61,7 @@ enot.off(target, eventString);
 
 Enot tries to engage jQuery/DOM event systems, if they’re persist.
 It also falls back to own event system for non-DOM targets, like plain objects.
+
 Inspired by xtags events & backbone events notations.
 
 ## License
