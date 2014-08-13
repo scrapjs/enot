@@ -1,0 +1,22 @@
+{
+  "name": "enot",
+  "version": "0.0.0",
+  "description": "Event NOTation system",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dfcreative/enot.git"
+  },
+  "keywords": [
+    "events"
+  ],
+  "author": "Deema Eevanov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dfcreative/enot/issues"
+  },
+  "homepage": "https://github.com/dfcreative/enot"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "enot",
+  "main": "index.js",
+  "version": "0.0.0",
+  "authors": [
+    "Dmitry <df.creative@gmail.com>"
+  ],
+  "description": "Event notation system",
+  "keywords": [
+    "events"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/dfcreative/enot",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
