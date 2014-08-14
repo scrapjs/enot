@@ -1,17 +1,19 @@
 # Enot
 
-Enot is an <em>e</em>vent <em>not</em>ation system. Rules are the same as CSS, but for events.
+Enot is an <em>e</em>vent <em>not</em>ation system. Rules are similar to CSS, but for events.
+
+Inspired by xtags events, backbone events and component/events notations.
 
 
 ##### Examples
 
-`click` - simple click event
+`click` - call on click
 
-`click:after(100)` - callback is called 100ms after click happened
+`click:after(100)` - call 100ms after click happens
 
-`click:throttle(200)` - fired not more often than 200ms
+`click:throttle(200)` - fire not more often than 200ms
 
-`click:one` - fired once
+`click:one` - fire once
 
 `keypress:pass(ctrl + alt + del)` - catch windows task manager call
 
@@ -19,50 +21,51 @@ Enot is an <em>e</em>vent <em>not</em>ation system. Rules are the same as CSS, b
 
 `touch` - normalized crossbrowser gesture
 
-`window message` - window got message
+`window message` - call on window gets message
 
-`document unload` - user is going to leave
+`document unload` - call on user is going to leave
 
-`.bad-link click` - prevent bad links click
+`.bad-link click` - elements matching selector click
+
+`document click:delegate(.bad-link)` - the same as above but in a better way
 
 `this.parentNode click:delegate(this.childNodes)` - hang click on parent, delegate to children
+
+`this.childNodes click` - catch click on every children
 
 
 ## Usage
 
-1. Install
+#### 1. Install
 
 `bower install enot`
+
+_OR_
+
 `npm install enot`
+
+_OR_
+
 `component install enot`
 
 
-2. Use
+#### 2. Use
 
 ```js
-//bind one
-enot.on(target, eventString, callback);
+var evtObj = enot.parse(target, 'document click:pass(right_mouse_button)', callback);
 
-//bind in bulk
-enot.on(target, {eventString: callback});
+/*
+evtObj === {
+	target: document,
+	handler: fn,
+	event: 'click'
+}
+*/
 
-//fire event
-enot.fire(target, eventString);
+evtObj.target.addEventListener( evtObj.event, evtObj.handler );
 
-//unbind one
-enot.off(target, eventString, callback);
-
-//unbind all
-enot.off(target, eventString);
 ```
 
-
-## Principle
-
-Enot tries to engage jQuery/DOM event systems, if they’re persist.
-It also falls back to own event system for non-DOM targets, like plain objects.
-
-Inspired by xtags events & backbone events notations.
 
 ## License
 

@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Enot tests</title>
+
+<link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+
+<div id="mocha"></div>
+
+<script src="../node_modules/require-stub/index.js"></script>
+<script src="../node_modules/mocha/mocha.js"></script>
+<script src="../node_modules/chai/chai.js"></script>
+
+<script>
+	mocha.setup('bdd');
+</script>
+
+<script src="../index.js" data-module-name="enot"></script>
+<script src="index.js"></script>
+
+<script>
+	if (window.mochaPhantomJS) {
+		mochaPhantomJS.run();
+	}
+	else {
+		mocha.checkLeaks();
+		mocha.run();
+	}
+</script>
