@@ -1,11 +1,12 @@
 {
   "name": "enot",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Event NOTation system",
   "main": "index.js",
   "scripts": {
+    "build": "browserify index.js --standalone enot > dist/enot.js && npm run minify && npm test",
     "test": "mocha-phantomjs test/index.html",
-    "build": "browserify index.js --standalone enot | uglifyjs -mc > dist/enot.js"
+    "minify": "ccjs dist/enot.js > dist/enot.min.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,8 @@
   "devDependencies": {
     "chai": "~1.9.1",
     "mocha": "~1.21.4",
-    "require-stub": "latest"
+    "require-stub": "latest",
+    "phantomjs": "~1.9.7-15",
+    "mocha-phantomjs": "~3.5.0"
   }
 }

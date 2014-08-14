@@ -5,7 +5,7 @@ var doc = global.document;
 
 //returns parsed event object from event reference
 module.exports =
-function (target, string, callback) {
+function enot(target, string, callback) {
 	// console.group('parse reference', '`' + string + '`')
 	var result = {};
 

@@ -67,6 +67,11 @@ evtObj.target.addEventListener( evtObj.event, evtObj.handler );
 ```
 
 
+## Development
+
+Run `npm run build` in order to build a new package.
+
+
 ## License
 
 MIT

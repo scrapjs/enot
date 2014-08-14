@@ -1,4 +1,4 @@
-var enot = require('../index');
+var enot = require('enot');
 var assert = require('chai').assert;
 
 describe("Enot", function(){
