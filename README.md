@@ -33,6 +33,8 @@ Inspired by xtags events, backbone events and component/events notations.
 
 `this.childNodes click` - catch click on every children
 
+`.element click, document keypress:pass(enter)` - bind two callbacks
+
 
 ## Usage
 
@@ -40,11 +42,7 @@ Inspired by xtags events, backbone events and component/events notations.
 
 `bower install enot`
 
-_OR_
-
 `npm install enot`
-
-_OR_
 
 `component install enot`
 
@@ -55,21 +53,21 @@ _OR_
 var evtObj = enot.parse(target, 'document click:pass(right_mouse_button)', callback);
 
 /*
-evtObj === {
+evtObj === [{
 	target: document,
 	handler: fn,
 	event: 'click'
-}
+}]
 */
 
-evtObj.target.addEventListener( evtObj.event, evtObj.handler );
+evtObj.target.addEventListener( evtObj.event, evtObj.handler[0] );
 
 ```
 
 
 ## Development
 
-Run `npm run build` in order to build a new package.
+`npm run build`.
 
 
 ## License
