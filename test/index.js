@@ -326,4 +326,31 @@ describe("Enot", function(){
 		assert.equal(i, 1);
 	})
 
+	it(':throttle mod case', function(done){
+		var i = 0;
+		var a = document.createElement('div');
+		enot.on(a, "click:throttle(20)", function(){
+			i++
+			assert.equal(this, a);
+		})
+
+		document.body.appendChild(a);
+
+		var interval = setInterval(function(){
+			dispatchEvt(a, "click")
+		},10)
+
+		setTimeout(function(){
+			//should be instantly called
+			assert.equal(i, 1);
+		}, 11);
+
+		setTimeout(function(){
+			clearInterval(interval);
+			//should be called twice less often than dispatched event
+			assert.closeTo(i, 8, 3);
+			done();
+		}, 200)
+	})
+
 });

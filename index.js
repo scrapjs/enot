@@ -408,22 +408,22 @@ enot.modifiers['delegate'] = function(evt, fn, selector){
 }
 
 //throttle call
+var throttleKeys = {};
 enot.modifiers['throttle'] = function(evt, fn, interval){
 	interval = parseFloat(interval)
 	// console.log('thro', evt, fn, interval)
 	var cb = function(e){
 		// console.log('thro cb')
 		var self = this,
-			scope = getScope(self),
-			throttleKey = '_throttle' + evt;
+			throttleKey = '_throttle' + id(self) + evt;
 
-		if (scope[throttleKey]) return DENY_EVT_CODE;
+		if (throttleKeys[throttleKey]) return DENY_EVT_CODE;
 		else {
 			var result = fn.call(self, e);
 			if (result === DENY_EVT_CODE) return result;
-			scope[throttleKey] = setTimeout(function(){
-				clearInterval(scope[throttleKey]);
-				scope[throttleKey] = null;
+			throttleKeys[throttleKey] = setTimeout(function(){
+				clearInterval(throttleKeys[throttleKey]);
+				throttleKeys[throttleKey] = null;
 			}, interval);
 		}
 	}
