@@ -1,4 +1,3 @@
-//TODO: keep callbacks list
 //TODO: unbind all callbacks
 //TODO: enhance keys detection
 //TODO: detect sequence events notation
@@ -11,6 +10,7 @@ var matches = require('matches-selector');
 
 var global = (1,eval)('this');
 var doc = global.document;
+
 
 //:pass shortcuts
 var keyDict = {
@@ -55,7 +55,8 @@ var $ = global.jQuery;
 
 var commaSplitRe = /\s*,\s*/;
 
-
+//target callbacks storage
+var callbacks = {};
 
 /**
 * Returns parsed event object from event reference
@@ -168,13 +169,14 @@ function on(target, evtRef, fn) {
 	//ignore not bindable sources
 	if (!target) return false;
 
-	var modifiedFnKey = '_on' + id(target) + evtRef;
+	var targetId = id(target);
+
+	var modifiedFnKey = '_on' + targetId + evtRef;
 
 	//ignore bound method reference
 	if (fn[modifiedFnKey]) return false;
 
 	fn[modifiedFnKey] = targetFn;
-
 
 	//use DOM events, if available
 	if (enot.isEventTarget(target)) {
@@ -188,12 +190,11 @@ function on(target, evtRef, fn) {
 		}
 	}
 
-	//fall back to default events
-	//FIXME: hide _callbacks to scope
 	else {
-		target._callbacks = target._callbacks || {};
-		(target._callbacks[evtObj.evt] = target._callbacks[evtObj.evt] || [])
-			.push(fn);
+		//save callback
+		var targetCallbacks = callbacks[targetId] = callbacks[targetId] || {};
+		(targetCallbacks[evtObj.evt] = targetCallbacks[evtObj.evt] || [])
+			.push(targetFn);
 	}
 
 	return fn;
@@ -224,7 +225,9 @@ function off(target, evtRef, fn){
 
 	if (!target) return;
 
-	var modifiedFnKey = '_on' + id(target) + evtRef;
+	var targetId = id(target);
+
+	var modifiedFnKey = '_on' + targetId + evtRef;
 	var targetFn = fn[modifiedFnKey] || fn;
 
 	//clear link
@@ -245,18 +248,18 @@ function off(target, evtRef, fn){
 
 	//use events mechanism
 	else {
-		target._callbacks = target._callbacks || {};
+		var targetCallbacks = callbacks[targetId] = callbacks[targetId] || {};
 
 		// specific event
-		var callbacks = target._callbacks[evtObj.evt];
-		if (!callbacks) return target;
+		var evtCallbacks = targetCallbacks[evtObj.evt];
+		if (!evtCallbacks) return;
 
 		// remove specific handler
 		var cb;
-		for (var i = 0; i < callbacks.length; i++) {
-			cb = callbacks[i];
+		for (var i = 0; i < evtCallbacks.length; i++) {
+			cb = evtCallbacks[i];
 			if (cb === fn || cb.fn === fn) {
-				callbacks.splice(i, 1);
+				evtCallbacks.splice(i, 1);
 				break;
 			}
 		}
@@ -274,35 +277,30 @@ enot['emit'] =
 enot['dispatchEvent'] =
 enot['trigger'] = function(target, evtRefs, data, bubbles){
 	if (evtRefs instanceof Event) {
-		return fireEvent(target, evtRefs);
+		return fire(target, evtRefs);
 	}
 
+	if (!evtRefs) return false;
+
 	each(evtRefs, function(evtRef){
-		fire(target, evtRef, data, bubbles);
+		var evtObj = enot.parse(target, evtRef);
+
+		if (!evtObj.evt) return false;
+
+		return enot.applyModifiers(function(){
+			fire(evtObj.el, evtObj.evt, data, bubbles);
+		}, evtObj)();
 	});
-}
-
-function fire(target, evtRef, data, bubbles){
-	var eventName;
-
-	if (!evtRef) return false;
-
-	var evtObj = enot.parse(target, evtRef);
-
-	if (!evtObj.evt) return false;
-
-
-	return enot.applyModifiers(function(){
-		fireEvent(evtObj.el, evtObj.evt, data, bubbles);
-	}, evtObj)();
 }
 
 
 /**
 * Event trigger
 */
-function fireEvent(target, eventName, data, bubbles){
+function fire(target, eventName, data, bubbles){
 	if (!target) return target;
+
+	var targetId = id(target);
 
 	//DOM events
 	if (enot.isEventTarget(target)) {
@@ -312,7 +310,7 @@ function fireEvent(target, eventName, data, bubbles){
 			evt.detail = data;
 			bubbles ? $(target).trigger(evt) : $(target).triggerHandler(evt);
 		} else {
-			//NOTE: this doesnot bubble in disattached elements
+			//NOTE: this doesnot bubble on disattached elements
 			var evt;
 
 			if (eventName instanceof Event) {
@@ -330,13 +328,13 @@ function fireEvent(target, eventName, data, bubbles){
 
 	//no-DOM events
 	else {
-		target._callbacks = target._callbacks || {};
-		var callbacks = target._callbacks[eventName];
+		var targetCallbacks = callbacks[targetId] = callbacks[targetId] || {};
+		var evtCallbacks = targetCallbacks[eventName];
 
-		if (callbacks) {
-			callbacks = callbacks.slice(0);
-			for (var i = 0, len = callbacks.length; i < len; ++i) {
-				callbacks[i].call(target, data);
+		if (evtCallbacks) {
+			evtCallbacks = evtCallbacks.slice(0);
+			for (var i = 0, len = evtCallbacks.length; i < len; ++i) {
+				evtCallbacks[i].call(target, data);
 			}
 		}
 	}

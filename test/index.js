@@ -301,14 +301,14 @@ describe("Enot", function(){
 		enot.on(target, '@a x, this.a y, @b z', function(){
 			i++;
 		});
-		enot.on(document.body, 'f', function(){
+		enot.on(document, 'f', function(){
 			i++
 		})
 
 		enot.fire(target.a, 'x,y');
 		assert.equal(i, 2);
 
-		enot.fire(document.body, 'z,f');
+		enot.fire(document.body, 'z,document f');
 		assert.equal(i,4);
 	})
 
