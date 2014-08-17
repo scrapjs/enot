@@ -1,51 +1,294 @@
-var enot = require('enot');
-var assert = require('chai').assert;
-
 describe("Enot", function(){
-	it("easy", function(){
-		var x = {};
-		var obj = enot(x, 'click', null);
-
-		assert.deepEqual(obj, {
-			event: 'click',
-			target: x,
-			handler: null
-		});
-	})
-
-	it("medium", function(){
+	it("parse", function(){
 		var i = 0;
 		var x = {};
 		var fn = function(){i++}
-		var obj = enot(x, 'document click:one', fn);
+		var obj = enot.parse(x, 'document click:one', fn);
 
-		assert.equal(obj.event, 'click')
+		assert.equal(obj.evt, 'click')
 		assert.notEqual(obj.handler, fn)
-		assert.equal(obj.target, document)
+		assert.equal(obj.el, document)
 	});
 
-	it.skip("hard", function(){
-		xxx
+
+	it("able to fire events", function(){
+		var i = 0;
+		var cb = function(e){
+			assert.equal(e.detail, 123)
+			enot.off(document, "hello", cb)
+			i++;
+		}
+		enot.on(document, "hello", cb)
+		enot.fire(document, "hello", 123)
+		enot.fire(document, "hello", 123)
+
+		assert.equal(i,1);
+	});
+
+	it("proper isEventTarget test", function(){
+		assert.ok(enot.isEventTarget(document.body))
+		assert.ok(enot.isEventTarget(document.createElement("div")))
+		assert.notOk(enot.isEventTarget({}))
 	})
 
-	it.skip("advanced", function(){
-		xxx
+	it("turn off callbacks", function(){
+		var i = 0;
+		var fn = function(e){
+			e.detail === 123 && i++
+		}
+		enot.on(document, "hello", fn)
+		enot.fire(document, "hello", 123)
+		assert.equal(i, 1)
+
+		enot.off(document, "hello", fn)
+		enot.fire(document, "hello", 123)
+		assert.equal(i, 1)
 	})
 
-	it.skip("expert", function(){
-		xxx
+	it("fire `one` callback once", function(){
+		var i = 0, j = 0;
+		enot.on(document, "hello:one", function(e){
+			e.detail === 123 && i++
+		})
+		enot.on(document, "hello:one", function(e){
+			e.detail === 123 && i++
+		})
+		enot.fire(document, "hello", 123)
+		assert.equal(i, 2)
+
+		enot.fire(document, "hello", 123)
+		assert.equal(i, 2)
+
+		enot.fire(document, "hello", 123)
+		assert.equal(i, 2)
+
+		//TODO: add multiple once events assertion (to test proper target fns bound in evtModifiers (there’re no closures))
 	})
 
-	it.skip("extreme", function(){
-		xxx
+
+	it("unbind :one callbacks", function(){
+		var a = document.createElement('div');
+		var log = []
+		var fn = function(){log.push(1)}
+
+		enot.on(a, 'a:one', fn)
+		enot.on(a, 'a:one', fn)
+		enot.fire(a, 'a');
+		enot.fire(a, 'a');
+
+		assert.deepEqual(log, [1])
+
+		log = [];
+		enot.on(a, 'b:one', fn)
+		enot.off(a, 'b:one', fn)
+		enot.on(a, 'b:one', fn)
+		enot.fire(a, 'b');
+		enot.fire(a, 'b');
+
+		assert.deepEqual(log, [1])
+
 	})
 
-	it.skip("chuck norris", function(){
-		xxx
+	it("handle :delegate modifier", function(){
+		var i = 0, j = 0;
+		var el = document.createElement("div");
+		document.body.appendChild(el);
+
+		var inc = function(){
+			i++
+		}
+		enot.on(document.body, "document hello:delegate(p, div, .some)", inc)
+
+		var sideLink = document.createElement("span");
+		document.body.appendChild(sideLink);
+		enot.on(sideLink, "hello", function(){
+			j++
+		})
+
+		enot.fire(document.body, "hello");
+		assert.equal(i, 0);
+
+		enot.fire(el, "hello", null, true);
+		assert.equal(i, 1);
+
+		enot.fire(sideLink, "hello", null, true);
+		assert.equal(i, 1);
+		assert.equal(j, 1);
+
+		enot.off(document.body, "document hello:delegate(div)", inc)
 	})
 
-	it.skip("asian", function(){
-		xxx
+	it("filter click:pass modifier", function(){
+			var i = 0;
+			var el = document.createElement("div");
+			document.body.appendChild(el);
+
+			enot.on(el, "click:pass(right_mouse, left_mouse)", function(e){
+				// console.log("filtered click")
+				i++
+			})
+			enot.on(el, "click", function(){
+				// console.log("simple click")
+			})
+
+			var evt = createMouseEvt("click", 1)
+			enot.fire(el, evt);
+
+			assert.equal(i, 0)
+
+			// console.log("----fire 2")
+			var evt = createMouseEvt("click", 2)
+			enot.fire(el, evt);
+
+			assert.equal(i, 1)
+
+		})
+
+	it("filter keypress:pass modifier", function(){
+		var k = 0, a = 0, ka=0;
+		var el = document.createElement("div");
+
+		enot.on(el, "keydown", function(e){
+			// console.log("all", e)
+			a++
+		})
+		enot.on(el, "keydown:pass(83, Enter)", function(e){
+			// console.log("→ filtered 1")
+			k++
+		})
+		enot.on(el, "keydown:pass(65, enter, 68)", function(e){
+			// console.log("→ filtered 2")
+			ka++
+		})
+
+		var evt = createKeyEvt("keydown", 65)
+
+		enot.fire(el, evt);
+		assert.equal(a, 1)
+		assert.equal(k, 0)
+		assert.equal(ka, 1)
+
+		// s
+		var evt = createKeyEvt("keydown", 83)
+		enot.fire(el, evt);
+		assert.equal(a, 2)
+		assert.equal(k, 1)
+		assert.equal(ka, 1)
+
+		// s2
+		var evt = createKeyEvt("keydown", 83)
+		enot.fire(el, evt);
+		assert.equal(a, 3)
+		assert.equal(k, 2)
+		assert.equal(ka, 1)
+
+		//enter
+		var evt = createKeyEvt("keydown", 13)
+		enot.fire(el, evt);
+		assert.equal(a, 4)
+		assert.equal(k, 3)
+		assert.equal(ka, 2)
+	});
+
+
+	it("able to combine modifiers", function(){
+		var i = 0;
+
+		var el = document.createElement("div");
+		el.className = "item";
+		var el2 = document.createElement("div");
+
+		document.body.appendChild(el)
+		document.body.appendChild(el2)
+
+		enot.on(document.body, "hello:one:delegate(.item)", function(e){
+			// console.log("old on")
+			e.detail === 123 && i++
+		})
+		enot.fire(document.body, "hello", 123, true)
+		assert.equal(i, 0)
+		enot.fire(el, "hello", 123, true)
+		assert.equal(i, 1)
+		enot.fire(el2, "hello", 123, true)
+		assert.equal(i, 1)
+		enot.fire(el, "hello", 123, true)
+		assert.equal(i, 1)
+
+		// once again
+		var i = 0;
+		enot.on(document.body, "keydown:delegate(.item, .post):pass(escape)", function(e){
+			// console.log("keypress shit", e)
+			i++
+		})
+
+		enot.fire(document.body, createKeyEvt("keypress", 27), 123, true)
+		assert.equal(i, 0)
+		enot.fire(el, createKeyEvt("keydown", 27), 123, true)
+		assert.equal(i, 1)
+		enot.fire(el2, "hello", createKeyEvt("keydown", 27), 123, true)
+		assert.equal(i, 1)
+		enot.fire(el, "hello", createKeyEvt("keydown", 29), 123, true)
+		assert.equal(i, 1)
+		enot.fire(el, createKeyEvt("keydown", 27), 123, true)
+		assert.equal(i, 2)
+	})
+
+	it("treat unknown modifiers as a part of event", function(){
+		var i = 0;
+		enot.on(document,"hello:world", function(){
+			i++
+		})
+		enot.fire(document, "hello:world")
+		assert.equal(i, 1);
+	})
+
+	it("not shit the bed with window binding", function(){
+		enot.on(document.body, 'window resize', function(){})
+	})
+
+	it("fire on discrete delegate target", function(){
+		var log = [];
+
+		enot.on(document, "document hello:delegate(.target)", function(){
+			log.push("hello")
+		})
+
+		var el = document.createElement("div");
+		var outerEl = document.createElement("div");
+		outerEl.className = "target";
+		outerEl.appendChild(el);
+		document.body.appendChild(outerEl)
+
+		dispatchEvt(el, "hello", null, true);
+
+		assert.deepEqual(log, ["hello"])
+	})
+
+
+	it("should fire events on different targets", function(){
+		var i = 0;
+		var a = document.createElement('div');
+		var b = document.createElement('div');
+		var fn = function(){i++}
+		enot.on(a, 'a', fn);
+		enot.on(b, 'a', fn);
+		enot.fire(a, 'a')
+		enot.fire(b, 'a')
+
+		assert.equal(i,2)
+	})
+
+	it("absent target", function(){
+		enot.on({}, '.xy a', function(){})
+		enot.off({}, '.xy a', function(){})
+	})
+
+	it("fire recognizes evtRef events", function(){
+		var i = 0;
+		enot.on(document, 'x', function(){i++});
+		enot.fire({}, 'document x');
+
+		assert.equal(i, 1);
 	})
 
 

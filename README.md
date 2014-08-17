@@ -35,16 +35,14 @@ Inspired by xtags events, backbone events and component/events notations.
 
 `.element click, document keypress:pass(enter)` - bind two callbacks
 
+`all` - call on any event
+
 
 ## Usage
 
 #### 1. Install
 
-`bower install enot`
-
 `npm install enot`
-
-`component install enot`
 
 
 #### 2. Use
@@ -63,6 +61,45 @@ evtObj === [{
 evtObj.target.addEventListener( evtObj.event, evtObj.handler[0] );
 
 ```
+
+
+## Targets
+
+* `.some-valid-selector > .inner-element`
+* `parent`
+* `document`
+* `window`
+* `body`
+* `this.property` — reference to target properties
+
+
+## Modifiers
+
+* `:one()` — the same as jQuery’s `one`
+* `:delegate(selector)` — the same as jQuery’s `delegate`
+* `:pass(code)` — filter event by matching `which` value. Useful for keyboard/mouse events.	List of codes:
+	* `ENTER: 13`
+	* `ESCAPE: 27`
+	* `TAB: 9`
+	* `ALT: 18`
+	* `CTRL: 17`
+	* `SHIFT: 16`
+	* `SPACE: 32`
+	* `PAGE_UP: 33`
+	* `PAGE_DOWN: 34`
+	* `END: 35`
+	* `HOME: 36`
+	* `LEFT: 37`
+	* `UP: 38`
+	* `RIGHT: 39`
+	* `DOWN: 40`
+	* `LEFT_MOUSE: 1`
+	* `RIGHT_MOUSE: 3`
+	* `MIDDLE_MOUSE: `
+* `:defer(100)` — invoke callback `100` ms after
+* `:throttle(20)` — invoke callbak not more than a time per 20 ms
+
+Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
 
 
 ## Development
