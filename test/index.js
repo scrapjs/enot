@@ -291,5 +291,25 @@ describe("Enot", function(){
 		assert.equal(i, 1);
 	})
 
+	it("recognize & fire listed declarations", function(){
+		var i = 0,
+			target = {
+			a: {},
+			b: document.body
+		}
+
+		enot.on(target, '@a x, this.a y, @b z', function(){
+			i++;
+		});
+		enot.on(document.body, 'f', function(){
+			i++
+		})
+
+		enot.fire(target.a, 'x,y');
+		assert.equal(i, 2);
+
+		enot.fire(document.body, 'z,f');
+		assert.equal(i,4);
+	})
 
 });

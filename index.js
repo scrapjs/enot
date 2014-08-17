@@ -1,3 +1,8 @@
+//TODO: keep callbacks list
+//TODO: unbind all callbacks
+//TODO: enhance keys detection
+//TODO: detect sequence events notation
+
 var enot = module.exports = {};
 
 var id = require('object-id');
@@ -101,6 +106,9 @@ enot.parseTarget = function(target, str) {
 	else if (/^this\./.test(str)){
 		return target[str.slice(5)]
 	}
+	else if(str[0] === '@'){
+		return target[str.slice(1)]
+	}
 
 	//return global variable
 	else {
@@ -134,23 +142,155 @@ enot.applyModifiers = function(fn, evtObj){
 }
 
 
+
+
+/**
+* Listed reference binder
+*/
+enot['addEventListener'] =
+enot['bind'] =
+enot['on'] = function(target, evtRefs, fn){
+	if (!evtRefs) return false;
+
+	each(evtRefs, function(evtRef){
+		on(target, evtRef, fn);
+	});
+}
+
+//single reference binder
+function on(target, evtRef, fn) {
+	//use DOM events
+	var evtObj = enot.parse(target, evtRef, fn);
+
+	target = evtObj.el;
+	var targetFn = evtObj.handler;
+
+	//ignore not bindable sources
+	if (!target) return false;
+
+	var modifiedFnKey = '_on' + id(target) + evtRef;
+
+	//ignore bound method reference
+	if (fn[modifiedFnKey]) return false;
+
+	fn[modifiedFnKey] = targetFn;
+
+
+	//use DOM events, if available
+	if (enot.isEventTarget(target)) {
+		//bind target fn
+		if ($){
+			//delegate to jquery
+			$(target).on(evtObj.evt, targetFn);
+		} else {
+			//listen element
+			target.addEventListener(evtObj.evt, targetFn)
+		}
+	}
+
+	//fall back to default events
+	//FIXME: hide _callbacks to scope
+	else {
+		target._callbacks = target._callbacks || {};
+		(target._callbacks[evtObj.evt] = target._callbacks[evtObj.evt] || [])
+			.push(fn);
+	}
+
+	return fn;
+}
+
+
+/**
+* Listed reference unbinder
+*/
+enot['removeEventListener'] =
+enot['unbind'] =
+enot['off'] = function(target, evtRefs, fn){
+	//FIXME: remove all listeners?
+	if (!evtRefs) return false;
+
+	each(evtRefs, function(evtRef){
+		off(target, evtRef, fn);
+	});
+}
+
+//single reference unbinder
+function off(target, evtRef, fn){
+	//FIXME: remove all event listeners? Find use-case
+	if (!fn) return;
+
+	var evtObj = enot.parse(target, evtRef);
+	var target = evtObj.el;
+
+	if (!target) return;
+
+	var modifiedFnKey = '_on' + id(target) + evtRef;
+	var targetFn = fn[modifiedFnKey] || fn;
+
+	//clear link
+	fn[modifiedFnKey] = null;
+
+	//use DOM events on elements
+	if (enot.isEventTarget(target)) {
+		//delegate to jquery
+		if ($){
+			$(target).off(evtObj.evt, targetFn);
+		}
+
+		//listen element
+		else {
+			target.removeEventListener(evtObj.evt, targetFn)
+		}
+	}
+
+	//use events mechanism
+	else {
+		target._callbacks = target._callbacks || {};
+
+		// specific event
+		var callbacks = target._callbacks[evtObj.evt];
+		if (!callbacks) return target;
+
+		// remove specific handler
+		var cb;
+		for (var i = 0; i < callbacks.length; i++) {
+			cb = callbacks[i];
+			if (cb === fn || cb.fn === fn) {
+				callbacks.splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	return fn;
+}
+
+
 /**
 * Dispatch event to any target
 */
-enot.fire = function(target, evtRef, data, bubbles){
+enot['fire'] =
+enot['emit'] =
+enot['dispatchEvent'] =
+enot['trigger'] = function(target, evtRefs, data, bubbles){
+	if (evtRefs instanceof Event) {
+		return fireEvent(target, evtRefs);
+	}
+
+	each(evtRefs, function(evtRef){
+		fire(target, evtRef, data, bubbles);
+	});
+}
+
+function fire(target, evtRef, data, bubbles){
 	var eventName;
 
-	if (evtRef instanceof Event) {
-		return fireEvent(target, evtRef);
-	}
+	if (!evtRef) return false;
 
-	else {
-		if (!evtRef) return false;
+	var evtObj = enot.parse(target, evtRef);
 
-		var evtObj = enot.parse(target, evtRef);
+	if (!evtObj.evt) return false;
 
-		if (!evtObj.evt) return false;
-	}
 
 	return enot.applyModifiers(function(){
 		fireEvent(evtObj.el, evtObj.evt, data, bubbles);
@@ -201,106 +341,6 @@ function fireEvent(target, eventName, data, bubbles){
 		}
 	}
 }
-
-
-/**
-* Bind any target
-*/
-enot.on = function (target, evtRef, fn) {
-	//use DOM events
-	var evtObj = enot.parse(target, evtRef, fn);
-
-	target = evtObj.el;
-	var targetFn = evtObj.handler;
-
-	//ignore not bindable sources
-	if (!target) return false;
-
-	var modifiedFnKey = '_on' + id(target) + evtRef;
-
-	//ignore bound method reference
-	if (fn[modifiedFnKey]) return false;
-
-	fn[modifiedFnKey] = targetFn;
-
-
-	//use DOM events, if available
-	if (enot.isEventTarget(target)) {
-		//bind target fn
-		if ($){
-			//delegate to jquery
-			$(target).on(evtObj.evt, targetFn);
-		} else {
-			//listen element
-			target.addEventListener(evtObj.evt, targetFn)
-		}
-	}
-
-	//fall back to default events
-	//FIXME: hide _callbacks to scope
-	else {
-		target._callbacks = target._callbacks || {};
-		(target._callbacks[evtObj.evt] = target._callbacks[evtObj.evt] || [])
-			.push(fn);
-	}
-
-	return fn;
-}
-
-
-/**
-* Unbind any target
-*/
-enot.off = function(target, evtRef, fn){
-	//FIXME: remove all event listeners? Find use-case
-	if (!fn) return;
-
-	var evtObj = enot.parse(target, evtRef);
-	var target = evtObj.el;
-
-	if (!target) return;
-
-	var modifiedFnKey = '_on' + id(target) + evtRef;
-	var targetFn = fn[modifiedFnKey] || fn;
-
-	//clear link
-	fn[modifiedFnKey] = null;
-
-	//use DOM events on elements
-	if (enot.isEventTarget(target)) {
-		//delegate to jquery
-		if ($){
-			$(target).off(evtObj.evt, targetFn);
-		}
-
-		//listen element
-		else {
-			target.removeEventListener(evtObj.evt, targetFn)
-		}
-	}
-
-	//use events mechanism
-	else {
-		target._callbacks = target._callbacks || {};
-
-		// specific event
-		var callbacks = target._callbacks[evtObj.evt];
-		if (!callbacks) return target;
-
-		// remove specific handler
-		var cb;
-		for (var i = 0; i < callbacks.length; i++) {
-			cb = callbacks[i];
-			if (cb === fn || cb.fn === fn) {
-				callbacks.splice(i, 1);
-				break;
-			}
-		}
-	}
-
-	return fn;
-}
-
 
 
 
@@ -388,6 +428,7 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
 
 //defer call - call Nms later invoking method/event
 enot.modifiers['after'] =
+enot.modifiers['async'] =
 enot.modifiers['defer'] = function(evt, fn, delay){
 	delay = parseFloat(delay)
 	// console.log('defer', evt, delay)
@@ -409,6 +450,21 @@ enot.isEventTarget = function(target){
 	return target && !!target.addEventListener;
 }
 
+
+//match every comma-separated element ignoring 1-level parenthesis, like `1,2(3,4),5`
+var commaMatchRe = /(,[^,]*?(?:\([^()]+\)[^,]*)?)(?=,|$)/g
+
+//iterate over every item in string
+function each(str, fn){
+	var list = (',' + str).match(commaMatchRe) || [''];
+	for (var i = 0; i < list.length; i++) {
+		// console.log(matchStr)
+		var matchStr = list[i].trim();
+		if (matchStr[0] === ',') matchStr = matchStr.slice(1);
+		matchStr = matchStr.trim();
+		fn(matchStr, i);
+	}
+}
 
 // onEvt → Evt
 function unprefixize(str, pf){
