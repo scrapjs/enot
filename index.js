@@ -112,6 +112,12 @@ enot.parseTarget = function(target, str) {
 		return target[str.slice(1)]
 	}
 
+	else if(str === 'this') return target;
+	else if(str === '@') return target;
+
+	else if(str === 'body') return document.body;
+	else if(str === 'root') return document.documentElement;
+
 	//return global variable
 	else {
 		return global[str];

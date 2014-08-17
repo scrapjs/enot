@@ -312,4 +312,18 @@ describe("Enot", function(){
 		assert.equal(i,4);
 	})
 
+	it('mod delegate case', function(){
+		var i = 0;
+		enot.on(null, 'body evt:delegate(.a)', function(){
+			i++
+		});
+
+		var el = document.createElement("div");
+		el.className = "a";
+		document.body.appendChild(el);
+
+		dispatchEvt(el, "evt", true, true);
+		assert.equal(i, 1);
+	})
+
 });
