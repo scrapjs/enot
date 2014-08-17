@@ -6,6 +6,7 @@ var enot = module.exports = {};
 
 var id = require('object-id');
 var matches = require('matches-selector');
+var eachCSV = require('each-csv');
 
 
 var global = (1,eval)('this');
@@ -153,7 +154,7 @@ enot['bind'] =
 enot['on'] = function(target, evtRefs, fn){
 	if (!evtRefs) return false;
 
-	each(evtRefs, function(evtRef){
+	eachCSV(evtRefs, function(evtRef){
 		on(target, evtRef, fn);
 	});
 }
@@ -210,7 +211,7 @@ enot['off'] = function(target, evtRefs, fn){
 	//FIXME: remove all listeners?
 	if (!evtRefs) return false;
 
-	each(evtRefs, function(evtRef){
+	eachCSV(evtRefs, function(evtRef){
 		off(target, evtRef, fn);
 	});
 }
@@ -282,7 +283,7 @@ enot['trigger'] = function(target, evtRefs, data, bubbles){
 
 	if (!evtRefs) return false;
 
-	each(evtRefs, function(evtRef){
+	eachCSV(evtRefs, function(evtRef){
 		var evtObj = enot.parse(target, evtRef);
 
 		if (!evtObj.evt) return false;
@@ -448,21 +449,6 @@ enot.isEventTarget = function(target){
 	return target && !!target.addEventListener;
 }
 
-
-//match every comma-separated element ignoring 1-level parenthesis, like `1,2(3,4),5`
-var commaMatchRe = /(,[^,]*?(?:\([^()]+\)[^,]*)?)(?=,|$)/g
-
-//iterate over every item in string
-function each(str, fn){
-	var list = (',' + str).match(commaMatchRe) || [''];
-	for (var i = 0; i < list.length; i++) {
-		// console.log(matchStr)
-		var matchStr = list[i].trim();
-		if (matchStr[0] === ',') matchStr = matchStr.slice(1);
-		matchStr = matchStr.trim();
-		fn(matchStr, i);
-	}
-}
 
 // onEvt → Evt
 function unprefixize(str, pf){

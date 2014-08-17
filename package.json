@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "object-id": "0.0.1",
-    "matches-selector": "~1.0.0"
+    "matches-selector": "~1.0.0",
+    "each-csv": "0.0.1"
   }
 }
