@@ -1,7 +1,7 @@
 {
   "name": "enot",
   "main": "index.js",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "authors": [
     "Dmitry <df.creative@gmail.com>"
   ],
