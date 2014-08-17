@@ -306,94 +306,100 @@ enot.off = function(target, evtRef, fn){
 
 //list of available event modifiers
 var DENY_EVT_CODE = 1;
-enot.modifiers = {
-	//call callback once
-	one: function(evt, fn){
-		var cb = function(e){
-			// console.log('once cb', fn)
-			var result = fn && fn.call(this, e);
-			//FIXME: `this` is not necessarily has `off`
-			result !== DENY_EVT_CODE && enot.off(this, evt, cb);
-			return result;
-		}
-		return cb;
-	},
+enot.modifiers = {};
 
-	//filter keys
-	pass: function(evt, fn, keys){
-		keys = keys.split(commaSplitRe).map(upper);
-
-		var cb = function(e){
-			var pass = false, key;
-			for (var i = keys.length; i--;){
-				key = keys[i]
-				var which = 'originalEvent' in e ? e.originalEvent.which : e.which;
-				if ((key in keyDict && keyDict[key] == which) || which == key){
-					pass = true;
-					return fn.call(this, e);
-				}
-			};
-			return DENY_EVT_CODE;
-		}
-		return cb
-	},
-
-	//filter target
-	delegate: function(evt, fn, selector){
-		var cb = function(e){
-			// console.log('delegate cb', e, selector)
-			if (!(e.target instanceof HTMLElement)) return DENY_EVT_CODE;
-
-			var target = e.target;
-
-			while (target && target !== this) {
-				if (matches(target, selector)) return fn.call(this, e);
-				target = target.parentNode;
-			}
-
-			return DENY_EVT_CODE;
-		}
-		return cb;
-	},
-
-	//throttle call
-	throttle: function(evt, fn, interval){
-		interval = parseFloat(interval)
-		// console.log('thro', evt, fn, interval)
-		var cb = function(e){
-			// console.log('thro cb')
-			var self = this,
-				scope = getScope(self),
-				throttleKey = '_throttle' + evt;
-
-			if (scope[throttleKey]) return DENY_EVT_CODE;
-			else {
-				var result = fn.call(self, e);
-				if (result === DENY_EVT_CODE) return result;
-				scope[throttleKey] = setTimeout(function(){
-					clearInterval(scope[throttleKey]);
-					scope[throttleKey] = null;
-				}, interval);
-			}
-		}
-
-		return cb
-	},
-
-	//defer call - call Nms later invoking method/event
-	after: function(evt, fn, delay){
-		delay = parseFloat(delay)
-		// console.log('defer', evt, delay)
-		var cb = function(e){
-			// console.log('defer cb')
-			var self = this;
-			setTimeout(function(){
-				return fn.call(self, e);
-			}, delay);
-		}
-
-		return cb
+//call callback once
+enot.modifiers['one'] =
+enot.modifiers['once'] = function(evt, fn){
+	var cb = function(e){
+		// console.log('once cb', fn)
+		var result = fn && fn.call(this, e);
+		//FIXME: `this` is not necessarily has `off`
+		result !== DENY_EVT_CODE && enot.off(this, evt, cb);
+		return result;
 	}
+	return cb;
+}
+
+//filter keys
+enot.modifiers['keypass'] =
+enot.modifiers['mousepass'] =
+enot.modifiers['pass'] = function(evt, fn, keys){
+	keys = keys.split(commaSplitRe).map(upper);
+
+	var cb = function(e){
+		var pass = false, key;
+		for (var i = keys.length; i--;){
+			key = keys[i]
+			var which = 'originalEvent' in e ? e.originalEvent.which : e.which;
+			if ((key in keyDict && keyDict[key] == which) || which == key){
+				pass = true;
+				return fn.call(this, e);
+			}
+		};
+		return DENY_EVT_CODE;
+	}
+	return cb
+}
+
+//filter target
+enot.modifiers['live'] =
+enot.modifiers['on'] =
+enot.modifiers['delegate'] = function(evt, fn, selector){
+	var cb = function(e){
+		// console.log('delegate cb', e, selector)
+		if (!(e.target instanceof HTMLElement)) return DENY_EVT_CODE;
+
+		var target = e.target;
+
+		while (target && target !== this) {
+			if (matches(target, selector)) return fn.call(this, e);
+			target = target.parentNode;
+		}
+
+		return DENY_EVT_CODE;
+	}
+	return cb;
+}
+
+//throttle call
+enot.modifiers['throttle'] = function(evt, fn, interval){
+	interval = parseFloat(interval)
+	// console.log('thro', evt, fn, interval)
+	var cb = function(e){
+		// console.log('thro cb')
+		var self = this,
+			scope = getScope(self),
+			throttleKey = '_throttle' + evt;
+
+		if (scope[throttleKey]) return DENY_EVT_CODE;
+		else {
+			var result = fn.call(self, e);
+			if (result === DENY_EVT_CODE) return result;
+			scope[throttleKey] = setTimeout(function(){
+				clearInterval(scope[throttleKey]);
+				scope[throttleKey] = null;
+			}, interval);
+		}
+	}
+
+	return cb
+}
+
+//defer call - call Nms later invoking method/event
+enot.modifiers['after'] =
+enot.modifiers['defer'] = function(evt, fn, delay){
+	delay = parseFloat(delay)
+	// console.log('defer', evt, delay)
+	var cb = function(e){
+		// console.log('defer cb')
+		var self = this;
+		setTimeout(function(){
+			return fn.call(self, e);
+		}, delay);
+	}
+
+	return cb
 }
 
 
