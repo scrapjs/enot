@@ -62,7 +62,7 @@ var callbacks = {};
 /**
 * Returns parsed event object from event reference
 */
-enot.parse = function(target, string, callback) {
+function parse(target, string, callback) {
 	// console.group('parse reference', '`' + string + '`')
 	var result = {};
 
@@ -71,7 +71,7 @@ enot.parse = function(target, string, callback) {
 
 	//remainder is a target reference - parse target
 	string = string.slice(0, -eventString.length).trim();
-	result.el = enot.parseTarget(target, string);
+	result.el = parseTarget(target, string);
 
 	//parse modifiers
 	var eventParams = unprefixize(eventString, 'on').split(':');
@@ -82,7 +82,7 @@ enot.parse = function(target, string, callback) {
 
 	//save resulting handler
 	if (callback) {
-		result.handler = enot.applyModifiers(callback, result);
+		result.handler = applyModifiers(callback, result);
 	}
 
 
@@ -94,7 +94,7 @@ enot.parse = function(target, string, callback) {
 /**
 * Retrieve source element from string
 */
-enot.parseTarget = function(target, str) {
+function parseTarget(target, str) {
 	if (!str){
 		return target
 	}
@@ -129,7 +129,7 @@ enot.parseTarget = function(target, str) {
 * Apply event modifiers to string.
 * Returns wrapped fn.
 */
-enot.applyModifiers = function(fn, evtObj){
+function applyModifiers(fn, evtObj){
 	var targetFn = fn;
 
 	//:one modifier should be the last one
@@ -168,7 +168,7 @@ enot['on'] = function(target, evtRefs, fn){
 //single reference binder
 function on(target, evtRef, fn) {
 	//use DOM events
-	var evtObj = enot.parse(target, evtRef, fn);
+	var evtObj = parse(target, evtRef, fn);
 
 	target = evtObj.el;
 	var targetFn = evtObj.handler;
@@ -227,7 +227,7 @@ function off(target, evtRef, fn){
 	//FIXME: remove all event listeners? Find use-case
 	if (!fn) return;
 
-	var evtObj = enot.parse(target, evtRef);
+	var evtObj = parse(target, evtRef);
 	var target = evtObj.el;
 
 	if (!target) return;
@@ -290,11 +290,11 @@ enot['trigger'] = function(target, evtRefs, data, bubbles){
 	if (!evtRefs) return false;
 
 	eachCSV(evtRefs, function(evtRef){
-		var evtObj = enot.parse(target, evtRef);
+		var evtObj = parse(target, evtRef);
 
 		if (!evtObj.evt) return false;
 
-		return enot.applyModifiers(function(){
+		return applyModifiers(function(){
 			fire(evtObj.el, evtObj.evt, data, bubbles);
 		}, evtObj)();
 	});

@@ -1,10 +1,10 @@
 {
   "name": "enot",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Event NOTation system",
   "main": "index.js",
   "scripts": {
-    "build": "browserify index.js --standalone enot > dist/enot.js",
+    "build": "browserify index.js --standalone enot > dist/enot.js && npm run minify && npm test",
     "test": "mocha-phantomjs test/index.html",
     "minify": "ccjs dist/enot.js --compilation_level=SIMPLE > dist/enot.min.js"
   },

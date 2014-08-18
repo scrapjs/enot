@@ -1,14 +1,14 @@
 describe("Enot", function(){
-	it("parse", function(){
-		var i = 0;
-		var x = {};
-		var fn = function(){i++}
-		var obj = enot.parse(x, 'document click:one', fn);
+	// it("parse", function(){
+	// 	var i = 0;
+	// 	var x = {};
+	// 	var fn = function(){i++}
+	// 	var obj = enot.parse(x, 'document click:one', fn);
 
-		assert.equal(obj.evt, 'click')
-		assert.notEqual(obj.handler, fn)
-		assert.equal(obj.el, document)
-	});
+	// 	assert.equal(obj.evt, 'click')
+	// 	assert.notEqual(obj.handler, fn)
+	// 	assert.equal(obj.el, document)
+	// });
 
 
 	it("able to fire events", function(){
