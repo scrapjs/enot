@@ -25,11 +25,11 @@ describe("Enot", function(){
 		assert.equal(i,1);
 	});
 
-	it("proper isEventTarget test", function(){
-		assert.ok(enot.isEventTarget(document.body))
-		assert.ok(enot.isEventTarget(document.createElement("div")))
-		assert.notOk(enot.isEventTarget({}))
-	})
+	// it("proper isEventTarget test", function(){
+	// 	assert.ok(enot.isEventTarget(document.body))
+	// 	assert.ok(enot.isEventTarget(document.createElement("div")))
+	// 	assert.notOk(enot.isEventTarget({}))
+	// })
 
 	it("turn off callbacks", function(){
 		var i = 0;

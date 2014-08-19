@@ -2,7 +2,7 @@
 //TODO: enhance keys detection
 //TODO: detect sequence events notation
 
-var enot = module.exports = {};
+var enot = module['exports'] = {};
 
 var id = require('object-id');
 var matches = require('matches-selector');
@@ -155,8 +155,8 @@ function applyModifiers(fn, evtObj){
 /**
 * Listed reference binder
 */
-enot['addEventListener'] =
-enot['bind'] =
+// enot['addEventListener'] =
+// enot['bind'] =
 enot['on'] = function(target, evtRefs, fn){
 	if (!evtRefs) return false;
 
@@ -211,8 +211,8 @@ function on(target, evtRef, fn) {
 /**
 * Listed reference unbinder
 */
-enot['removeEventListener'] =
-enot['unbind'] =
+// enot['removeEventListener'] =
+// enot['unbind'] =
 enot['off'] = function(target, evtRefs, fn){
 	//FIXME: remove all listeners?
 	if (!evtRefs) return false;
@@ -279,10 +279,10 @@ function off(target, evtRef, fn){
 /**
 * Dispatch event to any target
 */
-enot['fire'] =
-enot['emit'] =
-enot['dispatchEvent'] =
-enot['trigger'] = function(target, evtRefs, data, bubbles){
+// enot['trigger'] =
+// enot['emit'] =
+// enot['dispatchEvent'] =
+enot['fire'] = function(target, evtRefs, data, bubbles){
 	if (evtRefs instanceof Event) {
 		return fire(target, evtRefs);
 	}
@@ -354,8 +354,8 @@ var DENY_EVT_CODE = 1;
 enot.modifiers = {};
 
 //call callback once
-enot.modifiers['one'] =
-enot.modifiers['once'] = function(evt, fn){
+// enot.modifiers['once'] =
+enot.modifiers['one'] = function(evt, fn){
 	var cb = function(e){
 		// console.log('once cb', fn)
 		var result = fn && fn.call(this, e);
@@ -367,8 +367,8 @@ enot.modifiers['once'] = function(evt, fn){
 }
 
 //filter keys
-enot.modifiers['keypass'] =
-enot.modifiers['mousepass'] =
+// enot.modifiers['keypass'] =
+// enot.modifiers['mousepass'] =
 enot.modifiers['pass'] = function(evt, fn, keys){
 	keys = keys.split(commaSplitRe).map(upper);
 
@@ -388,8 +388,8 @@ enot.modifiers['pass'] = function(evt, fn, keys){
 }
 
 //filter target
-enot.modifiers['live'] =
-enot.modifiers['on'] =
+// enot.modifiers['live'] =
+// enot.modifiers['on'] =
 enot.modifiers['delegate'] = function(evt, fn, selector){
 	var cb = function(e){
 		// console.log('delegate cb', e, selector)
@@ -432,8 +432,8 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
 }
 
 //defer call - call Nms later invoking method/event
-enot.modifiers['after'] =
-enot.modifiers['async'] =
+// enot.modifiers['after'] =
+// enot.modifiers['async'] =
 enot.modifiers['defer'] = function(evt, fn, delay){
 	delay = parseFloat(delay)
 	// console.log('defer', evt, delay)
