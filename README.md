@@ -9,17 +9,17 @@ Inspired by xtags events, backbone events and component/events notations.
 
 `click` - call on click
 
-`click:after(100)` - call 100ms after click happens
+`click:defer(100)` - call 100ms after click happens
 
 `click:throttle(200)` - fire not more often than 200ms
 
 `click:one` - fire once
 
-`keypress:pass(ctrl + alt + del)` - catch windows task manager call
+<!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
 
-`keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent.
+<!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
 
-`touch` - normalized crossbrowser gesture
+<!-- `touch` - normalized crossbrowser gesture -->
 
 `window message` - call on window gets message
 
@@ -31,11 +31,11 @@ Inspired by xtags events, backbone events and component/events notations.
 
 `this.parentNode click:delegate(this.childNodes)` - hang click on parent, delegate to children
 
-`this.childNodes click` - catch click on every children
+<!-- `this.childNodes click` - catch click on every children -->
 
 `.element click, document keypress:pass(enter)` - bind two callbacks
 
-`all` - call on any event
+<!-- `all` - call on any event -->
 
 
 ## Usage
@@ -47,18 +47,11 @@ Inspired by xtags events, backbone events and component/events notations.
 
 #### 2. Use
 
+Enot implements [Emitter](https://github.com/component/emitter) interface:
 ```js
-var evtObj = enot.parse(target, 'document click:pass(right_mouse_button)', callback);
-
-/*
-evtObj === [{
-	target: document,
-	handler: fn,
-	event: 'click'
-}]
-*/
-
-evtObj.target.addEventListener( evtObj.event, evtObj.handler[0] );
+var evtObj = enot.on(target, 'document click:pass(right_mouse)', callback);
+var evtObj = enot.off(target, 'document click:pass(right_mouse)', callback);
+var evtObj = enot.fire(target, 'document click:pass(right_mouse)', callback);
 
 ```
 
@@ -70,6 +63,7 @@ evtObj.target.addEventListener( evtObj.event, evtObj.handler[0] );
 * `document`
 * `window`
 * `body`
+* `root`
 * `this.property` — reference to target properties
 
 
