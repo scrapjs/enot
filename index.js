@@ -4,7 +4,6 @@
 
 var enot = module['exports'] = {};
 
-var id = require('object-id');
 var matches = require('matches-selector');
 var eachCSV = require('each-csv');
 
@@ -150,6 +149,11 @@ function applyModifiers(fn, evtObj){
 }
 
 
+//set of modified callbacks associated with fns, {fn: {evtRef: modifiedFn, evtRef: modifiedFn}}
+var modifiedCbCache = new WeakMap;
+
+//set of target callbacks, {target: [cb1, cb2, ...]}
+var targetCbCache = new WeakMap;
 
 
 /**
@@ -176,17 +180,23 @@ function on(target, evtRef, fn) {
 	//ignore not bindable sources
 	if (!target) return false;
 
-	var targetId = id(target);
 
-	var modifiedFnKey = '_on' + targetId + evtRef;
+	//if fn has been modified - save modified fn (in order to unbind it properly)
+	if (targetFn !== fn) {
+		//bind new event
+		if (!modifiedCbCache.has(fn)) modifiedCbCache.set(fn, {});
+		var modifiedCbs = modifiedCbCache.get(fn);
 
-	//ignore bound method reference
-	if (fn[modifiedFnKey]) return false;
+		//ignore bound event
+		if (modifiedCbs[evtRef]) return false;
 
-	fn[modifiedFnKey] = targetFn;
+		//save modified callback
+		modifiedCbs[evtRef] = targetFn;
+	}
 
-	//use DOM events, if available
-	if (enot.isEventTarget(target)) {
+
+	//DOM events
+	if (isEventTarget(target)) {
 		//bind target fn
 		if ($){
 			//delegate to jquery
@@ -197,11 +207,14 @@ function on(target, evtRef, fn) {
 		}
 	}
 
+	//Non-DOM events
 	else {
+		//ensure callbacks array for target exist
+		if (!targetCbCache.has(target)) targetCbCache.set(target, {});
+		var targetCallbacks = targetCbCache.get(target);
+
 		//save callback
-		var targetCallbacks = callbacks[targetId] = callbacks[targetId] || {};
-		(targetCallbacks[evtObj.evt] = targetCallbacks[evtObj.evt] || [])
-			.push(targetFn);
+		(targetCallbacks[evtObj.evt] = targetCallbacks[evtObj.evt] || []).push(targetFn);
 	}
 
 	return fn;
@@ -232,16 +245,21 @@ function off(target, evtRef, fn){
 
 	if (!target) return;
 
-	var targetId = id(target);
+	var targetFn = fn;
 
-	var modifiedFnKey = '_on' + targetId + evtRef;
-	var targetFn = fn[modifiedFnKey] || fn;
+	//try to clean cached modified callback
+	console.log(modifiedCbCache)
+	if (modifiedCbCache.has(fn)) {
+		var modifiedCbs = modifiedCbCache.get(fn);
+		if (modifiedCbs[evtRef]) targetFn = modifiedCbs[evtRef];
 
-	//clear link
-	fn[modifiedFnKey] = null;
+		//clear reference
+		modifiedCbs[evtRef] = null;
+	}
 
-	//use DOM events on elements
-	if (enot.isEventTarget(target)) {
+
+	//DOM events on elements
+	if (isEventTarget(target)) {
 		//delegate to jquery
 		if ($){
 			$(target).off(evtObj.evt, targetFn);
@@ -253,19 +271,17 @@ function off(target, evtRef, fn){
 		}
 	}
 
-	//use events mechanism
+	//non-DOM events
 	else {
-		var targetCallbacks = callbacks[targetId] = callbacks[targetId] || {};
+		//ignore if no event specified
+		if (!targetCbCache.has(target)) return;
+		var evtCallbacks = targetCbCache.get(target)[evtObj.evt];
 
-		// specific event
-		var evtCallbacks = targetCallbacks[evtObj.evt];
 		if (!evtCallbacks) return;
 
-		// remove specific handler
-		var cb;
+		//remove specific handler
 		for (var i = 0; i < evtCallbacks.length; i++) {
-			cb = evtCallbacks[i];
-			if (cb === fn || cb.fn === fn) {
+			if (evtCallbacks[i] === targetFn) {
 				evtCallbacks.splice(i, 1);
 				break;
 			}
@@ -307,10 +323,8 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 function fire(target, eventName, data, bubbles){
 	if (!target) return target;
 
-	var targetId = id(target);
-
 	//DOM events
-	if (enot.isEventTarget(target)) {
+	if (isEventTarget(target)) {
 		if ($){
 			//TODO: decide how to pass data
 			var evt = $.Event( eventName, data );
@@ -335,14 +349,14 @@ function fire(target, eventName, data, bubbles){
 
 	//no-DOM events
 	else {
-		var targetCallbacks = callbacks[targetId] = callbacks[targetId] || {};
-		var evtCallbacks = targetCallbacks[eventName];
+		//ignore if no event specified
+		if (!targetCbCache.has(target)) return;
+		var evtCallbacks = targetCbCache.get(target)[eventName];
 
-		if (evtCallbacks) {
-			evtCallbacks = evtCallbacks.slice(0);
-			for (var i = 0, len = evtCallbacks.length; i < len; ++i) {
-				evtCallbacks[i].call(target, data);
-			}
+		if (!evtCallbacks) return;
+
+		for (var i = 0, len = evtCallbacks.length; i < len; i++) {
+			evtCallbacks[i].call(target, data);
 		}
 	}
 }
@@ -408,23 +422,22 @@ enot.modifiers['delegate'] = function(evt, fn, selector){
 }
 
 //throttle call
-var throttleKeys = {};
+var throttleCache = new WeakMap;
 enot.modifiers['throttle'] = function(evt, fn, interval){
 	interval = parseFloat(interval)
 	// console.log('thro', evt, fn, interval)
 	var cb = function(e){
 		// console.log('thro cb')
-		var self = this,
-			throttleKey = '_throttle' + id(self) + evt;
+		var self = this;
 
-		if (throttleKeys[throttleKey]) return DENY_EVT_CODE;
+		if (throttleCache.get(self)) return DENY_EVT_CODE;
 		else {
 			var result = fn.call(self, e);
 			if (result === DENY_EVT_CODE) return result;
-			throttleKeys[throttleKey] = setTimeout(function(){
-				clearInterval(throttleKeys[throttleKey]);
-				throttleKeys[throttleKey] = null;
-			}, interval);
+			throttleCache.set(self, setTimeout(function(){
+				clearInterval(throttleCache.throttleKey);
+				throttleCache.delete(self);
+			}, interval));
 		}
 	}
 
@@ -451,7 +464,7 @@ enot.modifiers['defer'] = function(evt, fn, delay){
 
 //detects whether element is able to emit/dispatch events
 //TODO: detect eventful objects in a more wide way
-enot.isEventTarget = function(target){
+function isEventTarget (target){
 	return target && !!target.addEventListener;
 }
 
