@@ -51,7 +51,7 @@ Enot implements [Emitter](https://github.com/component/emitter) interface:
 ```js
 var evtObj = enot.on(target, 'document click:pass(right_mouse)', callback);
 var evtObj = enot.off(target, 'document click:pass(right_mouse)', callback);
-var evtObj = enot.fire(target, 'document click:pass(right_mouse)', callback);
+var evtObj = enot.fire(target, 'document click:pass(right_mouse)');
 
 ```
 
