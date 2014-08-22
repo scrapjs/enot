@@ -351,6 +351,53 @@ describe("Enot", function(){
 			assert.closeTo(i, 8, 3);
 			done();
 		}, 200)
+	});
+
+	it("deep properties access", function(){
+		var i = 0;
+		var a = {
+			b:{
+				c: {
+
+				}
+			}
+		}
+		enot.on(a, 'this.b.c c', function(){
+			i++
+		})
+		enot.fire(a.b.c, 'c');
+
+		assert.equal(i, 1);
 	})
+
+	// <!-- `this.childNodes click` - catch click on every children -->
+	it("handling list of targets", function(){
+		var i = 0;
+
+		var a = {
+			children: [{}, {}, {}]
+		};
+
+		enot.on(a, 'this.children.* x', function(){
+			i++
+		});
+
+		enot.fire(a, 'this.children.* x');
+
+		assert.equal(i, 3);
+
+	})
+
+	// <!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
+	it("key modifiers")
+
+	// <!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
+	it("sequence of events")
+
+	// <!-- `touch` - normalized crossbrowser gesture -->
+	it("normalized touch")
+
+	// <!-- `all` - call on any event -->
+	it("all events")
 
 });
