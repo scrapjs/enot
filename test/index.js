@@ -400,4 +400,72 @@ describe("Enot", function(){
 	// <!-- `all` - call on any event -->
 	it("all events")
 
+	it("absent target", function(){
+		var i = 0;
+		enot.on("document click", function(){
+			i++
+		});
+		enot.fire("document click");
+		enot.fire(document, "click");
+
+		assert.equal(i, 2);
+
+		enot.off(document, "click");
+		enot.fire("document click");
+		enot.fire(document, "click");
+		assert.equal(i, 2);
+
+	})
+
+	it(":not(selector) modifier", function(){
+		var i = 0;
+
+		var a = document.createElement('div');
+		a.className = 'abc';
+
+		document.body.appendChild(a);
+
+		enot.on('document click:not(.abc)', function(){
+			i++
+		});
+
+		enot.fire('body click');
+		assert.equal(i, 1);
+
+		enot.fire(a, 'click');
+		assert.equal(i, 1);
+	})
+
+	it(":not(this.prop) modifier", function(){
+		var i = 0, j = 0;
+
+		xxx
+
+		var a = document.createElement('div');
+		document.body.appendChild(a);
+
+		enot.on(a, 'click:not(this)', function(){
+			i++
+		});
+
+		enot.fire('body click');
+		assert.equal(i, 1);
+
+		enot.fire(a, 'click');
+		assert.equal(i, 1);
+	})
+
+	it(":delegate() currentTarget & target")
+
+	it(".items event - bind all selected items, not the only one")
+
+	it("fire defined properties", function(){
+		var a = {}
+	})
+
+	it("does not afraid of empty callback", function(){
+		enot.on('a')
+	})
+
+	it("target order agnostic")
 });

@@ -93,6 +93,7 @@ function parse(target, string, callback) {
 /**
 * Retrieve source element from string
 */
+var selfReference = '@';
 function parseTarget(target, str) {
 	if (!str){
 		return target
@@ -105,22 +106,32 @@ function parseTarget(target, str) {
 
 	//return self reference
 	else if (/^this\./.test(str)){
-		return target[str.slice(5)]
+		return getProperty(target, str.slice(5));
 	}
-	else if(str[0] === '@'){
-		return target[str.slice(1)]
+	else if(str[0] === selfReference){
+		return getProperty(target, str.slice(1));
 	}
 
 	else if(str === 'this') return target;
-	else if(str === '@') return target;
+	else if(str === selfReference) return target;
 
 	else if(str === 'body') return document.body;
 	else if(str === 'root') return document.documentElement;
 
 	//return global variable
 	else {
-		return global[str];
+		return getProperty(global, str);
 	}
+}
+
+//get dot property by string
+function getProperty(holder, propName){
+	var propParts = propName.split('.');
+	var result = holder, lastPropName;
+	while ((lastPropName = propParts.shift()) !== undefined) {
+		result = result[lastPropName];
+	}
+	return result;
 }
 
 
@@ -248,7 +259,6 @@ function off(target, evtRef, fn){
 	var targetFn = fn;
 
 	//try to clean cached modified callback
-	console.log(modifiedCbCache)
 	if (modifiedCbCache.has(fn)) {
 		var modifiedCbs = modifiedCbCache.get(fn);
 		if (modifiedCbs[evtRef]) targetFn = modifiedCbs[evtRef];
