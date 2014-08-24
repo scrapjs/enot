@@ -1,6 +1,6 @@
 {
   "name": "enot",
-  "version": "0.0.12",
+  "version": "0.1.0",
   "description": "Event NOTation system",
   "main": "index.js",
   "scripts": {
@@ -35,6 +35,6 @@
     "matches-selector": "~1.0.0",
     "each-csv": "latest",
     "polymer-weakmap": "latest",
-    "mutypes": "0.0.1"
+    "mutypes": "latest"
   }
 }

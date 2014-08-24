@@ -7,6 +7,8 @@ var enot = module['exports'] = {};
 var matches = require('matches-selector');
 var eachCSV = require('each-csv');
 var _ = require('mutypes');
+var isString = _['isString'];
+var isElement = _['isElement'];
 
 
 var global = (1,eval)('this');
@@ -175,7 +177,7 @@ var targetCbCache = new WeakMap;
 // enot['bind'] =
 enot['on'] = function(target, evtRefs, fn){
 	//if no target specified
-	if (_.isString(target)) {
+	if (isString(target)) {
 		fn = evtRefs;
 		evtRefs = target;
 		target = null;
@@ -214,7 +216,7 @@ function on(target, evtRef, fn) {
 
 
 	//iterate list of targets
-	if (target.length && !_.isElement(target)) {
+	if (target.length && !isElement(target)) {
 		for (var i = target.length; i--;){
 			bind(target[i], evtObj.evt, targetFn);
 		}
@@ -257,7 +259,7 @@ function bind(target, evt, fn){
 // enot['unbind'] =
 enot['off'] = function(target, evtRefs, fn){
 	//if no target specified
-	if (_.isString(target)) {
+	if (isString(target)) {
 		fn = evtRefs;
 		evtRefs = target;
 		target = null;
@@ -293,7 +295,7 @@ function off(target, evtRef, fn){
 	}
 
 	//iterate list of targets
-	if (target.length && !_.isElement(target)) {
+	if (target.length && !isElement(target)) {
 		for (var i = target.length; i--;){
 			unbind(target[i], evtObj.evt, targetFn);
 		}
@@ -345,7 +347,7 @@ function unbind(target, evt, fn){
 // enot['dispatchEvent'] =
 enot['fire'] = function(target, evtRefs, data, bubbles){
 	//if no target specified
-	if (_.isString(target)) {
+	if (isString(target)) {
 		bubbles = data;
 		data = evtRefs;
 		evtRefs = target;
@@ -369,7 +371,7 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 			if (!target) return target;
 
 			//iterate list of targets
-			if (target.length && !_.isElement(target)) {
+			if (target.length && !isElement(target)) {
 				for (var i = target.length; i--;){
 					fire(target[i], evtObj.evt, data, bubbles);
 				}
@@ -477,7 +479,7 @@ enot.modifiers['delegate'] = function(evt, fn, selector){
 
 		// console.log('delegate cb', e, selector)
 		//filter document/object/etc
-		if (!_.isElement(target)) return DENY_EVT_CODE;
+		if (!isElement(target)) return DENY_EVT_CODE;
 
 		//intercept bubbling event by delegator
 		while (target && target !== this) {
