@@ -71,7 +71,7 @@ function parse(target, string, callback) {
 
 	//remainder is a target reference - parse target
 	string = string.slice(0, -eventString.length).trim();
-	result.el = parseTarget(target, string);
+	result.targets = parseTarget(target, string);
 
 	//parse modifiers
 	var eventParams = unprefixize(eventString, 'on').split(':');
@@ -102,7 +102,7 @@ function parseTarget(target, str) {
 
 	//try to query selector in DOM environment
 	if (/^[.#[]/.test(str) && doc) {
-		return doc.querySelector(str);
+		return doc.querySelectorAll(str);
 	}
 
 	//return self reference
@@ -193,7 +193,7 @@ function on(target, evtRef, fn) {
 	//use DOM events
 	var evtObj = parse(target, evtRef, fn);
 
-	target = evtObj.el;
+	target = evtObj.targets;
 	var targetFn = evtObj.handler;
 
 	//ignore not bindable sources
@@ -218,7 +218,6 @@ function on(target, evtRef, fn) {
 		for (var i = target.length; i--;){
 			bind(target[i], evtObj.evt, targetFn);
 		}
-
 	}
 
 	else {
@@ -278,7 +277,7 @@ function off(target, evtRef, fn){
 	if (!fn) return;
 
 	var evtObj = parse(target, evtRef);
-	var target = evtObj.el;
+	var target = evtObj.targets;
 
 	if (!target) return;
 
@@ -365,7 +364,7 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 		if (!evtObj.evt) return false;
 
 		return applyModifiers(function(){
-			var target = evtObj.el;
+			var target = evtObj.targets;
 
 			if (!target) return target;
 

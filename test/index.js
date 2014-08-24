@@ -461,7 +461,29 @@ describe("Enot", function(){
 
 	it(":delegate() currentTarget & target")
 
-	it(".items event - bind all selected items, not the only one")
+	it(".items event - bind all selected items, not the only one", function(){
+		var a1 = document.createElement('div')
+		a1.className = 'aer';
+		var a2 = a1.cloneNode(true);
+
+		document.body.appendChild(a1);
+		document.body.appendChild(a2);
+
+		var i = 0;
+		var inc = function(){
+			i++
+		}
+		enot.on('.aer click', inc)
+		enot.fire(document.querySelectorAll('.aer'), 'click');
+		assert.equal(i, 2);
+
+		enot.fire('.aer click');
+		assert.equal(i, 4);
+
+		enot.off('.aer click', inc);
+		enot.fire('.aer click');
+		assert.equal(i, 4);
+	})
 
 	it.skip("fire defined on object properties", function(){
 		var a = {}
