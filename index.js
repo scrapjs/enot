@@ -6,6 +6,7 @@ var enot = module['exports'] = {};
 
 var matches = require('matches-selector');
 var eachCSV = require('each-csv');
+var _ = require('mutypes');
 
 
 var global = (1,eval)('this');
@@ -174,7 +175,7 @@ var targetCbCache = new WeakMap;
 // enot['bind'] =
 enot['on'] = function(target, evtRefs, fn){
 	//if no target specified
-	if (typeof target === 'string') {
+	if (_.isString(target)) {
 		fn = evtRefs;
 		evtRefs = target;
 		target = null;
@@ -198,7 +199,6 @@ function on(target, evtRef, fn) {
 	//ignore not bindable sources
 	if (!target) return false;
 
-
 	//if fn has been modified - save modified fn (in order to unbind it properly)
 	if (targetFn !== fn) {
 		//bind new event
@@ -213,15 +213,29 @@ function on(target, evtRef, fn) {
 	}
 
 
+	//iterate list of targets
+	if (target.length && !_.isElement(target)) {
+		for (var i = target.length; i--;){
+			bind(target[i], evtObj.evt, targetFn);
+		}
+
+	}
+
+	else {
+		bind(target, evtObj.evt, targetFn);
+	}
+}
+//immediate bind
+function bind(target, evt, fn){
 	//DOM events
 	if (isEventTarget(target)) {
 		//bind target fn
 		if ($){
 			//delegate to jquery
-			$(target).on(evtObj.evt, targetFn);
+			$(target).on(evt, fn);
 		} else {
 			//listen element
-			target.addEventListener(evtObj.evt, targetFn)
+			target.addEventListener(evt, fn)
 		}
 	}
 
@@ -232,10 +246,8 @@ function on(target, evtRef, fn) {
 		var targetCallbacks = targetCbCache.get(target);
 
 		//save callback
-		(targetCallbacks[evtObj.evt] = targetCallbacks[evtObj.evt] || []).push(targetFn);
+		(targetCallbacks[evt] = targetCallbacks[evt] || []).push(fn);
 	}
-
-	return fn;
 }
 
 
@@ -246,14 +258,14 @@ function on(target, evtRef, fn) {
 // enot['unbind'] =
 enot['off'] = function(target, evtRefs, fn){
 	//if no target specified
-	if (typeof target === 'string') {
+	if (_.isString(target)) {
 		fn = evtRefs;
 		evtRefs = target;
 		target = null;
 	}
 
 	//FIXME: remove all listeners?
-	if (!evtRefs) return false;
+	if (!evtRefs) return;
 
 	eachCSV(evtRefs, function(evtRef){
 		off(target, evtRef, fn);
@@ -281,17 +293,30 @@ function off(target, evtRef, fn){
 		modifiedCbs[evtObj.evt] = null;
 	}
 
+	//iterate list of targets
+	if (target.length && !_.isElement(target)) {
+		for (var i = target.length; i--;){
+			unbind(target[i], evtObj.evt, targetFn);
+		}
+	}
+	//unbind single target
+	else {
+		unbind(target, evtObj.evt, targetFn);
+	}
+}
 
+//immediate unbinder
+function unbind(target, evt, fn){
 	//DOM events on elements
 	if (isEventTarget(target)) {
 		//delegate to jquery
 		if ($){
-			$(target).off(evtObj.evt, targetFn);
+			$(target).off(evt, fn);
 		}
 
 		//listen element
 		else {
-			target.removeEventListener(evtObj.evt, targetFn)
+			target.removeEventListener(evt, fn)
 		}
 	}
 
@@ -299,22 +324,19 @@ function off(target, evtRef, fn){
 	else {
 		//ignore if no event specified
 		if (!targetCbCache.has(target)) return;
-		var evtCallbacks = targetCbCache.get(target)[evtObj.evt];
+		var evtCallbacks = targetCbCache.get(target)[evt];
 
 		if (!evtCallbacks) return;
 
 		//remove specific handler
 		for (var i = 0; i < evtCallbacks.length; i++) {
-			if (evtCallbacks[i] === targetFn) {
+			if (evtCallbacks[i] === fn) {
 				evtCallbacks.splice(i, 1);
 				break;
 			}
 		}
 	}
-
-	return fn;
 }
-
 
 /**
 * Dispatch event to any target
@@ -324,7 +346,7 @@ function off(target, evtRef, fn){
 // enot['dispatchEvent'] =
 enot['fire'] = function(target, evtRefs, data, bubbles){
 	//if no target specified
-	if (typeof target === 'string') {
+	if (_.isString(target)) {
 		evtRefs = target;
 		target = null;
 	}
@@ -341,7 +363,20 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 		if (!evtObj.evt) return false;
 
 		return applyModifiers(function(){
-			fire(evtObj.el, evtObj.evt, data, bubbles);
+			var target = evtObj.el;
+
+			//iterate list of targets
+			if (target.length && !_.isElement(target)) {
+				for (var i = target.length; i--;){
+					fire(target[i], evtObj.evt, data, bubbles);
+				}
+			}
+
+			//unbind single target
+			else {
+				fire(target, evtObj.evt, data, bubbles);
+			}
+
 		}, evtObj)();
 	});
 }

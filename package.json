@@ -34,6 +34,7 @@
   "dependencies": {
     "matches-selector": "~1.0.0",
     "each-csv": "latest",
-    "polymer-weakmap": "latest"
+    "polymer-weakmap": "latest",
+    "mutypes": "0.0.1"
   }
 }

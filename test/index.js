@@ -378,11 +378,11 @@ describe("Enot", function(){
 			children: [{}, {}, {}]
 		};
 
-		enot.on(a, 'this.children.* x', function(){
+		enot.on(a, 'this.children x', function(){
 			i++
 		});
 
-		enot.fire(a, 'this.children.* x');
+		enot.fire(a, 'this.children x');
 
 		assert.equal(i, 3);
 
