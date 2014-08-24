@@ -278,7 +278,7 @@ describe("Enot", function(){
 		assert.equal(i,2)
 	})
 
-	it("absent target", function(){
+	it("empty target", function(){
 		enot.on({}, '.xy a', function(){})
 		enot.off({}, '.xy a', function(){})
 	})
@@ -402,15 +402,18 @@ describe("Enot", function(){
 
 	it("absent target", function(){
 		var i = 0;
-		enot.on("document click", function(){
+		// console.log('---on doc')
+		var inc = function(){
 			i++
-		});
+		};
+		enot.on("document click", inc);
 		enot.fire("document click");
 		enot.fire(document, "click");
 
 		assert.equal(i, 2);
 
-		enot.off(document, "click");
+		// console.log('---off doc')
+		enot.off(document, "click", inc);
 		enot.fire("document click");
 		enot.fire(document, "click");
 		assert.equal(i, 2);

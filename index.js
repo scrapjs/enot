@@ -173,6 +173,13 @@ var targetCbCache = new WeakMap;
 // enot['addEventListener'] =
 // enot['bind'] =
 enot['on'] = function(target, evtRefs, fn){
+	//if no target specified
+	if (typeof target === 'string') {
+		fn = evtRefs;
+		evtRefs = target;
+		target = null;
+	}
+
 	if (!evtRefs) return false;
 
 	eachCSV(evtRefs, function(evtRef){
@@ -199,10 +206,10 @@ function on(target, evtRef, fn) {
 		var modifiedCbs = modifiedCbCache.get(fn);
 
 		//ignore bound event
-		if (modifiedCbs[evtRef]) return false;
+		if (modifiedCbs[evtObj.evt]) return false;
 
 		//save modified callback
-		modifiedCbs[evtRef] = targetFn;
+		modifiedCbs[evtObj.evt] = targetFn;
 	}
 
 
@@ -238,6 +245,13 @@ function on(target, evtRef, fn) {
 // enot['removeEventListener'] =
 // enot['unbind'] =
 enot['off'] = function(target, evtRefs, fn){
+	//if no target specified
+	if (typeof target === 'string') {
+		fn = evtRefs;
+		evtRefs = target;
+		target = null;
+	}
+
 	//FIXME: remove all listeners?
 	if (!evtRefs) return false;
 
@@ -261,10 +275,10 @@ function off(target, evtRef, fn){
 	//try to clean cached modified callback
 	if (modifiedCbCache.has(fn)) {
 		var modifiedCbs = modifiedCbCache.get(fn);
-		if (modifiedCbs[evtRef]) targetFn = modifiedCbs[evtRef];
+		if (modifiedCbs[evtObj.evt]) targetFn = modifiedCbs[evtObj.evt];
 
 		//clear reference
-		modifiedCbs[evtRef] = null;
+		modifiedCbs[evtObj.evt] = null;
 	}
 
 
@@ -309,6 +323,12 @@ function off(target, evtRef, fn){
 // enot['emit'] =
 // enot['dispatchEvent'] =
 enot['fire'] = function(target, evtRefs, data, bubbles){
+	//if no target specified
+	if (typeof target === 'string') {
+		evtRefs = target;
+		target = null;
+	}
+
 	if (evtRefs instanceof Event) {
 		return fire(target, evtRefs);
 	}
