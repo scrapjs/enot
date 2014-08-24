@@ -525,10 +525,10 @@ describe("Enot", function(){
 		var log = [];
 
 		var target = {
-			a: function(){
+			a: function(e){
 				log.push('a')
 			},
-			b: function(){
+			b: function(e){
 				log.push('b')
 			}
 		}

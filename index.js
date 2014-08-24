@@ -213,12 +213,13 @@ function on(target, evtRef, fn) {
 	if (fn === undefined) targetFn = fn = target[evtObj.evt];
 
 	//catch redirect (stringy callback)
-	if (_.isString(targetFn)) {
+	if (_.isString(fn)) {
 		//wrap stringy callback to stirng object wrapper in order to get on with weakmap
-		targetFn = new String(targetFn);
+		fn = new String(fn);
 
+		//FIXME: make sure it's ok that parsed targetFn looses here
 		//create fake redirector callback for stringy fn
-		targetFn = enot.modifiers.fire(evtRef, null, targetFn);
+		targetFn = enot.modifiers.fire(evtRef, null, fn);
 	}
 
 
@@ -435,7 +436,10 @@ function fire(target, eventName, data, bubbles){
 		if (!evtCallbacks) return;
 
 		for (var i = 0, len = evtCallbacks.length; i < len; i++) {
-			evtCallbacks[i] && evtCallbacks[i].call(target, data);
+			evtCallbacks[i] && evtCallbacks[i].call(target, {
+				detail: data,
+				type: eventName
+			});
 		}
 	}
 }
@@ -572,10 +576,13 @@ enot.modifiers['defer'] = function(evt, fn, delay){
 //redirector
 // enot.modifiers['redirect'] =
 enot.modifiers['fire'] = function(evt, fn, evtRef){
-	console.log('fire', evt, evtRef)
+	var evts = evtRef + '';
 	var cb = function(e){
-		console.log('fire cb')
-		var self = this;	}
+		var self = this;
+		eachCSV(evts, function(evt){
+			fire(self, evt, e.detail);
+		});
+	}
 
 	return cb
 }
