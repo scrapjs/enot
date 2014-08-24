@@ -198,16 +198,16 @@ var redirectCbCache = {};
 function on(target, evtRef, fn) {
 	var evtObj = parse(target, evtRef, fn);
 
-	target = evtObj.targets;
+	var newTarget = evtObj.targets;
 	var targetFn = evtObj.handler;
 
 	//ignore not bindable sources
-	if (!target) return false;
+	if (!newTarget) return false;
 
 	//iterate list of targets
-	if (target.length && !isElement(target)) {
-		for (var i = target.length; i--;){
-			on(target[i], evtObj.evt, targetFn);
+	if (newTarget.length && !isElement(newTarget)) {
+		for (var i = newTarget.length; i--;){
+			on(newTarget[i], evtObj.evt, targetFn);
 		}
 
 		return;
@@ -215,7 +215,7 @@ function on(target, evtRef, fn) {
 
 	//empty fn means target method
 	//FIXME: this line causes getter fire
-	if (fn === undefined) targetFn = fn = target[evtObj.evt];
+	if (fn === undefined) targetFn = fn = newTarget[evtObj.evt];
 
 	//catch redirect (stringy callback)
 	if (isPlain(fn)) {
@@ -223,6 +223,9 @@ function on(target, evtRef, fn) {
 		//FIXME: make sure it's ok that parsed targetFn looses here
 		//create fake redirector callback for stringy fn
 		targetFn = enot.modifiers.fire(evtRef, null, fn);
+
+		//bind to old target
+		if (target) targetFn = targetFn.bind(target);
 
 		//save redirect fn to cache
 		(redirectCbCache[fn] = redirectCbCache[fn] || {})[evtObj.evt] = targetFn;
@@ -242,7 +245,7 @@ function on(target, evtRef, fn) {
 		modifiedCbs[evtObj.evt] = targetFn;
 	}
 
-	bind(target, evtObj.evt, targetFn);
+	bind(newTarget, evtObj.evt, targetFn);
 }
 //immediate bind
 function bind(target, evt, fn){
@@ -596,6 +599,7 @@ enot.modifiers['fire'] = function(evt, fn, evtRef){
 	var cb = function(e){
 		var self = this;
 		eachCSV(evts, function(evt){
+			// console.log('fire', evt, self)
 			fire(self, evt, e.detail);
 		});
 	}

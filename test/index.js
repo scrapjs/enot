@@ -553,6 +553,22 @@ describe("Enot", function(){
 		enot.fire({1: function(){}}, 1);
 	})
 
+	it('keep context', function(){
+		var i = 0;
+		var target = {z:{}, inc: function(){i++}};
+
+		enot.on(target, 'inc');
+		enot.on(target, 'this.z click', 'inc');
+
+		enot.fire(target.z, 'click');
+		assert.equal(i,1);
+
+		enot.off(target, 'this.z click', 'inc')
+
+		enot.fire(target.z, 'click');
+		assert.equal(i,1);
+	})
+
 	it("target order agnostic");
 
 	it("no target means viewport === any event of this type")
