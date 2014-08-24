@@ -31,7 +31,7 @@ Inspired by xtags events, backbone events and component/events notations.
 
 `this.parentNode click:delegate(this.childNodes)` - hang click on parent, delegate to children
 
-<!-- `this.childNodes click` - catch click on every children -->
+`this.childNodes click` - catch click on every children
 
 `.element click, document keypress:pass(enter)` - bind two callbacks
 
@@ -48,13 +48,28 @@ Inspired by xtags events, backbone events and component/events notations.
 #### 2. Use
 
 Enot implements [Emitter](https://github.com/component/emitter) interface:
-```js
-var evtObj = enot.on(target, 'document click:pass(right_mouse)', callback);
-var evtObj = enot.off(target, 'document click:pass(right_mouse)', callback);
-var evtObj = enot.fire(target, 'document click:pass(right_mouse)');
 
+```js
+enot.on(target, 'document click:pass(right_mouse)', callback);
+enot.off(target, 'document click:pass(right_mouse)', callback);
+enot.fire(target, 'document click:pass(right_mouse)');
 ```
 
+Omit target or callback:
+```js
+//enable `a` event for `a` method
+enot.on({a: function(){i++}}, 'a');
+
+//bind to the document
+enot.on('document click:delegate(a)', function(){
+
+})
+```
+
+Redirect events:
+```js
+enot.on(target, 'click', 'close, hide');
+```
 
 ## Targets
 
@@ -71,6 +86,7 @@ var evtObj = enot.fire(target, 'document click:pass(right_mouse)');
 
 * `:one()` — the same as jQuery’s `one`
 * `:delegate(selector)` — the same as jQuery’s `delegate`
+* `:not(selector)` — the opposite to delegate
 * `:pass(code)` — filter event by matching `which` value. Useful for keyboard/mouse events.	List of codes:
 	* `ENTER: 13`
 	* `ESCAPE: 27`

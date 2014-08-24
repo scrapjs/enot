@@ -192,7 +192,6 @@ enot['on'] = function(target, evtRefs, fn){
 
 //single reference binder
 function on(target, evtRef, fn) {
-	//use DOM events
 	var evtObj = parse(target, evtRef, fn);
 
 	target = evtObj.targets;
@@ -200,6 +199,28 @@ function on(target, evtRef, fn) {
 
 	//ignore not bindable sources
 	if (!target) return false;
+
+	//iterate list of targets
+	if (target.length && !isElement(target)) {
+		for (var i = target.length; i--;){
+			on(target[i], evtObj.evt, targetFn);
+		}
+
+		return;
+	}
+
+	//empty fn means target method
+	if (fn === undefined) targetFn = fn = target[evtObj.evt];
+
+	//catch redirect (stringy callback)
+	if (_.isString(targetFn)) {
+		//wrap stringy callback to stirng object wrapper in order to get on with weakmap
+		targetFn = new String(targetFn);
+
+		//create fake redirector callback for stringy fn
+		targetFn = enot.modifiers.fire(evtRef, null, targetFn);
+	}
+
 
 	//if fn has been modified - save modified fn (in order to unbind it properly)
 	if (targetFn !== fn) {
@@ -214,17 +235,7 @@ function on(target, evtRef, fn) {
 		modifiedCbs[evtObj.evt] = targetFn;
 	}
 
-
-	//iterate list of targets
-	if (target.length && !isElement(target)) {
-		for (var i = target.length; i--;){
-			bind(target[i], evtObj.evt, targetFn);
-		}
-	}
-
-	else {
-		bind(target, evtObj.evt, targetFn);
-	}
+	bind(target, evtObj.evt, targetFn);
 }
 //immediate bind
 function bind(target, evt, fn){
@@ -275,15 +286,23 @@ enot['off'] = function(target, evtRefs, fn){
 
 //single reference unbinder
 function off(target, evtRef, fn){
-	//FIXME: remove all event listeners? Find use-case
-	if (!fn) return;
-
 	var evtObj = parse(target, evtRef);
 	var target = evtObj.targets;
+	var targetFn = fn;
 
 	if (!target) return;
 
-	var targetFn = fn;
+	//iterate list of targets
+	if (target.length && !isElement(target)) {
+		for (var i = target.length; i--;){
+			off(target[i], evtObj.evt, targetFn);
+		}
+
+		return;
+	}
+
+	//empty fn means target method
+	if (fn === undefined) targetFn = fn = target[evtObj.evt];
 
 	//try to clean cached modified callback
 	if (modifiedCbCache.has(fn)) {
@@ -294,16 +313,8 @@ function off(target, evtRef, fn){
 		modifiedCbs[evtObj.evt] = null;
 	}
 
-	//iterate list of targets
-	if (target.length && !isElement(target)) {
-		for (var i = target.length; i--;){
-			unbind(target[i], evtObj.evt, targetFn);
-		}
-	}
 	//unbind single target
-	else {
-		unbind(target, evtObj.evt, targetFn);
-	}
+	unbind(target, evtObj.evt, targetFn);
 }
 
 //immediate unbinder
@@ -424,7 +435,7 @@ function fire(target, eventName, data, bubbles){
 		if (!evtCallbacks) return;
 
 		for (var i = 0, len = evtCallbacks.length; i < len; i++) {
-			evtCallbacks[i].call(target, data);
+			evtCallbacks[i] && evtCallbacks[i].call(target, data);
 		}
 	}
 }
@@ -554,6 +565,17 @@ enot.modifiers['defer'] = function(evt, fn, delay){
 			return fn.call(self, e);
 		}, delay);
 	}
+
+	return cb
+}
+
+//redirector
+// enot.modifiers['redirect'] =
+enot.modifiers['fire'] = function(evt, fn, evtRef){
+	console.log('fire', evt, evtRef)
+	var cb = function(e){
+		console.log('fire cb')
+		var self = this;	}
 
 	return cb
 }

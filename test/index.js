@@ -503,11 +503,49 @@ describe("Enot", function(){
 
 	})
 
-	it("does not afraid of empty callback", function(){
-		enot.on({}, 'a');
-		enot.off({}, 'a');
-		enot.fire({}, 'x');
+	it("handle empty callback", function(){
+		var i = 0;
+		var target = {
+			a: function(){
+				i++
+			}
+		}
+
+		enot.on(target, 'a');
+		enot.fire(target, 'a');
+		assert.equal(i, 1);
+
+		enot.off(target, 'a');
+		enot.fire(target, 'a');
+
+		assert.equal(i, 1);
 	})
 
-	it("target order agnostic")
+	it("handle redirect events", function(){
+		var log = [];
+
+		var target = {
+			a: function(){
+				log.push('a')
+			},
+			b: function(){
+				log.push('b')
+			}
+		}
+
+		enot.on(target, 'a');
+		enot.on(target,'z', 'a, b');
+		enot.fire(target, 'z');
+		assert.deepEqual(log, ['a']);
+
+		enot.off(target, 'a');
+		enot.on(target, 'b');
+		enot.fire(target, 'z');
+		assert.deepEqual(log, ['a', 'b']);
+
+	});
+
+	it("target order agnostic");
+
+	it("no target means viewport === any event of this type")
 });
