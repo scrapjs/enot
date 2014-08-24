@@ -347,6 +347,8 @@ function unbind(target, evt, fn){
 enot['fire'] = function(target, evtRefs, data, bubbles){
 	//if no target specified
 	if (_.isString(target)) {
+		bubbles = data;
+		data = evtRefs;
 		evtRefs = target;
 		target = null;
 	}
@@ -364,6 +366,8 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 
 		return applyModifiers(function(){
 			var target = evtObj.el;
+
+			if (!target) return target;
 
 			//iterate list of targets
 			if (target.length && !_.isElement(target)) {
@@ -386,8 +390,6 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 * Event trigger
 */
 function fire(target, eventName, data, bubbles){
-	if (!target) return target;
-
 	//DOM events
 	if (isEventTarget(target)) {
 		if ($){
@@ -448,6 +450,7 @@ enot.modifiers['one'] = function(evt, fn){
 //filter keys
 // enot.modifiers['keypass'] =
 // enot.modifiers['mousepass'] =
+// enot.modifiers['filter'] =
 enot.modifiers['pass'] = function(evt, fn, keys){
 	keys = keys.split(commaSplitRe).map(upper);
 
@@ -466,22 +469,41 @@ enot.modifiers['pass'] = function(evt, fn, keys){
 	return cb
 }
 
-//filter target
+//white-filter target
 // enot.modifiers['live'] =
 // enot.modifiers['on'] =
 enot.modifiers['delegate'] = function(evt, fn, selector){
 	var cb = function(e){
-		// console.log('delegate cb', e, selector)
-		if (!(e.target instanceof HTMLElement)) return DENY_EVT_CODE;
-
 		var target = e.target;
 
+		// console.log('delegate cb', e, selector)
+		//filter document/object/etc
+		if (!_.isElement(target)) return DENY_EVT_CODE;
+
+		//intercept bubbling event by delegator
 		while (target && target !== this) {
 			if (matches(target, selector)) return fn.call(this, e);
 			target = target.parentNode;
 		}
 
 		return DENY_EVT_CODE;
+	}
+	return cb;
+}
+
+//black-filter target
+enot.modifiers['not'] = function(evt, fn, selector){
+	var cb = function(e){
+		// console.log('not cb', e, selector)
+		var target = e.target;
+
+		//traverse each node from target to holder and filter if event happened within banned element
+		while (target && target !== this) {
+			if (matches(target, selector)) return DENY_EVT_CODE;
+			target = target.parentNode;
+		}
+
+		return fn.call(this, e);
 	}
 	return cb;
 }

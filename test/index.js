@@ -412,11 +412,14 @@ describe("Enot", function(){
 
 		assert.equal(i, 2);
 
+		enot.fire("document click");
+		assert.equal(i, 3);
+
 		// console.log('---off doc')
 		enot.off(document, "click", inc);
 		enot.fire("document click");
 		enot.fire(document, "click");
-		assert.equal(i, 2);
+		assert.equal(i, 3);
 
 	})
 
@@ -432,17 +435,15 @@ describe("Enot", function(){
 			i++
 		});
 
-		enot.fire('body click');
+		enot.fire('body click', null, true);
 		assert.equal(i, 1);
 
-		enot.fire(a, 'click');
+		enot.fire(a, 'click', null, true);
 		assert.equal(i, 1);
 	})
 
-	it(":not(this.prop) modifier", function(){
+	it.skip(":not(this.prop) modifier", function(){
 		var i = 0, j = 0;
-
-		xxx
 
 		var a = document.createElement('div');
 		document.body.appendChild(a);
@@ -462,12 +463,15 @@ describe("Enot", function(){
 
 	it(".items event - bind all selected items, not the only one")
 
-	it("fire defined properties", function(){
+	it.skip("fire defined on object properties", function(){
 		var a = {}
+
 	})
 
 	it("does not afraid of empty callback", function(){
-		enot.on('a')
+		enot.on({}, 'a');
+		enot.off({}, 'a');
+		enot.fire({}, 'x');
 	})
 
 	it("target order agnostic")
