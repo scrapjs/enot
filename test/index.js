@@ -543,6 +543,9 @@ describe("Enot", function(){
 		enot.fire(target, 'z');
 		assert.deepEqual(log, ['a', 'b']);
 
+		enot.off(target,'z', 'a, b');
+		enot.fire(target, 'z');
+		assert.deepEqual(log, ['a', 'b']);
 	});
 
 	it("target order agnostic");

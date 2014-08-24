@@ -190,6 +190,9 @@ enot['on'] = function(target, evtRefs, fn){
 	});
 }
 
+//cache of redirectors
+var redirectCbCache = {};
+
 //single reference binder
 function on(target, evtRef, fn) {
 	var evtObj = parse(target, evtRef, fn);
@@ -214,17 +217,17 @@ function on(target, evtRef, fn) {
 
 	//catch redirect (stringy callback)
 	if (isString(fn)) {
-		//wrap stringy callback to stirng object wrapper in order to get on with weakmap
-		fn = new String(fn);
-
 		//FIXME: make sure it's ok that parsed targetFn looses here
 		//create fake redirector callback for stringy fn
 		targetFn = enot.modifiers.fire(evtRef, null, fn);
+
+		//save redirect fn to cache
+		(redirectCbCache[fn] = redirectCbCache[fn] || {})[evtObj.evt] = targetFn;
 	}
 
 
 	//if fn has been modified - save modified fn (in order to unbind it properly)
-	if (targetFn !== fn) {
+	else if (targetFn !== fn) {
 		//bind new event
 		if (!modifiedCbCache.has(fn)) modifiedCbCache.set(fn, {});
 		var modifiedCbs = modifiedCbCache.get(fn);
@@ -305,13 +308,22 @@ function off(target, evtRef, fn){
 	//empty fn means target method
 	if (fn === undefined) targetFn = fn = target[evtObj.evt];
 
-	//try to clean cached modified callback
-	if (modifiedCbCache.has(fn)) {
-		var modifiedCbs = modifiedCbCache.get(fn);
-		if (modifiedCbs[evtObj.evt]) targetFn = modifiedCbs[evtObj.evt];
+	//catch redirect (stringy callback)
+	if (isString(fn)) {
+		if (redirectCbCache[fn]) {
+			targetFn = redirectCbCache[fn][evtObj.evt];
+			redirectCbCache[fn][evtObj.evt] = null;
+		}
+	}
 
-		//clear reference
-		modifiedCbs[evtObj.evt] = null;
+	//try to clean cached modified callback
+	else if (modifiedCbCache.has(fn)) {
+		var modifiedCbs = modifiedCbCache.get(fn);
+		if (modifiedCbs[evtObj.evt]) {
+			targetFn = modifiedCbs[evtObj.evt];
+			//clear reference
+			modifiedCbs[evtObj.evt] = null;
+		}
 	}
 
 	//unbind single target
