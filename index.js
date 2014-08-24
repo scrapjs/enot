@@ -213,7 +213,7 @@ function on(target, evtRef, fn) {
 	if (fn === undefined) targetFn = fn = target[evtObj.evt];
 
 	//catch redirect (stringy callback)
-	if (_.isString(fn)) {
+	if (isString(fn)) {
 		//wrap stringy callback to stirng object wrapper in order to get on with weakmap
 		fn = new String(fn);
 
