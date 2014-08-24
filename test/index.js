@@ -532,7 +532,6 @@ describe("Enot", function(){
 				log.push('b')
 			}
 		}
-
 		enot.on(target, 'a');
 		enot.on(target,'z', 'a, b');
 		enot.fire(target, 'z');
@@ -547,6 +546,12 @@ describe("Enot", function(){
 		enot.fire(target, 'z');
 		assert.deepEqual(log, ['a', 'b']);
 	});
+
+	it('bind numeric values', function(){
+		enot.on({1: function(){}}, 1, 1);
+		enot.off({1: function(){}}, 1, 1);
+		enot.fire({1: function(){}}, 1);
+	})
 
 	it("target order agnostic");
 

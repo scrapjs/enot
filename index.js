@@ -9,6 +9,7 @@ var eachCSV = require('each-csv');
 var _ = require('mutypes');
 var isString = _['isString'];
 var isElement = _['isElement'];
+var isPlain = _['isPlain'];
 
 
 var global = (1,eval)('this');
@@ -213,10 +214,12 @@ function on(target, evtRef, fn) {
 	}
 
 	//empty fn means target method
+	//FIXME: this line causes getter fire
 	if (fn === undefined) targetFn = fn = target[evtObj.evt];
 
 	//catch redirect (stringy callback)
-	if (isString(fn)) {
+	if (isPlain(fn)) {
+		fn += '';
 		//FIXME: make sure it's ok that parsed targetFn looses here
 		//create fake redirector callback for stringy fn
 		targetFn = enot.modifiers.fire(evtRef, null, fn);
@@ -309,7 +312,8 @@ function off(target, evtRef, fn){
 	if (fn === undefined) targetFn = fn = target[evtObj.evt];
 
 	//catch redirect (stringy callback)
-	if (isString(fn)) {
+	if (isPlain(fn)) {
+		fn += '';
 		if (redirectCbCache[fn]) {
 			targetFn = redirectCbCache[fn][evtObj.evt];
 			redirectCbCache[fn][evtObj.evt] = null;
