@@ -459,7 +459,20 @@ describe("Enot", function(){
 		assert.equal(i, 1);
 	})
 
-	it(":delegate() currentTarget & target")
+	it(":delegate() currentTarget & target", function(){
+		var a = document.createElement('div');
+		a.className = 'd';
+		var b = document.createElement('div');
+		a.appendChild(b);
+		document.body.appendChild(a);
+
+		var cTarget;
+		enot.on('document click:delegate(.d)', function(e){
+			cTarget = e.currentTarget;
+		});
+		enot.fire(b, 'click', null, true);
+		assert.equal(cTarget, a);
+	})
 
 	it(".items event - bind all selected items, not the only one", function(){
 		var a1 = document.createElement('div')

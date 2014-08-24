@@ -375,7 +375,7 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 				}
 			}
 
-			//unbind single target
+			//fire single target
 			else {
 				fire(target, evtObj.evt, data, bubbles);
 			}
@@ -481,7 +481,16 @@ enot.modifiers['delegate'] = function(evt, fn, selector){
 
 		//intercept bubbling event by delegator
 		while (target && target !== this) {
-			if (matches(target, selector)) return fn.call(this, e);
+			if (matches(target, selector)) {
+				//set proper current target
+				e.delegateTarget = target;
+				Object.defineProperty(e, 'currentTarget', {
+					get: function(){
+						return target
+					}
+				})
+				return fn.call(this, e);
+			}
 			target = target.parentNode;
 		}
 
