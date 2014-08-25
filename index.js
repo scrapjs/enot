@@ -218,19 +218,23 @@ function on(target, evtRef, fn) {
 	if (fn === undefined) targetFn = fn = newTarget[evtObj.evt];
 
 	//catch redirect (stringy callback)
-	if (isPlain(fn)) {
+	else if (isPlain(fn)) {
 		fn += '';
 		//FIXME: make sure it's ok that parsed targetFn looses here
 		//create fake redirector callback for stringy fn
 		targetFn = enot.modifiers.fire(evtRef, null, fn);
 
+		//save redirect fn to cache
+		redirectCbCache[fn] = redirectCbCache[fn] || {}
+
+		//ignore existing binding
+		if (redirectCbCache[fn][evtObj.evt]) return false;
+
 		//bind to old target
 		if (target) targetFn = targetFn.bind(target);
 
-		//save redirect fn to cache
-		(redirectCbCache[fn] = redirectCbCache[fn] || {})[evtObj.evt] = targetFn;
+		redirectCbCache[fn][evtObj.evt] = targetFn;
 	}
-
 
 	//if fn has been modified - save modified fn (in order to unbind it properly)
 	else if (targetFn !== fn) {
@@ -240,6 +244,9 @@ function on(target, evtRef, fn) {
 
 		//ignore bound event
 		if (modifiedCbs[evtObj.evt]) return false;
+
+		//bind to old target
+		if (target) targetFn = targetFn.bind(target);
 
 		//save modified callback
 		modifiedCbs[evtObj.evt] = targetFn;
