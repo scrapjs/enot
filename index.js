@@ -10,6 +10,7 @@ var _ = require('mutypes');
 var isString = _['isString'];
 var isElement = _['isElement'];
 var isPlain = _['isPlain'];
+var has = _['has'];
 
 
 var global = (1,eval)('this');
@@ -133,6 +134,7 @@ function getProperty(holder, propName){
 	var propParts = propName.split('.');
 	var result = holder, lastPropName;
 	while ((lastPropName = propParts.shift()) !== undefined) {
+		if (!has(result, lastPropName)) return undefined;
 		result = result[lastPropName];
 	}
 	return result;

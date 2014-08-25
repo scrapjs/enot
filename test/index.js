@@ -572,4 +572,8 @@ describe("Enot", function(){
 	it("target order agnostic");
 
 	it("no target means viewport === any event of this type")
+
+	it("access undefined properties", function(){
+		enot.on({}, 'this.x.y', function(){})
+	})
 });
