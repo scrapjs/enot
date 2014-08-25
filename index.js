@@ -246,7 +246,7 @@ function on(target, evtRef, fn) {
 		if (modifiedCbs[evtObj.evt]) return false;
 
 		//bind to old target
-		if (target) targetFn = targetFn.bind(target);
+		// if (target) targetFn = targetFn.bind(target);
 
 		//save modified callback
 		modifiedCbs[evtObj.evt] = targetFn;
