@@ -576,4 +576,20 @@ describe("Enot", function(){
 	it("access undefined properties", function(){
 		enot.on({}, 'this.x.y', function(){})
 	})
+
+	it("indirect redirect", function(){
+		var i = 0;
+
+		var a = {inc: function(){i++}, click: undefined}
+
+		//set fake inc
+		enot.on({}, 'click', 'inc')
+
+		enot.on(a, 'inc', a.inc);
+		enot.on(a, 'click', 'inc');
+
+		enot.fire(a, 'click');
+
+		assert.equal(i, 1);
+	})
 });

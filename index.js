@@ -194,7 +194,7 @@ enot['on'] = function(target, evtRefs, fn){
 }
 
 //cache of redirectors
-var redirectCbCache = {};
+var redirectCbCache = new WeakMap;
 
 //single reference binder
 function on(target, evtRef, fn) {
@@ -227,15 +227,16 @@ function on(target, evtRef, fn) {
 		targetFn = enot.modifiers.fire(evtRef, null, fn);
 
 		//save redirect fn to cache
-		redirectCbCache[fn] = redirectCbCache[fn] || {}
+		if (!redirectCbCache.has(target)) redirectCbCache.set(target, {});
+		var redirectSet = redirectCbCache.get(target);
 
 		//ignore existing binding
-		if (redirectCbCache[fn][evtObj.evt]) return false;
+		if (redirectSet[evtObj.evt]) return false;
 
 		//bind to old target
 		if (target) targetFn = targetFn.bind(target);
 
-		redirectCbCache[fn][evtObj.evt] = targetFn;
+		redirectSet[evtObj.evt] = targetFn;
 	}
 
 	//if fn has been modified - save modified fn (in order to unbind it properly)
@@ -309,15 +310,15 @@ function off(target, evtRef, fn){
 	if (fn === undefined) return
 
 	var evtObj = parse(target, evtRef);
-	var target = evtObj.targets;
+	var newTarget = evtObj.targets;
 	var targetFn = fn;
 
-	if (!target) return;
+	if (!newTarget) return;
 
 	//iterate list of targets
-	if (target.length && !isElement(target)) {
-		for (var i = target.length; i--;){
-			off(target[i], evtObj.evt, targetFn);
+	if (newTarget.length && !isElement(newTarget)) {
+		for (var i = newTarget.length; i--;){
+			off(newTarget[i], evtObj.evt, targetFn);
 		}
 
 		return;
@@ -326,10 +327,12 @@ function off(target, evtRef, fn){
 	//catch redirect (stringy callback)
 	if (isPlain(fn)) {
 		fn += '';
-		if (redirectCbCache[fn]) {
-			targetFn = redirectCbCache[fn][evtObj.evt];
-			redirectCbCache[fn][evtObj.evt] = null;
-		}
+		var redirectSet = redirectCbCache.get(target);
+		if (!redirectSet) return;
+
+		targetFn = redirectSet[evtObj.evt];
+
+		redirectSet[evtObj.evt] = null;
 	}
 
 	//try to clean cached modified callback
@@ -343,7 +346,7 @@ function off(target, evtRef, fn){
 	}
 
 	//unbind single target
-	unbind(target, evtObj.evt, targetFn);
+	unbind(newTarget, evtObj.evt, targetFn);
 }
 
 //immediate unbinder
