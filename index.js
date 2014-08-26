@@ -227,8 +227,8 @@ function on(target, evtRef, fn) {
 		targetFn = enot.modifiers.fire(evtRef, null, fn);
 
 		//save redirect fn to cache
-		if (!redirectCbCache.has(target)) redirectCbCache.set(target, {});
-		var redirectSet = redirectCbCache.get(target);
+		if (!redirectCbCache.has(newTarget)) redirectCbCache.set(newTarget, {});
+		var redirectSet = redirectCbCache.get(newTarget);
 
 		//ignore existing binding
 		if (redirectSet[evtObj.evt]) return false;
@@ -327,7 +327,7 @@ function off(target, evtRef, fn){
 	//catch redirect (stringy callback)
 	if (isPlain(fn)) {
 		fn += '';
-		var redirectSet = redirectCbCache.get(target);
+		var redirectSet = redirectCbCache.get(newTarget);
 		if (!redirectSet) return;
 
 		targetFn = redirectSet[evtObj.evt];
