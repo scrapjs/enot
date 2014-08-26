@@ -198,6 +198,9 @@ var redirectCbCache = {};
 
 //single reference binder
 function on(target, evtRef, fn) {
+	//ignore empty fn
+	if (fn === undefined) return;
+
 	var evtObj = parse(target, evtRef, fn);
 
 	var newTarget = evtObj.targets;
@@ -215,9 +218,6 @@ function on(target, evtRef, fn) {
 		return;
 	}
 
-	//empty fn means target method
-	//FIXME: this line causes getter fire
-	if (fn === undefined) targetFn = fn = newTarget[evtObj.evt];
 
 	//catch redirect (stringy callback)
 	else if (isPlain(fn)) {
@@ -305,6 +305,9 @@ enot['off'] = function(target, evtRefs, fn){
 
 //single reference unbinder
 function off(target, evtRef, fn){
+	//ignore empty fn
+	if (fn === undefined) return
+
 	var evtObj = parse(target, evtRef);
 	var target = evtObj.targets;
 	var targetFn = fn;
@@ -319,9 +322,6 @@ function off(target, evtRef, fn){
 
 		return;
 	}
-
-	//empty fn means target method
-	if (fn === undefined) targetFn = fn = target[evtObj.evt];
 
 	//catch redirect (stringy callback)
 	if (isPlain(fn)) {

@@ -503,7 +503,7 @@ describe("Enot", function(){
 
 	})
 
-	it("handle empty callback", function(){
+	it("ignore empty callback", function(){
 		var i = 0;
 		var target = {
 			a: function(){
@@ -513,12 +513,12 @@ describe("Enot", function(){
 
 		enot.on(target, 'a');
 		enot.fire(target, 'a');
-		assert.equal(i, 1);
+		assert.equal(i, 0);
 
 		enot.off(target, 'a');
 		enot.fire(target, 'a');
 
-		assert.equal(i, 1);
+		assert.equal(i, 0);
 	})
 
 	it("handle redirect events", function(){
@@ -532,13 +532,13 @@ describe("Enot", function(){
 				log.push('b')
 			}
 		}
-		enot.on(target, 'a');
+		enot.on(target, 'a', target.a);
 		enot.on(target,'z', 'a, b');
 		enot.fire(target, 'z');
 		assert.deepEqual(log, ['a']);
 
-		enot.off(target, 'a');
-		enot.on(target, 'b');
+		enot.off(target, 'a', target.a);
+		enot.on(target, 'b', target.b);
 		enot.fire(target, 'z');
 		assert.deepEqual(log, ['a', 'b']);
 
@@ -557,7 +557,7 @@ describe("Enot", function(){
 		var i = 0;
 		var target = {z:{}, inc: function(){i++}};
 
-		enot.on(target, 'inc');
+		enot.on(target, 'inc', target.inc);
 		enot.on(target, 'this.z click', 'inc');
 
 		enot.fire(target.z, 'click');
