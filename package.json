@@ -37,6 +37,7 @@
     "polymer-weakmap": "*",
     "mutypes": "*",
     "muevent": "*",
-    "mustring": "0.0.0"
+    "mustring": "0.0.0",
+    "muevents": "0.0.2"
   }
 }

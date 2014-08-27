@@ -6,7 +6,7 @@ var enot = module['exports'] = {};
 
 var matches = require('matches-selector');
 var eachCSV = require('each-csv');
-var evt = require('muevent');
+var evt = require('muevents');
 var str = require('mustring');
 var _ = require('mutypes');
 
