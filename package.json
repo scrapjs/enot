@@ -35,6 +35,8 @@
     "matches-selector": "~1.0.0",
     "each-csv": "*",
     "polymer-weakmap": "*",
-    "mutypes": "*"
+    "mutypes": "*",
+    "muevent": "*",
+    "mustring": "0.0.0"
   }
 }

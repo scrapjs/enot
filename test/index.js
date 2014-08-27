@@ -19,8 +19,8 @@ describe("Enot", function(){
 			i++;
 		}
 		enot.on(document, "hello", cb)
-		enot.fire(document, "hello", 123)
-		enot.fire(document, "hello", 123)
+		enot.emit(document, "hello", 123)
+		enot.emit(document, "hello", 123)
 
 		assert.equal(i,1);
 	});
@@ -37,11 +37,11 @@ describe("Enot", function(){
 			e.detail === 123 && i++
 		}
 		enot.on(document, "hello", fn)
-		enot.fire(document, "hello", 123)
+		enot.emit(document, "hello", 123)
 		assert.equal(i, 1)
 
 		enot.off(document, "hello", fn)
-		enot.fire(document, "hello", 123)
+		enot.emit(document, "hello", 123)
 		assert.equal(i, 1)
 	})
 
@@ -53,13 +53,13 @@ describe("Enot", function(){
 		enot.on(document, "hello:one", function(e){
 			e.detail === 123 && i++
 		})
-		enot.fire(document, "hello", 123)
+		enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 
-		enot.fire(document, "hello", 123)
+		enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 
-		enot.fire(document, "hello", 123)
+		enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 
 		//TODO: add multiple once events assertion (to test proper target fns bound in evtModifiers (there’re no closures))
@@ -73,8 +73,8 @@ describe("Enot", function(){
 
 		enot.on(a, 'a:one', fn)
 		enot.on(a, 'a:one', fn)
-		enot.fire(a, 'a');
-		enot.fire(a, 'a');
+		enot.emit(a, 'a');
+		enot.emit(a, 'a');
 
 		assert.deepEqual(log, [1])
 
@@ -82,8 +82,8 @@ describe("Enot", function(){
 		enot.on(a, 'b:one', fn)
 		enot.off(a, 'b:one', fn)
 		enot.on(a, 'b:one', fn)
-		enot.fire(a, 'b');
-		enot.fire(a, 'b');
+		enot.emit(a, 'b');
+		enot.emit(a, 'b');
 
 		assert.deepEqual(log, [1])
 
@@ -105,13 +105,13 @@ describe("Enot", function(){
 			j++
 		})
 
-		enot.fire(document.body, "hello");
+		enot.emit(document.body, "hello");
 		assert.equal(i, 0);
 
-		enot.fire(el, "hello", null, true);
+		enot.emit(el, "hello", null, true);
 		assert.equal(i, 1);
 
-		enot.fire(sideLink, "hello", null, true);
+		enot.emit(sideLink, "hello", null, true);
 		assert.equal(i, 1);
 		assert.equal(j, 1);
 
@@ -132,13 +132,13 @@ describe("Enot", function(){
 			})
 
 			var evt = createMouseEvt("click", 1)
-			enot.fire(el, evt);
+			enot.emit(el, evt);
 
 			assert.equal(i, 0)
 
 			// console.log("----fire 2")
 			var evt = createMouseEvt("click", 2)
-			enot.fire(el, evt);
+			enot.emit(el, evt);
 
 			assert.equal(i, 1)
 
@@ -163,28 +163,28 @@ describe("Enot", function(){
 
 		var evt = createKeyEvt("keydown", 65)
 
-		enot.fire(el, evt);
+		enot.emit(el, evt);
 		assert.equal(a, 1)
 		assert.equal(k, 0)
 		assert.equal(ka, 1)
 
 		// s
 		var evt = createKeyEvt("keydown", 83)
-		enot.fire(el, evt);
+		enot.emit(el, evt);
 		assert.equal(a, 2)
 		assert.equal(k, 1)
 		assert.equal(ka, 1)
 
 		// s2
 		var evt = createKeyEvt("keydown", 83)
-		enot.fire(el, evt);
+		enot.emit(el, evt);
 		assert.equal(a, 3)
 		assert.equal(k, 2)
 		assert.equal(ka, 1)
 
 		//enter
 		var evt = createKeyEvt("keydown", 13)
-		enot.fire(el, evt);
+		enot.emit(el, evt);
 		assert.equal(a, 4)
 		assert.equal(k, 3)
 		assert.equal(ka, 2)
@@ -205,13 +205,13 @@ describe("Enot", function(){
 			// console.log("old on")
 			e.detail === 123 && i++
 		})
-		enot.fire(document.body, "hello", 123, true)
+		enot.emit(document.body, "hello", 123, true)
 		assert.equal(i, 0)
-		enot.fire(el, "hello", 123, true)
+		enot.emit(el, "hello", 123, true)
 		assert.equal(i, 1)
-		enot.fire(el2, "hello", 123, true)
+		enot.emit(el2, "hello", 123, true)
 		assert.equal(i, 1)
-		enot.fire(el, "hello", 123, true)
+		enot.emit(el, "hello", 123, true)
 		assert.equal(i, 1)
 
 		// once again
@@ -221,15 +221,15 @@ describe("Enot", function(){
 			i++
 		})
 
-		enot.fire(document.body, createKeyEvt("keypress", 27), 123, true)
+		enot.emit(document.body, createKeyEvt("keypress", 27), 123, true)
 		assert.equal(i, 0)
-		enot.fire(el, createKeyEvt("keydown", 27), 123, true)
+		enot.emit(el, createKeyEvt("keydown", 27), 123, true)
 		assert.equal(i, 1)
-		enot.fire(el2, "hello", createKeyEvt("keydown", 27), 123, true)
+		enot.emit(el2, "hello", createKeyEvt("keydown", 27), 123, true)
 		assert.equal(i, 1)
-		enot.fire(el, "hello", createKeyEvt("keydown", 29), 123, true)
+		enot.emit(el, "hello", createKeyEvt("keydown", 29), 123, true)
 		assert.equal(i, 1)
-		enot.fire(el, createKeyEvt("keydown", 27), 123, true)
+		enot.emit(el, createKeyEvt("keydown", 27), 123, true)
 		assert.equal(i, 2)
 	})
 
@@ -238,7 +238,7 @@ describe("Enot", function(){
 		enot.on(document,"hello:world", function(){
 			i++
 		})
-		enot.fire(document, "hello:world")
+		enot.emit(document, "hello:world")
 		assert.equal(i, 1);
 	})
 
@@ -272,8 +272,8 @@ describe("Enot", function(){
 		var fn = function(){i++}
 		enot.on(a, 'a', fn);
 		enot.on(b, 'a', fn);
-		enot.fire(a, 'a')
-		enot.fire(b, 'a')
+		enot.emit(a, 'a')
+		enot.emit(b, 'a')
 
 		assert.equal(i,2)
 	})
@@ -286,7 +286,7 @@ describe("Enot", function(){
 	it("fire recognizes evtRef events", function(){
 		var i = 0;
 		enot.on(document, 'x', function(){i++});
-		enot.fire({}, 'document x');
+		enot.emit({}, 'document x');
 
 		assert.equal(i, 1);
 	})
@@ -305,10 +305,10 @@ describe("Enot", function(){
 			i++
 		})
 
-		enot.fire(target.a, 'x,y');
+		enot.emit(target.a, 'x,y');
 		assert.equal(i, 2);
 
-		enot.fire(document.body, 'z,document f');
+		enot.emit(document.body, 'z,document f');
 		assert.equal(i,4);
 	})
 
@@ -365,7 +365,7 @@ describe("Enot", function(){
 		enot.on(a, 'this.b.c c', function(){
 			i++
 		})
-		enot.fire(a.b.c, 'c');
+		enot.emit(a.b.c, 'c');
 
 		assert.equal(i, 1);
 	})
@@ -382,7 +382,7 @@ describe("Enot", function(){
 			i++
 		});
 
-		enot.fire(a, 'this.children x');
+		enot.emit(a, 'this.children x');
 
 		assert.equal(i, 3);
 
@@ -407,18 +407,18 @@ describe("Enot", function(){
 			i++
 		};
 		enot.on("document click", inc);
-		enot.fire("document click");
-		enot.fire(document, "click");
+		enot.emit("document click");
+		enot.emit(document, "click");
 
 		assert.equal(i, 2);
 
-		enot.fire("document click");
+		enot.emit("document click");
 		assert.equal(i, 3);
 
 		// console.log('---off doc')
 		enot.off(document, "click", inc);
-		enot.fire("document click");
-		enot.fire(document, "click");
+		enot.emit("document click");
+		enot.emit(document, "click");
 		assert.equal(i, 3);
 
 	})
@@ -435,10 +435,10 @@ describe("Enot", function(){
 			i++
 		});
 
-		enot.fire('body click', null, true);
+		enot.emit('body click', null, true);
 		assert.equal(i, 1);
 
-		enot.fire(a, 'click', null, true);
+		enot.emit(a, 'click', null, true);
 		assert.equal(i, 1);
 	})
 
@@ -452,10 +452,10 @@ describe("Enot", function(){
 			i++
 		});
 
-		enot.fire('body click');
+		enot.emit('body click');
 		assert.equal(i, 1);
 
-		enot.fire(a, 'click');
+		enot.emit(a, 'click');
 		assert.equal(i, 1);
 	})
 
@@ -470,7 +470,7 @@ describe("Enot", function(){
 		enot.on('document click:delegate(.d)', function(e){
 			cTarget = e.currentTarget;
 		});
-		enot.fire(b, 'click', null, true);
+		enot.emit(b, 'click', null, true);
 		assert.equal(cTarget, a);
 	})
 
@@ -487,14 +487,14 @@ describe("Enot", function(){
 			i++
 		}
 		enot.on('.aer click', inc)
-		enot.fire(document.querySelectorAll('.aer'), 'click');
+		enot.emit(document.querySelectorAll('.aer'), 'click');
 		assert.equal(i, 2);
 
-		enot.fire('.aer click');
+		enot.emit('.aer click');
 		assert.equal(i, 4);
 
 		enot.off('.aer click', inc);
-		enot.fire('.aer click');
+		enot.emit('.aer click');
 		assert.equal(i, 4);
 	})
 
@@ -512,14 +512,14 @@ describe("Enot", function(){
 		}
 
 		enot.on(target, 'a');
-		enot.fire(target, 'a');
+		enot.emit(target, 'a');
 		assert.equal(i, 0);
 
 		enot.off(target, 'a');
-		enot.fire(target, 'a');
+		enot.emit(target, 'a');
 
 
-		enot.fire({}, 'b');
+		enot.emit({}, 'b');
 
 		assert.equal(i, 0);
 	})
@@ -537,23 +537,23 @@ describe("Enot", function(){
 		}
 		enot.on(target, 'a', target.a);
 		enot.on(target,'z', 'a, b');
-		enot.fire(target, 'z');
+		enot.emit(target, 'z');
 		assert.deepEqual(log, ['a']);
 
 		enot.off(target, 'a', target.a);
 		enot.on(target, 'b', target.b);
-		enot.fire(target, 'z');
+		enot.emit(target, 'z');
 		assert.deepEqual(log, ['a', 'b']);
 
 		enot.off(target,'z', 'a, b');
-		enot.fire(target, 'z');
+		enot.emit(target, 'z');
 		assert.deepEqual(log, ['a', 'b']);
 	});
 
 	it('bind numeric values', function(){
 		enot.on({1: function(){}}, 1, 1);
 		enot.off({1: function(){}}, 1, 1);
-		enot.fire({1: function(){}}, 1);
+		enot.emit({1: function(){}}, 1);
 	})
 
 	it('keep context', function(){
@@ -563,12 +563,12 @@ describe("Enot", function(){
 		enot.on(target, 'inc', target.inc);
 		enot.on(target, 'this.z click', 'inc');
 
-		enot.fire(target.z, 'click');
+		enot.emit(target.z, 'click');
 		assert.equal(i,1);
 
 		enot.off(target, 'this.z click', 'inc')
 
-		enot.fire(target.z, 'click');
+		enot.emit(target.z, 'click');
 		assert.equal(i,1);
 	})
 
@@ -591,7 +591,7 @@ describe("Enot", function(){
 		enot.on(a, 'inc', a.inc);
 		enot.on(a, 'click', 'inc');
 
-		enot.fire(a, 'click');
+		enot.emit(a, 'click');
 
 		assert.equal(i, 1);
 	})

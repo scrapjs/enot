@@ -6,13 +6,22 @@ var enot = module['exports'] = {};
 
 var matches = require('matches-selector');
 var eachCSV = require('each-csv');
+var evt = require('muevent');
+var str = require('mustring');
 var _ = require('mutypes');
+
+
+//externs
 var isString = _['isString'];
 var isElement = _['isElement'];
 var isPlain = _['isPlain'];
 var isArray = _['isArray'];
 var has = _['has'];
-
+var bind = evt['on'];
+var unbind = evt['off'];
+var fire = evt['emit'];
+var unprefixize = str['unprefixize'];
+var upper = str['upper'];
 
 var global = (1,eval)('this');
 var doc = global.document;
@@ -56,9 +65,6 @@ var keyDict = {
 	'MIDDLE_MOUSE': 2
 };
 
-//jquery guarant
-var $ = global.jQuery;
-
 var commaSplitRe = /\s*,\s*/;
 
 //target callbacks storage
@@ -67,7 +73,7 @@ var callbacks = {};
 /**
 * Returns parsed event object from event reference
 */
-function parse(target, string, callback) {
+function parseReference(target, string, callback) {
 	// console.group('parse reference', '`' + string + '`')
 	var result = {};
 
@@ -121,8 +127,8 @@ function parseTarget(target, str) {
 	else if(str === 'this') return target;
 	else if(str === selfReference) return target;
 
-	else if(str === 'body') return document.body;
-	else if(str === 'root') return document.documentElement;
+	else if(str === 'body') return doc.body;
+	else if(str === 'root') return doc.documentElement;
 
 	//return global variable
 	else {
@@ -170,9 +176,6 @@ function applyModifiers(fn, evtObj){
 //set of modified callbacks associated with fns, {fn: {evtRef: modifiedFn, evtRef: modifiedFn}}
 var modifiedCbCache = new WeakMap;
 
-//set of target callbacks, {target: [cb1, cb2, ...]}
-var targetCbCache = new WeakMap;
-
 
 /**
 * Listed reference binder
@@ -202,7 +205,7 @@ function on(target, evtRef, fn) {
 	//ignore empty fn
 	if (fn === undefined) return;
 
-	var evtObj = parse(target, evtRef, fn);
+	var evtObj = parseReference(target, evtRef, fn);
 
 	var newTarget = evtObj.targets;
 	var targetFn = evtObj.handler;
@@ -219,13 +222,12 @@ function on(target, evtRef, fn) {
 		return;
 	}
 
-
 	//catch redirect (stringy callback)
 	else if (isPlain(fn)) {
 		fn += '';
 		//FIXME: make sure it's ok that parsed targetFn looses here
 		//create fake redirector callback for stringy fn
-		targetFn = enot.modifiers.fire(evtRef, null, fn);
+		targetFn = enot.modifiers['redirect'](evtRef, null, fn);
 
 		//save redirect fn to cache
 		if (!redirectCbCache.has(newTarget)) redirectCbCache.set(newTarget, {});
@@ -258,28 +260,6 @@ function on(target, evtRef, fn) {
 
 	bind(newTarget, evtObj.evt, targetFn);
 }
-//immediate bind
-function bind(target, evt, fn){
-	//DOM events
-	if (isEventTarget(target)) {
-		//bind target fn
-		if ($){
-			//delegate to jquery
-			$(target).on(evt, fn);
-		} else {
-			//listen element
-			target.addEventListener(evt, fn)
-		}
-	}
-
-	//Non-DOM events
-	//ensure callbacks array for target exist
-	if (!targetCbCache.has(target)) targetCbCache.set(target, {});
-	var targetCallbacks = targetCbCache.get(target);
-
-	//save callback
-	(targetCallbacks[evt] = targetCallbacks[evt] || []).push(fn);
-}
 
 
 /**
@@ -306,7 +286,7 @@ enot['off'] = function(target, evtRefs, fn){
 //single reference unbinder
 function off(target, evtRef, fn){
 	// console.log('off', evtRef, fn)
-	var evtObj = parse(target, evtRef);
+	var evtObj = parseReference(target, evtRef);
 	var newTarget = evtObj.targets;
 	var targetFn = fn;
 
@@ -318,23 +298,6 @@ function off(target, evtRef, fn){
 			off(newTarget[i], evtObj.evt, targetFn);
 		}
 
-		return;
-	}
-
-
-	//unbind all listeners if no fn specified
-	if (fn === undefined) {
-		var callbacks = targetCbCache.get(target);
-		if (!callbacks) return;
-		//unbind all if no evtRef defined
-		if (evtRef === undefined) {
-			for (var evtName in callbacks) {
-				off(target, evtName, callbacks[evtName]);
-			}
-		}
-		else {
-			off(target, evtRef, callbacks[evtRef]);
-		}
 		return;
 	}
 
@@ -362,51 +325,14 @@ function off(target, evtRef, fn){
 	unbind(newTarget, evtObj.evt, targetFn);
 }
 
-//immediate unbinder
-function unbind(target, evt, fn){
-	if (isArray(fn)){
-		for (var i = fn.length; i--;){
-			unbind(target, evt, fn[i]);
-		}
-		return;
-	}
-
-	//DOM events on elements
-	if (isEventTarget(target)) {
-		//delegate to jquery
-		if ($){
-			$(target).off(evt, fn);
-		}
-
-		//listen element
-		else {
-			target.removeEventListener(evt, fn)
-		}
-	}
-
-	//ignore if no event specified
-	if (!targetCbCache.has(target)) return;
-
-	var evtCallbacks = targetCbCache.get(target)[evt];
-
-	if (!evtCallbacks) return;
-
-	//remove specific handler
-	for (var i = 0; i < evtCallbacks.length; i++) {
-		if (evtCallbacks[i] === fn) {
-			evtCallbacks.splice(i, 1);
-			break;
-		}
-	}
-}
 
 /**
 * Dispatch event to any target
 */
 // enot['trigger'] =
-// enot['emit'] =
+// enot['fire'] =
 // enot['dispatchEvent'] =
-enot['fire'] = function(target, evtRefs, data, bubbles){
+enot['emit'] = function(target, evtRefs, data, bubbles){
 	//if no target specified
 	if (isString(target)) {
 		bubbles = data;
@@ -422,7 +348,7 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 	if (!evtRefs) return false;
 
 	eachCSV(evtRefs, function(evtRef){
-		var evtObj = parse(target, evtRef);
+		var evtObj = parseReference(target, evtRef);
 
 		if (!evtObj.evt) return false;
 
@@ -448,50 +374,6 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 }
 
 
-/**
-* Event trigger
-*/
-function fire(target, eventName, data, bubbles){
-	//DOM events
-	if (isEventTarget(target)) {
-		if ($){
-			//TODO: decide how to pass data
-			var evt = $.Event( eventName, data );
-			evt.detail = data;
-			bubbles ? $(target).trigger(evt) : $(target).triggerHandler(evt);
-		} else {
-			//NOTE: this doesnot bubble on disattached elements
-			var evt;
-
-			if (eventName instanceof Event) {
-				evt = eventName;
-			} else {
-				evt =  doc.createEvent('CustomEvent');
-				evt.initCustomEvent(eventName, bubbles, null, data)
-			}
-
-			// var evt = new CustomEvent(eventName, { detail: data, bubbles: bubbles })
-
-			target.dispatchEvent(evt);
-		}
-	}
-
-	//no-DOM events
-	else {
-		//ignore if no event specified
-		if (!targetCbCache.has(target)) return;
-		var evtCallbacks = targetCbCache.get(target)[eventName];
-
-		if (!evtCallbacks) return;
-
-		for (var i = 0, len = evtCallbacks.length; i < len; i++) {
-			evtCallbacks[i] && evtCallbacks[i].call(target, {
-				detail: data,
-				type: eventName
-			});
-		}
-	}
-}
 
 
 
@@ -624,33 +506,15 @@ enot.modifiers['defer'] = function(evt, fn, delay){
 
 //redirector
 // enot.modifiers['redirect'] =
-enot.modifiers['fire'] = function(evt, fn, evtRef){
+enot.modifiers['redirect'] = function(evt, fn, evtRef){
 	var evts = evtRef + '';
 	var cb = function(e){
 		var self = this;
 		eachCSV(evts, function(evt){
 			// console.log('fire', evt)
-			enot.fire(self, evt, e.detail);
+			enot['emit'](self, evt, e.detail);
 		});
 	}
 
 	return cb
-}
-
-
-//detects whether element is able to emit/dispatch events
-//TODO: detect eventful objects in a more wide way
-function isEventTarget (target){
-	return target && !!target.addEventListener;
-}
-
-
-// onEvt → Evt
-function unprefixize(str, pf){
-	return (str.slice(0,pf.length) === pf) ? str.slice(pf.length) : str;
-}
-
-//simple uppercaser
-function upper(str){
-	return str.toUpperCase();
 }
