@@ -518,6 +518,9 @@ describe("Enot", function(){
 		enot.off(target, 'a');
 		enot.fire(target, 'a');
 
+
+		enot.fire({}, 'b');
+
 		assert.equal(i, 0);
 	})
 
@@ -592,4 +595,8 @@ describe("Enot", function(){
 
 		assert.equal(i, 1);
 	})
+
+	it("multiple off");
+
+	it("redirect to complex notations")
 });

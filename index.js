@@ -10,6 +10,7 @@ var _ = require('mutypes');
 var isString = _['isString'];
 var isElement = _['isElement'];
 var isPlain = _['isPlain'];
+var isArray = _['isArray'];
 var has = _['has'];
 
 
@@ -272,14 +273,12 @@ function bind(target, evt, fn){
 	}
 
 	//Non-DOM events
-	else {
-		//ensure callbacks array for target exist
-		if (!targetCbCache.has(target)) targetCbCache.set(target, {});
-		var targetCallbacks = targetCbCache.get(target);
+	//ensure callbacks array for target exist
+	if (!targetCbCache.has(target)) targetCbCache.set(target, {});
+	var targetCallbacks = targetCbCache.get(target);
 
-		//save callback
-		(targetCallbacks[evt] = targetCallbacks[evt] || []).push(fn);
-	}
+	//save callback
+	(targetCallbacks[evt] = targetCallbacks[evt] || []).push(fn);
 }
 
 
@@ -306,9 +305,7 @@ enot['off'] = function(target, evtRefs, fn){
 
 //single reference unbinder
 function off(target, evtRef, fn){
-	//ignore empty fn
-	if (fn === undefined) return
-
+	// console.log('off', evtRef, fn)
 	var evtObj = parse(target, evtRef);
 	var newTarget = evtObj.targets;
 	var targetFn = fn;
@@ -321,6 +318,23 @@ function off(target, evtRef, fn){
 			off(newTarget[i], evtObj.evt, targetFn);
 		}
 
+		return;
+	}
+
+
+	//unbind all listeners if no fn specified
+	if (fn === undefined) {
+		var callbacks = targetCbCache.get(target);
+		if (!callbacks) return;
+		//unbind all if no evtRef defined
+		if (evtRef === undefined) {
+			for (var evtName in callbacks) {
+				off(target, evtName, callbacks[evtName]);
+			}
+		}
+		else {
+			off(target, evtRef, callbacks[evtRef]);
+		}
 		return;
 	}
 
@@ -345,12 +359,18 @@ function off(target, evtRef, fn){
 		}
 	}
 
-	//unbind single target
 	unbind(newTarget, evtObj.evt, targetFn);
 }
 
 //immediate unbinder
 function unbind(target, evt, fn){
+	if (isArray(fn)){
+		for (var i = fn.length; i--;){
+			unbind(target, evt, fn[i]);
+		}
+		return;
+	}
+
 	//DOM events on elements
 	if (isEventTarget(target)) {
 		//delegate to jquery
@@ -364,20 +384,18 @@ function unbind(target, evt, fn){
 		}
 	}
 
-	//non-DOM events
-	else {
-		//ignore if no event specified
-		if (!targetCbCache.has(target)) return;
-		var evtCallbacks = targetCbCache.get(target)[evt];
+	//ignore if no event specified
+	if (!targetCbCache.has(target)) return;
 
-		if (!evtCallbacks) return;
+	var evtCallbacks = targetCbCache.get(target)[evt];
 
-		//remove specific handler
-		for (var i = 0; i < evtCallbacks.length; i++) {
-			if (evtCallbacks[i] === fn) {
-				evtCallbacks.splice(i, 1);
-				break;
-			}
+	if (!evtCallbacks) return;
+
+	//remove specific handler
+	for (var i = 0; i < evtCallbacks.length; i++) {
+		if (evtCallbacks[i] === fn) {
+			evtCallbacks.splice(i, 1);
+			break;
 		}
 	}
 }
@@ -611,8 +629,8 @@ enot.modifiers['fire'] = function(evt, fn, evtRef){
 	var cb = function(e){
 		var self = this;
 		eachCSV(evts, function(evt){
-			// console.log('fire', evt, self)
-			fire(self, evt, e.detail);
+			// console.log('fire', evt)
+			enot.fire(self, evt, e.detail);
 		});
 	}
 
