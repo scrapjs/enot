@@ -419,31 +419,34 @@ enot.modifiers['pass'] = function(evt, fn, keys){
 //white-filter target
 // enot.modifiers['live'] =
 // enot.modifiers['on'] =
-enot.modifiers['delegate'] = function(evt, fn, selector){
-	var cb = function(e){
-		var target = e.target;
+enot.modifiers['delegate'] = function(evtName, fn, selector){
+	var cb = function(evt){
+		var el = evt.target;
+		// console.log('delegate', evt.target.tagName)
 
-		// console.log('delegate cb', e, selector)
 		//filter document/object/etc
-		if (!isElement(target)) return DENY_EVT_CODE;
+		if (!isElement(el)) return DENY_EVT_CODE;
 
 		//intercept bubbling event by delegator
-		while (target && target !== this) {
-			if (matches(target, selector)) {
-				//set proper current target
-				e.delegateTarget = target;
-				Object.defineProperty(e, 'currentTarget', {
+		while (el && el !== this) {
+			if (matches(el, selector)) {
+				//set proper current el
+				evt.delegateTarget = el;
+				// evt.currentTarget = el;
+				//NOTE: PhantomJS fails on this
+				Object.defineProperty(evt, 'currentTarget', {
 					get: function(){
-						return target
+						return el
 					}
 				})
-				return fn.call(this, e);
+				return fn.call(this, evt);
 			}
-			target = target.parentNode;
+			el = el.parentNode;
 		}
 
 		return DENY_EVT_CODE;
 	}
+
 	return cb;
 }
 
