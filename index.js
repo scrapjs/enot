@@ -1,14 +1,11 @@
-//exports
 var enot = module['exports'] = {};
 
-//imports
 var matches = require('matches-selector');
 var eachCSV = require('each-csv');
 var evt = require('muevents');
 var str = require('mustring');
 var types = require('mutypes');
 
-//externs
 var isString = types['isString'];
 var isElement = types['isElement'];
 var isPlain = types['isPlain'];
@@ -20,49 +17,13 @@ var fire = evt['emit'];
 var unprefixize = str['unprefixize'];
 var upper = str['upper'];
 
-//env
 var global = (1, eval)('this');
 var doc = global.document;
 
 
-/** @type {Object} Keys shortcuts */
-var keyDict = {
-	'ENTER': 13,
-	'ESCAPE': 27,
-	'TAB': 9,
-	'ALT': 18,
-	'CTRL': 17,
-	'SHIFT': 16,
-	'SPACE': 32,
-	'PAGE_UP': 33,
-	'PAGE_DOWN': 34,
-	'END': 35,
-	'HOME': 36,
-	'LEFT': 37,
-	'UP': 38,
-	'RIGHT': 39,
-	'DOWN': 40,
-
-	'F1': 112,
-	'F2': 113,
-	'F3': 114,
-	'F4': 115,
-	'F5': 116,
-	'F6': 117,
-	'F7': 118,
-	'F8': 119,
-	'F9': 120,
-	'F10': 121,
-	'F11': 122,
-	'F12': 123,
-
-	'LEFT_MOUSE': 1,
-	'RIGHT_MOUSE': 3,
-	'MIDDLE_MOUSE': 2
-};
-
 
 /** @type {RegExp} Use as `.split(commaSplitRe)` */
+
 var commaSplitRe = /\s*,\s*/;
 
 
@@ -101,18 +62,18 @@ function parseReference(target, string, callback) {
 }
 
 
+/** @type {String} Reference to a self target members, e. g. `'@a click'` */
+
 var selfReference = '@';
 
-/**
-* Retrieve source element from string
-*/
 
 /**
- * [parseTarget description]
+ * Retrieve source element from string
  * @param  {Element|Object} target A target to relate to
- * @param  {string} str    Target reference
- * @return {*}        Resulting target found
+ * @param  {string}         str    Target reference
+ * @return {*}                     Resulting target found
  */
+
 function parseTarget(target, str) {
 	if (!str){
 		return target;
@@ -399,7 +360,42 @@ enot['emit'] = function(target, evtRefs, data, bubbles){
 
 
 
+/** @type {Object} Keys shortcuts */
 
+var keyDict = {
+	'ENTER': 13,
+	'ESCAPE': 27,
+	'TAB': 9,
+	'ALT': 18,
+	'CTRL': 17,
+	'SHIFT': 16,
+	'SPACE': 32,
+	'PAGE_UP': 33,
+	'PAGE_DOWN': 34,
+	'END': 35,
+	'HOME': 36,
+	'LEFT': 37,
+	'UP': 38,
+	'RIGHT': 39,
+	'DOWN': 40,
+
+	'F1': 112,
+	'F2': 113,
+	'F3': 114,
+	'F4': 115,
+	'F5': 116,
+	'F6': 117,
+	'F7': 118,
+	'F8': 119,
+	'F9': 120,
+	'F10': 121,
+	'F11': 122,
+	'F12': 123,
+
+	'LEFT_MOUSE': 1,
+	'RIGHT_MOUSE': 3,
+	'MIDDLE_MOUSE': 2
+};
 
 //list of available event modifiers
 var DENY_EVT_CODE = 1;
