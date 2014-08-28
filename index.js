@@ -1,35 +1,32 @@
-//TODO: unbind all callbacks
-//TODO: enhance keys detection
-//TODO: detect sequence events notation
-
+//exports
 var enot = module['exports'] = {};
 
+//imports
 var matches = require('matches-selector');
 var eachCSV = require('each-csv');
 var evt = require('muevents');
 var str = require('mustring');
-var _ = require('mutypes');
-
+var types = require('mutypes');
 
 //externs
-var isString = _['isString'];
-var isElement = _['isElement'];
-var isPlain = _['isPlain'];
-var isArray = _['isArray'];
-var has = _['has'];
+var isString = types['isString'];
+var isElement = types['isElement'];
+var isPlain = types['isPlain'];
+var isArray = types['isArray'];
+var has = types['has'];
 var bind = evt['on'];
 var unbind = evt['off'];
 var fire = evt['emit'];
 var unprefixize = str['unprefixize'];
 var upper = str['upper'];
 
-var global = (1,eval)('this');
+//env
+var global = (1, eval)('this');
 var doc = global.document;
 
 
-//:pass shortcuts
+/** @type {Object} Keys shortcuts */
 var keyDict = {
-	//kbd keys
 	'ENTER': 13,
 	'ESCAPE': 27,
 	'TAB': 9,
@@ -59,22 +56,26 @@ var keyDict = {
 	'F11': 122,
 	'F12': 123,
 
-	//mouse keys
 	'LEFT_MOUSE': 1,
 	'RIGHT_MOUSE': 3,
 	'MIDDLE_MOUSE': 2
 };
 
+
+/** @type {RegExp} Use as `.split(commaSplitRe)` */
 var commaSplitRe = /\s*,\s*/;
 
-//target callbacks storage
-var callbacks = {};
 
 /**
-* Returns parsed event object from event reference
-*/
+ * Returns parsed event object from event reference.
+ *
+ * @param  {Element|Object}   target   A target to parse (optional)
+ * @param  {String}   string   Event notation
+ * @param  {Function} callback Handler
+ * @return {Object}            Result of parsing
+ */
+
 function parseReference(target, string, callback) {
-	// console.group('parse reference', '`' + string + '`')
 	var result = {};
 
 	//get event name - the first token from the end
@@ -96,19 +97,25 @@ function parseReference(target, string, callback) {
 		result.handler = applyModifiers(callback, result);
 	}
 
-
-	// console.groupEnd();
 	return result;
 }
 
 
+var selfReference = '@';
+
 /**
 * Retrieve source element from string
 */
-var selfReference = '@';
+
+/**
+ * [parseTarget description]
+ * @param  {Element|Object} target A target to relate to
+ * @param  {string} str    Target reference
+ * @return {*}        Resulting target found
+ */
 function parseTarget(target, str) {
 	if (!str){
-		return target
+		return target;
 	}
 
 	//try to query selector in DOM environment
@@ -136,7 +143,14 @@ function parseTarget(target, str) {
 	}
 }
 
-//get dot property by string
+
+/**
+ * Get property defined by dot notation in string
+ * @param  {Object} holder   Target object where to look property up
+ * @param  {String} propName Dot notation, like 'this.a.b.c'
+ * @return {[type]}          [description]
+ */
+
 function getProperty(holder, propName){
 	var propParts = propName.split('.');
 	var result = holder, lastPropName;
@@ -149,15 +163,20 @@ function getProperty(holder, propName){
 
 
 /**
-* Apply event modifiers to string.
-* Returns wrapped fn.
-*/
+ * Apply event modifiers to string.
+ * Returns wrapped fn.
+ *
+ * @param  {Function} fn     Source function to be transformed
+ * @param  {Object}   evtObj Result of parsing
+ * @return {Function}        Callback with applied modifiers
+ */
+
 function applyModifiers(fn, evtObj){
 	var targetFn = fn;
 
 	//:one modifier should be the last one
 	evtObj.modifiers.sort(function(a,b){
-		return /^one/.test(a) ? 1 : -1
+		return /^one/.test(a) ? 1 : -1;
 	})
 	.forEach(function(modifier){
 		//parse params to pass to modifier
@@ -173,8 +192,13 @@ function applyModifiers(fn, evtObj){
 }
 
 
-//set of modified callbacks associated with fns, {fn: {evtRef: modifiedFn, evtRef: modifiedFn}}
-var modifiedCbCache = new WeakMap;
+/**
+ * Set of modified callbacks associated with fns:
+ * `{fn: {evtRef: modifiedFn, evtRef: modifiedFn}}`
+ *
+ * @type {WeakMap}
+ */
+var modifiedCbCache = new WeakMap();
 
 
 /**
@@ -198,7 +222,7 @@ enot['on'] = function(target, evtRefs, fn){
 }
 
 //cache of redirectors
-var redirectCbCache = new WeakMap;
+var redirectCbCache = new WeakMap();
 
 //single reference binder
 function on(target, evtRef, fn) {
@@ -263,8 +287,8 @@ function on(target, evtRef, fn) {
 
 
 /**
-* Listed reference unbinder
-*/
+ * Listed reference unbinder
+ */
 // enot['removeEventListener'] =
 // enot['unbind'] =
 enot['off'] = function(target, evtRefs, fn){
@@ -468,7 +492,7 @@ enot.modifiers['not'] = function(evt, fn, selector){
 }
 
 //throttle call
-var throttleCache = new WeakMap;
+var throttleCache = new WeakMap();
 enot.modifiers['throttle'] = function(evt, fn, interval){
 	interval = parseFloat(interval)
 	// console.log('thro', evt, fn, interval)
@@ -490,11 +514,19 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
 	return cb
 }
 
-//defer call - call Nms later invoking method/event
+
+/**
+ * Defer call - afnet Nms after real method/event
+ * @param  {String}   evt   Event name
+ * @param  {Function} fn    Handler
+ * @param  {Number|String}   delay Number of ms to wait
+ * @return {Function}         Modified handler
+ */
+
 // enot.modifiers['after'] =
 // enot.modifiers['async'] =
 enot.modifiers['defer'] = function(evt, fn, delay){
-	delay = parseFloat(delay)
+	delay = parseFloat(delay);
 	// console.log('defer', evt, delay)
 	var cb = function(e){
 		// console.log('defer cb')
