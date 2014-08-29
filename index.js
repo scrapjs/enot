@@ -193,13 +193,12 @@ var redirectCbCache = new WeakMap();
 //single reference binder
 function on(target, evtRef, fn) {
 	//ignore empty fn
-	if (fn === undefined) return;
+	if (!fn) return;
 
 	var evtObj = parseReference(target, evtRef, fn);
 
 	var newTarget = evtObj.targets;
 	var targetFn = evtObj.handler;
-	// console.log(evtObj.handler)
 
 	//ignore not bindable sources
 	if (!newTarget) return false;
