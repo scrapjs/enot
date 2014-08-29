@@ -28,10 +28,10 @@ var commaSplitRe = /\s*,\s*/;
 
 
 /**
- * Returns parsed event object from event reference.
+ * Return parsed event object from event reference.
  *
  * @param  {Element|Object}   target   A target to parse (optional)
- * @param  {String}   string   Event notation
+ * @param  {string}   string   Event notation
  * @param  {Function} callback Handler
  * @return {Object}            Result of parsing
  */
@@ -55,14 +55,18 @@ function parseReference(target, string, callback) {
 
 	//save resulting handler
 	if (callback) {
-		result.handler = applyModifiers(callback, result);
+		//transform redirect statement to callback
+		if (isPlain(callback)) {
+			callback = getRedirector(callback);
+		}
+		result.handler = applyModifiers(callback, result.evt, result.modifiers);
 	}
 
 	return result;
 }
 
 
-/** @type {String} Reference to a self target members, e. g. `'@a click'` */
+/** @type {string} Reference to a self target members, e. g. `'@a click'` */
 
 var selfReference = '@';
 
@@ -108,7 +112,7 @@ function parseTarget(target, str) {
 /**
  * Get property defined by dot notation in string
  * @param  {Object} holder   Target object where to look property up
- * @param  {String} propName Dot notation, like 'this.a.b.c'
+ * @param  {string} propName Dot notation, like 'this.a.b.c'
  * @return {[type]}          [description]
  */
 
@@ -127,17 +131,19 @@ function getProperty(holder, propName){
  * Apply event modifiers to string.
  * Returns wrapped fn.
  *
- * @param  {Function} fn     Source function to be transformed
- * @param  {Object}   evtObj Result of parsing
- * @return {Function}        Callback with applied modifiers
+ * @param  {Function}   fn   Source function to be transformed
+ * @param  {string}   evt   Event name to pass to modifiers
+ * @param  {Array}   modifiers   List of string chunks representing modifiers
+ * @return {Function}   Callback with applied modifiers
  */
 
-function applyModifiers(fn, evtObj){
+function applyModifiers(fn, evt, modifiers){
 	var targetFn = fn;
 
-	//:one modifier should be the last one
-	evtObj.modifiers.sort(function(a,b){
+	modifiers.sort(function(a,b){
 		return /^one/.test(a) ? 1 : -1;
+		//:defer should be the first because it delays call
+		return /^defer/.test(a) ? -1 : 1;
 	})
 	.forEach(function(modifier){
 		//parse params to pass to modifier
@@ -145,7 +151,7 @@ function applyModifiers(fn, evtObj){
 		var modifierParams = modifier.slice(modifierName.length + 1, -1);
 
 		if (enot.modifiers[modifierName]) {
-			targetFn = enot.modifiers[modifierName](evtObj.evt, targetFn, modifierParams);
+			targetFn = enot.modifiers[modifierName](evt, targetFn, modifierParams);
 		}
 	});
 
@@ -174,13 +180,12 @@ enot['on'] = function(target, evtRefs, fn){
 		evtRefs = target;
 		target = null;
 	}
-
 	if (!evtRefs) return false;
 
 	eachCSV(evtRefs, function(evtRef){
 		on(target, evtRef, fn);
 	});
-}
+};
 
 //cache of redirectors
 var redirectCbCache = new WeakMap();
@@ -194,6 +199,7 @@ function on(target, evtRef, fn) {
 
 	var newTarget = evtObj.targets;
 	var targetFn = evtObj.handler;
+	// console.log(evtObj.handler)
 
 	//ignore not bindable sources
 	if (!newTarget) return false;
@@ -209,11 +215,6 @@ function on(target, evtRef, fn) {
 
 	//catch redirect (stringy callback)
 	else if (isPlain(fn)) {
-		fn += '';
-		//FIXME: make sure it's ok that parsed targetFn looses here
-		//create fake redirector callback for stringy fn
-		targetFn = enot.modifiers['redirect'](evtRef, null, fn);
-
 		//save redirect fn to cache
 		if (!redirectCbCache.has(newTarget)) redirectCbCache.set(newTarget, {});
 		var redirectSet = redirectCbCache.get(newTarget);
@@ -266,7 +267,7 @@ enot['off'] = function(target, evtRefs, fn){
 	eachCSV(evtRefs, function(evtRef){
 		off(target, evtRef, fn);
 	});
-}
+};
 
 //single reference unbinder
 function off(target, evtRef, fn){
@@ -354,7 +355,7 @@ enot['emit'] = function(target, evtRefs, data, bubbles){
 				fire(target, evtObj.evt, data, bubbles);
 			}
 
-		}, evtObj)();
+		}, evtObj.evt, evtObj.modifiers)();
 	});
 }
 
@@ -513,9 +514,9 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
 
 /**
  * Defer call - afnet Nms after real method/event
- * @param  {String}   evt   Event name
+ * @param  {string}   evt   Event name
  * @param  {Function} fn    Handler
- * @param  {Number|String}   delay Number of ms to wait
+ * @param  {number|string}   delay Number of ms to wait
  * @return {Function}         Modified handler
  */
 
@@ -525,27 +526,35 @@ enot.modifiers['defer'] = function(evt, fn, delay){
 	delay = parseFloat(delay);
 	// console.log('defer', evt, delay)
 	var cb = function(e){
-		// console.log('defer cb')
+		// console.log('defer cb', fn);
 		var self = this;
 		setTimeout(function(){
 			return fn.call(self, e);
 		}, delay);
-	}
+	};
 
-	return cb
-}
+	return cb;
+};
 
-//redirector
-// enot.modifiers['redirect'] =
-enot.modifiers['redirect'] = function(evt, fn, evtRef){
-	var evts = evtRef + '';
+
+
+/**
+ * Return redirection statements handler
+ *
+ * @param    {string}   redirectTo   Redirect declaration (other event notation)
+ *
+ * @return   {function}   Callback which fires redirects
+ */
+
+function getRedirector(redirectTo){
 	var cb = function(e){
+	// console.log('redirect', re)
 		var self = this;
-		eachCSV(evts, function(evt){
-			// console.log('fire', evt)
+		eachCSV(redirectTo, function(evt){
+			// console.log('redirect', evt)
 			enot['emit'](self, evt, e.detail);
 		});
 	}
 
-	return cb
+	return cb;
 }

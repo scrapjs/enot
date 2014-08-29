@@ -610,5 +610,42 @@ describe("Enot", function(){
 
 	it("multiple off");
 
-	it("redirect to complex notations")
+	it.skip("redirect to complex notations", function(){
+
+	});
+
+	it(":defer(@delay)")
+
+	it(":defer, :defer(), :defer(N)", function(done){
+		var a = document.createElement('div');
+		var i = 0;
+
+		enot.on(a, 'click:defer(100)', function(){
+			i++;
+		});
+		enot.emit(a, 'click');
+		assert.equal(i, 0);
+
+		setTimeout(function(){
+			assert.equal(i, 1);
+			done();
+		}, 110);
+	});
+
+	it('redirect :othermodifier', function(done){
+		var i = 0;
+		var a = {x:function(){
+			i++
+		}};
+
+		enot.on(a, 'x', a.x);
+		enot.on(a, 'click:defer(100)', 'x');
+
+		enot.emit(a, 'click');
+
+		setTimeout(function(){
+			assert.equal(i, 1);
+			done();
+		}, 110)
+	})
 });
