@@ -480,7 +480,7 @@ describe("Enot", function(){
 
 		var cTarget;
 		enot.on('document click:delegate(.d)', function(e){
-			cTarget = e.currentTarget;
+			cTarget = e.delegateTarget;
 		});
 		enot.emit(b, 'click', null, true);
 		assert.equal(cTarget, a);
@@ -650,10 +650,10 @@ describe("Enot", function(){
 		var a = document.createElement('div');
 		var i = 0;
 
-		enot.on(a, 'click:defer(100)', function(){
+		enot.on(a, 'dsd:defer(100)', function(){
 			i++;
 		});
-		enot.emit(a, 'click');
+		enot.emit(a, 'dsd');
 		assert.equal(i, 0);
 
 		setTimeout(function(){
@@ -684,5 +684,35 @@ describe("Enot", function(){
 		enot.on(a, 'x', function(){});
 
 		assert.deepEqual(a, {})
+	});
+
+	it('delegate within target', function(){
+		var log = [];
+
+		var a = document.createElement('div');
+		a.innerHTML  = '<div class="xxx"></div>';
+		document.body.appendChild(a);
+		var b = a.firstChild.cloneNode();
+		document.body.appendChild(b);
+
+		enot.on(a, 'click:on(.xxx)', function(){
+			log.push(1)
+		});
+		enot.on('click:on(.xxx)', function(){
+			log.push(2)
+		})
+		enot.on(a, '.xxx click', function(){
+			log.push(3)
+		})
+
+		enot.emit('.xxx click', true, true);
+		assert.sameMembers(log, [1,2,3]);
+
+		enot.off(a, 'click');
+		enot.off(a, '.xxx click');
+		enot.off('.xxx click');
+
+		enot.emit('.xxx click', true, true);
+		assert.sameMembers(log, [1,2,3]);
 	})
 });

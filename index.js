@@ -79,15 +79,16 @@ var selfReference = '@';
 
 function parseTarget(target, str) {
 	//make target global, if none
-	if (!target) target = global;
+	if (!target) target = doc;
 
 	if (!str){
 		return target;
 	}
 
 	//try to query selector in DOM environment
-	if (/^[.#[]/.test(str) && doc) {
-		return doc.querySelectorAll(str);
+	if (/^[.#[]/.test(str)) {
+		if (!isElement(target)) target = doc;
+		return target.querySelectorAll(str);
 	}
 
 	//return self reference
@@ -252,6 +253,7 @@ function on(target, evtRef, fn) {
 		modifiedCbs[evtObj.evt] = targetFn;
 	}
 
+	// console.log('bind', newTarget, evtObj.evt, targetFn)
 	bind(newTarget, evtObj.evt, targetFn);
 }
 
@@ -413,7 +415,7 @@ var DENY_EVT_CODE = 1;
 enot.modifiers = {};
 
 //call callback once
-// enot.modifiers['once'] =
+enot.modifiers['once'] =
 enot.modifiers['one'] = function(evt, fn){
 	var cb = function(e){
 		// console.log('once cb', fn)
@@ -428,7 +430,7 @@ enot.modifiers['one'] = function(evt, fn){
 //filter keys
 // enot.modifiers['keypass'] =
 // enot.modifiers['mousepass'] =
-// enot.modifiers['filter'] =
+enot.modifiers['filter'] =
 enot.modifiers['pass'] = function(evt, fn, keys){
 	keys = keys.split(commaSplitRe).map(upper);
 
@@ -449,8 +451,9 @@ enot.modifiers['pass'] = function(evt, fn, keys){
 
 //white-filter target
 // enot.modifiers['live'] =
-// enot.modifiers['on'] =
+enot.modifiers['on'] =
 enot.modifiers['delegate'] = function(evtName, fn, selector){
+	// console.log('del', selector)
 	var cb = function(evt){
 		var el = evt.target;
 		// console.log('delegate', evt.target.tagName)
@@ -464,12 +467,12 @@ enot.modifiers['delegate'] = function(evtName, fn, selector){
 				//set proper current el
 				evt.delegateTarget = el;
 				// evt.currentTarget = el;
-				//NOTE: PhantomJS fails on this
-				Object.defineProperty(evt, 'currentTarget', {
-					get: function(){
-						return el;
-					}
-				});
+				//NOTE: PhantomJS && IE8 fails on this
+				// Object.defineProperty(evt, 'currentTarget', {
+				// 	get: function(){
+				// 		return el;
+				// 	}
+				// });
 				return fn.call(this, evt);
 			}
 			el = el.parentNode;
@@ -530,8 +533,9 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
  * @return {Function}         Modified handler
  */
 
-// enot.modifiers['after'] =
-// enot.modifiers['async'] =
+// enot.modifiers['postpone'] =
+enot.modifiers['async'] =
+enot.modifiers['after'] =
 enot.modifiers['defer'] = function(evt, fn, delay){
 	delay = parseFloat(delay);
 	// console.log('defer', evt, delay)
