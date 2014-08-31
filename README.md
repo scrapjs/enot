@@ -1,5 +1,7 @@
 # Enot
 
+_1.59 kb gzipped_
+
 Enot is an <em>e</em>vent <em>not</em>ation system. Rules are similar to CSS, but for events.
 
 Inspired by xtags events, backbone events and component/events notations.
