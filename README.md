@@ -1,6 +1,5 @@
 # Enot
-
-_1.59 kb gzipped_
+_`1.59 kb`_ min & gz
 
 Enot is an <em>e</em>vent <em>not</em>ation system. Rules are similar to CSS, but for events.
 
@@ -54,22 +53,21 @@ Enot implements [Emitter](https://github.com/component/emitter) interface:
 ```js
 enot.on(target, 'document click:pass(right_mouse)', callback);
 enot.off(target, 'document click:pass(right_mouse)', callback);
-enot.fire(target, 'document click:pass(right_mouse)');
+enot.emit(target, 'document click:pass(right_mouse)');
 ```
 
-Omit target or callback:
+Binding options:
 ```js
 //enable `a` event for `a` method
 enot.on({a: function(){i++}}, 'a');
 
 //bind to the document
-enot.on('document click:delegate(a)', function(){
+enot.on('document click:delegate(a)', function(){})
 
-})
-```
+//bind to the window (any click event)
+enot.on('click:delegate(a)', function(){})
 
-Redirect events:
-```js
+//redirect events
 enot.on(target, 'click', 'close, hide');
 ```
 
@@ -86,10 +84,10 @@ enot.on(target, 'click', 'close, hide');
 
 ## Modifiers
 
-* `:one()` — the same as jQuery’s `one`
-* `:delegate(selector)` — the same as jQuery’s `delegate`
-* `:not(selector)` — the opposite to delegate
-* `:pass(code)` — filter event by matching `which` value. Useful for keyboard/mouse events.	List of codes:
+* `:one()` — the same as jQuery’s `one`.
+* `:delegate(selector)` — the same as jQuery’s `delegate`.
+* `:not(selector)` — the opposite to delegate.
+* `:pass(code)` — filter event by matching `which` value. Useful for keyboard/mouse events. Codes:
 	* `ENTER: 13`
 	* `ESCAPE: 27`
 	* `TAB: 9`
@@ -108,8 +106,8 @@ enot.on(target, 'click', 'close, hide');
 	* `LEFT_MOUSE: 1`
 	* `RIGHT_MOUSE: 3`
 	* `MIDDLE_MOUSE: `
-* `:defer(100)` — invoke callback `100` ms after
-* `:throttle(20)` — invoke callbak not more than a time per 20 ms
+* `:defer(100)` — invoke callback `100` ms after.
+* `:throttle(20)` — invoke callbak not more than a time per 20 ms.
 
 Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
 
