@@ -8,7 +8,6 @@ var types = require('mutypes');
 
 var isString = types['isString'];
 var isElement = types['isElement'];
-var isPlain = types['isPlain'];
 var isArray = types['isArray'];
 var has = types['has'];
 var bind = evt['on'];
@@ -56,7 +55,7 @@ function parseReference(target, string, callback) {
 	//save resulting handler
 	if (callback) {
 		//transform redirect statement to callback
-		if (isPlain(callback)) {
+		if (isString(callback)) {
 			callback = getRedirector(callback);
 		}
 		result.handler = applyModifiers(callback, result.evt, result.modifiers);
@@ -79,6 +78,9 @@ var selfReference = '@';
  */
 
 function parseTarget(target, str) {
+	//make target global, if none
+	if (!target) target = global;
+
 	if (!str){
 		return target;
 	}
@@ -142,8 +144,6 @@ function applyModifiers(fn, evt, modifiers){
 
 	modifiers.sort(function(a,b){
 		return /^one/.test(a) ? 1 : -1;
-		//:defer should be the first because it delays call
-		return /^defer/.test(a) ? -1 : 1;
 	})
 	.forEach(function(modifier){
 		//parse params to pass to modifier
@@ -169,7 +169,7 @@ var modifiedCbCache = new WeakMap();
 
 
 /**
-* Listed reference binder
+* Listed reference binder (comma-separated references)
 */
 // enot['addEventListener'] =
 // enot['bind'] =
@@ -190,7 +190,16 @@ enot['on'] = function(target, evtRefs, fn){
 //cache of redirectors
 var redirectCbCache = new WeakMap();
 
-//single reference binder
+/**
+ * Bind single reference (no comma-declared references).
+ *
+ * @param {*} target A target to relate reference, `document` by default.
+ * @param {string} evtRef Event reference, like `click:defer` etc.
+ * @param {Function} fn Callback.
+ *
+ * @return {[type]} [description]
+ */
+
 function on(target, evtRef, fn) {
 	//ignore empty fn
 	if (!fn) return;
@@ -213,7 +222,7 @@ function on(target, evtRef, fn) {
 	}
 
 	//catch redirect (stringy callback)
-	else if (isPlain(fn)) {
+	else if (isString(fn)) {
 		//save redirect fn to cache
 		if (!redirectCbCache.has(newTarget)) redirectCbCache.set(newTarget, {});
 		var redirectSet = redirectCbCache.get(newTarget);
@@ -287,23 +296,25 @@ function off(target, evtRef, fn){
 	}
 
 	//catch redirect (stringy callback)
-	if (isPlain(fn)) {
-		fn += '';
-		var redirectSet = redirectCbCache.get(newTarget);
-		if (!redirectSet) return;
+	if (fn) {
+		if (isString(fn)) {
+			fn += '';
+			var redirectSet = redirectCbCache.get(newTarget);
+			if (!redirectSet) return;
 
-		targetFn = redirectSet[evtObj.evt];
+			targetFn = redirectSet[evtObj.evt];
 
-		redirectSet[evtObj.evt] = null;
-	}
+			redirectSet[evtObj.evt] = null;
+		}
 
-	//try to clean cached modified callback
-	else if (modifiedCbCache.has(fn)) {
-		var modifiedCbs = modifiedCbCache.get(fn);
-		if (modifiedCbs[evtObj.evt]) {
-			targetFn = modifiedCbs[evtObj.evt];
-			//clear reference
-			modifiedCbs[evtObj.evt] = null;
+		//try to clean cached modified callback
+		else if (modifiedCbCache.has(fn)) {
+			var modifiedCbs = modifiedCbCache.get(fn);
+			if (modifiedCbs[evtObj.evt]) {
+				targetFn = modifiedCbs[evtObj.evt];
+				//clear reference
+				modifiedCbs[evtObj.evt] = null;
+			}
 		}
 	}
 
@@ -456,9 +467,9 @@ enot.modifiers['delegate'] = function(evtName, fn, selector){
 				//NOTE: PhantomJS fails on this
 				Object.defineProperty(evt, 'currentTarget', {
 					get: function(){
-						return el
+						return el;
 					}
-				})
+				});
 				return fn.call(this, evt);
 			}
 			el = el.parentNode;
@@ -477,20 +488,20 @@ enot.modifiers['not'] = function(evt, fn, selector){
 		var target = e.target;
 
 		//traverse each node from target to holder and filter if event happened within banned element
-		while (target && target !== this) {
+		while (target && target !== document && target !== this) {
 			if (matches(target, selector)) return DENY_EVT_CODE;
 			target = target.parentNode;
 		}
 
 		return fn.call(this, e);
-	}
+	};
 	return cb;
-}
+};
 
 //throttle call
 var throttleCache = new WeakMap();
 enot.modifiers['throttle'] = function(evt, fn, interval){
-	interval = parseFloat(interval)
+	interval = parseFloat(interval);
 	// console.log('thro', evt, fn, interval)
 	var cb = function(e){
 		// console.log('thro cb')
@@ -507,8 +518,8 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
 		}
 	}
 
-	return cb
-}
+	return cb;
+};
 
 
 /**

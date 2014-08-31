@@ -586,7 +586,19 @@ describe("Enot", function(){
 
 	it("target order agnostic");
 
-	it("no target means viewport === any event of this type")
+	it("no target means viewport === any event of this type", function(){
+		var i = 0;
+		enot.on('a', function(){
+			i++
+		});
+
+		enot.emit('a');
+		assert.equal(i, 1);
+
+		enot.off('a');
+		enot.emit('a');
+		assert.equal(i, 1);
+	})
 
 	it("access undefined properties", function(){
 		enot.on({}, 'this.x.y', function(){})
@@ -608,7 +620,25 @@ describe("Enot", function(){
 		assert.equal(i, 1);
 	})
 
-	it("multiple off");
+	it("multiple off", function(){
+		var i = 0;
+		var a = {
+			x: function(){i++}
+		}
+
+		enot.on(a, 'x', a.x);
+		enot.on(a, 'y', 'x');
+		enot.emit(a, 'x');
+		enot.emit(a, 'y');
+
+		assert.equal(i, 2);
+
+		enot.off(a, 'x');
+		enot.off(a, 'y');
+		enot.emit(a, 'x');
+		enot.emit(a, 'y');
+		assert.equal(i, 2);
+	});
 
 	it.skip("redirect to complex notations", function(){
 
@@ -647,5 +677,12 @@ describe("Enot", function(){
 			assert.equal(i, 1);
 			done();
 		}, 110)
+	})
+
+	it('keep target objects untouched (jQuery intrusion)', function(){
+		var a = {};
+		enot.on(a, 'x', function(){});
+
+		assert.deepEqual(a, {})
 	})
 });
