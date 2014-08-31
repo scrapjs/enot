@@ -459,7 +459,7 @@ enot.modifiers['delegate'] = function(evtName, fn, selector){
 		if (!isElement(el)) return DENY_EVT_CODE;
 
 		//intercept bubbling event by delegator
-		while (el && el !== this) {
+		while (el && el !== document && el !== this) {
 			if (matches(el, selector)) {
 				//set proper current el
 				evt.delegateTarget = el;
