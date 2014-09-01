@@ -738,4 +738,29 @@ describe("Enot", function(){
 		enot.emit(a, 'init');
 		assert.deepEqual(log, [1,2,3])
 	})
+
+	it("query elements out of target", function(){
+		var log = [];
+
+		var a = document.createElement('div');
+
+		var b = a.cloneNode();
+		b.className = 'item';
+
+		document.body.appendChild(a);
+		document.body.appendChild(b);
+
+		enot.on(a, 'body .item click', function(){
+			log.push(1)
+		})
+		enot.on(a, '.item click', function(){
+			log.push(2);
+		})
+
+
+		enot.emit(b, 'click');
+		enot.emit(a, 'click');
+
+		assert.deepEqual(log, [1]);
+	})
 });

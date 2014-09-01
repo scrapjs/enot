@@ -102,7 +102,9 @@ function parseTarget(target, str) {
 	else if(str === 'this') return target;
 	else if(str === selfReference) return target;
 
-	else if(str === 'body') return doc.body;
+	else if(/^body|^html/.test(str)) {
+		return document.querySelectorAll(str);
+	}
 	else if(str === 'root') return doc.documentElement;
 
 	//return global variable
