@@ -763,4 +763,25 @@ describe("Enot", function(){
 
 		assert.deepEqual(log, [1]);
 	})
+
+	it("yas case: @a evt, body evt, evt", function(){
+		var a = document.createElement('div');
+		a.className = 'a'
+		a.a = document.createElement('div');
+		a.a.className = 'inner-a'
+		document.body.appendChild(a);
+
+		var i = 0;
+
+		enot.on(a, '@a evt, body evt, evt', function(){i++});
+
+		enot.emit(a.a, 'evt');
+		assert.equal(i, 1);
+
+		enot.emit(document.body, 'evt');
+		assert.equal(i, 2);
+
+		enot.emit(a, 'evt');
+		assert.equal(i, 3);
+	})
 });

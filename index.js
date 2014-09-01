@@ -81,6 +81,7 @@ function parseTarget(target, str) {
 	//make target global, if none
 	if (!target) target = doc;
 
+	// console.log('parseTarget `' + str + '`', target)
 	if (!str){
 		return target;
 	}
@@ -208,7 +209,7 @@ var redirectCbCache = new WeakMap();
 function on(target, evtRef, fn) {
 	//ignore empty fn
 	if (!fn) return;
-
+	// console.log('on', evtRef)
 	var evtObj = parseReference(target, evtRef, fn);
 
 	var newTarget = evtObj.targets;
@@ -220,6 +221,7 @@ function on(target, evtRef, fn) {
 	//iterate list of targets
 	if (newTarget.length && !isElement(newTarget)) {
 		for (var i = newTarget.length; i--;){
+			// console.log('list')
 			on(newTarget[i], evtObj.evt, targetFn);
 		}
 
