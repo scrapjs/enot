@@ -144,6 +144,7 @@ function applyModifiers(fn, evt, modifiers){
 	var targetFn = fn;
 
 	modifiers.sort(function(a,b){
+		//one should go last because it offs passed event
 		return /^one/.test(a) ? 1 : -1;
 	})
 	.forEach(function(modifier){
@@ -152,7 +153,8 @@ function applyModifiers(fn, evt, modifiers){
 		var modifierParams = modifier.slice(modifierName.length + 1, -1);
 
 		if (enot.modifiers[modifierName]) {
-			targetFn = enot.modifiers[modifierName](evt, targetFn, modifierParams);
+			//create new context each call
+			targetFn = enot.modifiers[modifierName](evt, targetFn, modifierParams, fn);
 		}
 	});
 
@@ -242,6 +244,7 @@ function on(target, evtRef, fn) {
 		//bind new event
 		if (!modifiedCbCache.has(fn)) modifiedCbCache.set(fn, {});
 		var modifiedCbs = modifiedCbCache.get(fn);
+		// console.log('save', fn, '\n', targetFn)
 
 		//ignore bound event
 		if (modifiedCbs[evtObj.evt]) return false;
@@ -416,12 +419,13 @@ enot.modifiers = {};
 
 //call callback once
 enot.modifiers['once'] =
-enot.modifiers['one'] = function(evt, fn){
+enot.modifiers['one'] = function(evt, fn, emptyArg, sourceFn){
 	var cb = function(e){
 		// console.log('once cb', fn)
 		var result = fn && fn.call(this, e);
 		//FIXME: `this` is not necessarily has `off`
-		result !== DENY_EVT_CODE && enot.off(this, evt, cb);
+		// console.log('off', fn)
+		result !== DENY_EVT_CODE && enot.off(this, evt, sourceFn);
 		return result;
 	}
 	return cb;

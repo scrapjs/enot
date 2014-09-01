@@ -202,13 +202,13 @@ describe("Enot", function(){
 
 		var el = document.createElement("div");
 		el.className = "item";
+
 		var el2 = document.createElement("div");
 
 		document.body.appendChild(el)
 		document.body.appendChild(el2)
 
 		enot.on(document.body, "hello:one:delegate(.item)", function(e){
-			// console.log("old on")
 			e.detail === 123 && i++
 		})
 		enot.emit(document.body, "hello", 123, true)
@@ -216,6 +216,8 @@ describe("Enot", function(){
 		enot.emit(el, "hello", 123, true)
 		assert.equal(i, 1)
 		enot.emit(el2, "hello", 123, true)
+		assert.equal(i, 1)
+		enot.emit(el, "hello", 123, true)
 		assert.equal(i, 1)
 		enot.emit(el, "hello", 123, true)
 		assert.equal(i, 1)
@@ -714,5 +716,26 @@ describe("Enot", function(){
 
 		enot.emit('.xxx click', true, true);
 		assert.sameMembers(log, [1,2,3]);
+	})
+
+
+	it("multiple :one callbacks", function(){
+		var a = {}, log = [];
+
+		enot.on(a, 'init:one', function(){
+			log.push(1)
+		})
+		enot.on(a, 'init:one', function(){
+			log.push(2)
+		})
+		enot.on(a, 'init:one', function(){
+			log.push(3)
+		})
+
+		enot.emit(a, 'init');
+		assert.deepEqual(log, [1,2,3])
+
+		enot.emit(a, 'init');
+		assert.deepEqual(log, [1,2,3])
 	})
 });

@@ -34,7 +34,6 @@
   "dependencies": {
     "matches-selector": "~1.0.0",
     "each-csv": "*",
-    "polymer-weakmap": "*",
     "mutypes": "*",
     "muevent": "*",
     "mustring": "*",
