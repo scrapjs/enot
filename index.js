@@ -56,7 +56,7 @@ function parseReference(target, string, callback) {
 	if (callback) {
 		//transform redirect statement to callback
 		if (isString(callback)) {
-			callback = getRedirector(callback);
+			callback = getRedirector(callback, target);
 		}
 		result.handler = applyModifiers(callback, result.evt, result.modifiers);
 	}
@@ -568,13 +568,12 @@ enot.modifiers['defer'] = function(evt, fn, delay){
  * @return   {function}   Callback which fires redirects
  */
 
-function getRedirector(redirectTo){
+function getRedirector(redirectTo, ctx){
 	var cb = function(e){
 	// console.log('redirect', re)
-		var self = this;
 		eachCSV(redirectTo, function(evt){
 			// console.log('redirect', evt)
-			enot['emit'](self, evt, e.detail);
+			enot['emit'](ctx, evt, e.detail);
 		});
 	}
 

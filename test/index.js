@@ -765,15 +765,18 @@ describe("Enot", function(){
 	})
 
 	it("yas case: @a evt, body evt, evt", function(){
+		var i = 0;
+
 		var a = document.createElement('div');
 		a.className = 'a'
 		a.a = document.createElement('div');
 		a.a.className = 'inner-a'
+		a.inc = function(){i++};
 		document.body.appendChild(a);
 
-		var i = 0;
 
-		enot.on(a, '@a evt, body evt, evt', function(){i++});
+		enot.on(a, 'inc', a.inc);
+		enot.on(a, '@a evt, body evt, evt', 'inc');
 
 		enot.emit(a.a, 'evt');
 		assert.equal(i, 1);
