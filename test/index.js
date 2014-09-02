@@ -787,4 +787,8 @@ describe("Enot", function(){
 		enot.emit(a, 'evt');
 		assert.equal(i, 3);
 	})
+
+	it.skip("window hashchanged", function(){
+
+	})
 });

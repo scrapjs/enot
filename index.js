@@ -107,6 +107,7 @@ function parseTarget(target, str) {
 		return document.querySelectorAll(str);
 	}
 	else if(str === 'root') return doc.documentElement;
+	else if(str === 'window') return global;
 
 	//return global variable
 	else {
