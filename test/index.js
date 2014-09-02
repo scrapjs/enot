@@ -780,7 +780,7 @@ describe("Enot", function(){
 
 		enot.emit(a.a, 'evt');
 		assert.equal(i, 1);
-
+		// console.log('---emit body evt')
 		enot.emit(document.body, 'evt');
 		assert.equal(i, 2);
 
@@ -788,7 +788,32 @@ describe("Enot", function(){
 		assert.equal(i, 3);
 	})
 
-	it.skip("window hashchanged", function(){
+	it.skip("window hashchanged (tickets case)", function(){
 
+	})
+
+	it("keep context on external redirected events", function(){
+		var i = 0;
+		var a = {
+			y:function(){
+				i++
+			}
+		};
+		var b = {
+			y:function(){
+				i++
+			}
+		};
+
+		enot.on(a, 'y', a.y);
+		enot.on(b, 'y', b.y);
+		enot.on(a, 'window x', 'y');
+		enot.on(b, 'window x', 'y');
+
+		enot.emit('window x');
+		assert.equal(i, 2);
+
+		enot.emit(window, 'x');
+		assert.equal(i, 4);
 	})
 });
