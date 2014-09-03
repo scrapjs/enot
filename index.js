@@ -223,9 +223,9 @@ function on(target, evtRef, fn) {
 
 	//ignore not bindable sources
 	if (!newTarget) return false;
-
 	//iterate list of targets
-	if (newTarget.length && !isElement(newTarget)) {
+
+	if (newTarget instanceof NodeList || isArray(newTarget)) {
 		for (var i = newTarget.length; i--;){
 			// console.log('list',)
 			on(newTarget[i], evtObj.evt, targetFn);
@@ -370,7 +370,8 @@ function off(target, evtRef, fn){
  * @alias fire
  * @alias dispatchEvent
  */
-enot['emit'] = function(target, evtRefs, data, bubbles){
+enot['emit'] =
+enot['fire'] = function(target, evtRefs, data, bubbles){
 	//if no target specified
 	if (isString(target)) {
 		bubbles = data;
@@ -396,7 +397,7 @@ enot['emit'] = function(target, evtRefs, data, bubbles){
 			if (!target) return target;
 
 			//iterate list of targets
-			if (target.length && !isElement(target)) {
+			if (target instanceof NodeList || isArray(target)) {
 				for (var i = target.length; i--;){
 					fire(target[i], evtObj.evt, data, bubbles);
 				}

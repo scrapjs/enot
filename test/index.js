@@ -788,10 +788,6 @@ describe("Enot", function(){
 		assert.equal(i, 3);
 	})
 
-	it.skip("window hashchanged (tickets case)", function(){
-
-	})
-
 	it("keep context on external redirected events", function(){
 		var i = 0;
 		var a = {
@@ -815,5 +811,45 @@ describe("Enot", function(){
 
 		enot.emit(window, 'x');
 		assert.equal(i, 4);
+	})
+
+	it("prevent planned :async call via off", function(done){
+		var i = 0, a = {};
+
+		enot.on(a, 'x', function(){
+			i++
+		});
+
+		enot.emit(a, 'x:defer(50)', 'x');
+		enot.emit(a, 'x:defer(100)', 'x');
+
+		setTimeout(function(){
+			assert.equal(i, 1);
+			//TODO: think of adding :skip modifier
+			enot.off(a, 'x', 'x');
+		})
+
+		setTimeout(function(){
+			assert.equal(i, 1);
+			done();
+		}, 110);
+	});
+
+	it("list only queryResults, not the any object with length", function(){
+		var i = 0;
+
+		var a = document.createElement('iframe');
+		a.src = 'http://kudago.com';
+		a.style.display = 'none';
+		document.body.appendChild(a);
+
+		enot.on({}, 'window x', function(){
+			i++
+		})
+
+		enot.emit('window x');
+		enot.emit('window x');
+
+		assert.equal(i, 2);
 	})
 });
