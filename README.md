@@ -116,6 +116,10 @@ Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
 
 `npm run build`.
 
+## TODO
+
+* Collect & minify modules with closure compiler
+
 
 ## License
 

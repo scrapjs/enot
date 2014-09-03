@@ -4,10 +4,9 @@
   "description": "Event NOTation system",
   "main": "index.js",
   "scripts": {
-    "build": "npm run min-index && browserify index.min.js --standalone enot > dist/enot.js && npm run minify && npm test",
-    "test": "mocha-phantomjs test/index.html",
-    "minify": "ccjs dist/enot.js --compilation_level=SIMPLE --language_in=ECMASCRIPT5_STRICT > dist/enot.min.js",
-    "min-index": "ccjs index.js --language_in=ECMASCRIPT5_STRICT --compilation_level=ADVANCED --process_jquery_primitives --externs=build/jquery-externs.js > index.min.js"
+    "build": "npm run build-dist && npm run test",
+    "build-dist": "browserify index.js --standalone enot > dist/enot.js",
+    "test": "mocha-phantomjs test/index.html"
   },
   "repository": {
     "type": "git",

@@ -825,14 +825,31 @@ describe("Enot", function(){
 
 		setTimeout(function(){
 			assert.equal(i, 1);
-			//TODO: think of adding :skip modifier
+
 			enot.off(a, 'x', 'x');
-		})
+		}, 55)
 
 		setTimeout(function(){
 			assert.equal(i, 1);
 			done();
 		}, 110);
+	});
+
+	it("bind dotted notations", function(){
+		var a = {
+			inc: function(){
+				i++
+			}
+		};
+		var i = 0;
+		enot.on(a, "a.b", a.inc)
+		enot.emit(a, "a.b");
+
+		assert.equal(i, 1);
+
+		enot.off(a, "a.b");
+		enot.emit(a, "a.b");
+		assert.equal(i, 1);
 	});
 
 	it("list only queryResults, not the any object with length", function(){

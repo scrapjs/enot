@@ -40,7 +40,7 @@ function parseReference(target, string, callback) {
 	var result = {};
 
 	//get event name - the first token from the end
-	var eventString = string.match(/\w+(?:\:\w+(?:\(.+\))?)*$/)[0];
+	var eventString = string.match(/[\w\.\:\$\-]+(?:\:[\w\.\:\-\$]+(?:\(.+\))?)*$/)[0];
 
 	//remainder is a target reference - parse target
 	string = string.slice(0, -eventString.length).trim();
@@ -48,7 +48,6 @@ function parseReference(target, string, callback) {
 
 	//parse modifiers
 	var eventParams = unprefixize(eventString, 'on').split(':');
-
 	//get event name
 	result.evt = eventParams.shift();
 	result.modifiers = eventParams;
@@ -59,7 +58,7 @@ function parseReference(target, string, callback) {
 		if (isString(callback)) {
 			callback = getRedirector(callback, target);
 		}
-		result.handler = applyModifiers(callback, result.evt, result.modifiers);
+		result.handler = applyModifiers.call(target, callback, result.evt, result.modifiers);
 	}
 
 	return result;
@@ -147,6 +146,7 @@ function getProperty(holder, propName){
 
 function applyModifiers(fn, evt, modifiers){
 	var targetFn = fn;
+	var self = this;
 
 	modifiers.sort(function(a,b){
 		//one should go last because it offs passed event
@@ -159,7 +159,7 @@ function applyModifiers(fn, evt, modifiers){
 
 		if (enot.modifiers[modifierName]) {
 			//create new context each call
-			targetFn = enot.modifiers[modifierName](evt, targetFn, modifierParams, fn);
+			targetFn = enot.modifiers[modifierName].call(self, evt, targetFn, modifierParams, fn);
 		}
 	});
 
@@ -184,6 +184,7 @@ var modifiedCbCache = new WeakMap();
 *
 * @alias addEventListener
 * @alias bind
+* @chainable
 */
 enot['on'] = function(target, evtRefs, fn){
 	//if no target specified
@@ -192,11 +193,14 @@ enot['on'] = function(target, evtRefs, fn){
 		evtRefs = target;
 		target = null;
 	}
-	if (!evtRefs) return false;
+
+	if (!evtRefs) return enot;
 
 	eachCSV(evtRefs, function(evtRef){
 		on(target, evtRef, fn);
 	});
+
+	return enot;
 };
 
 
@@ -243,7 +247,7 @@ function on(target, evtRef, fn) {
 		//ignore existing binding
 		if (redirectSet[evtRef]) return false;
 
-		//bind to old target
+		//bind to old target (targetFn is redirector now)
 		if (target) targetFn = targetFn.bind(target);
 
 		redirectSet[evtRef] = targetFn;
@@ -294,7 +298,9 @@ function getRedirector(redirectTo, ctx){
  *
  * @alias removeEventListener
  * @alias unbind
+ * @chainable
  */
+
 enot['off'] = function(target, evtRefs, fn){
 	//if no target specified
 	if (isString(target)) {
@@ -304,11 +310,13 @@ enot['off'] = function(target, evtRefs, fn){
 	}
 
 	//FIXME: remove all listeners?
-	if (!evtRefs) return;
+	if (!evtRefs) return enot;
 
 	eachCSV(evtRefs, function(evtRef){
 		off(target, evtRef, fn);
 	});
+
+	return enot;
 };
 
 /**
@@ -320,7 +328,7 @@ enot['off'] = function(target, evtRefs, fn){
  */
 
 function off(target, evtRef, fn){
-	// console.log('off', evtRef, fn)
+	// console.log('off', evtRef)
 	var evtObj = parseReference(target, evtRef);
 	var newTarget = evtObj.targets;
 	var targetFn = fn;
@@ -336,11 +344,21 @@ function off(target, evtRef, fn){
 		return;
 	}
 
+	//clear planned calls for an event
+	if (dfdCalls[evtObj.evt]) {
+		for (var i = 0; i < dfdCalls[evtObj.evt].length; i++){
+			// console.log('off-interval', evtObj.evt + '.' + dfdCalls[evtObj.evt][i])
+			enot.off(newTarget, evtObj.evt + '.' + dfdCalls[evtObj.evt][i]);
+		}
+	}
+
 	//catch redirect (stringy callback)
 	if (fn) {
+		//unbind callback
 		if (isString(fn)) {
 			fn += '';
 			var redirectSet = redirectCbCache.get(target);
+
 			if (!redirectSet) return;
 
 			targetFn = redirectSet[evtRef];
@@ -369,7 +387,9 @@ function off(target, evtRef, fn){
  * @alias trigger
  * @alias fire
  * @alias dispatchEvent
+ * @chainable
  */
+
 enot['emit'] =
 enot['fire'] = function(target, evtRefs, data, bubbles){
 	//if no target specified
@@ -381,20 +401,21 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 	}
 
 	if (evtRefs instanceof Event) {
-		return fire(target, evtRefs);
+		fire(target, evtRefs);
+		return enot;
 	}
 
-	if (!evtRefs) return false;
+	if (!evtRefs) return enot;
 
 	eachCSV(evtRefs, function(evtRef){
 		var evtObj = parseReference(target, evtRef);
 
-		if (!evtObj.evt) return false;
+		if (!evtObj.evt) return;
 
-		return applyModifiers(function(){
+		return applyModifiers.call(target, function(){
 			var target = evtObj.targets;
 
-			if (!target) return target;
+			if (!target) return;
 
 			//iterate list of targets
 			if (target instanceof NodeList || isArray(target)) {
@@ -410,9 +431,9 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 
 		}, evtObj.evt, evtObj.modifiers)();
 	});
-}
 
-
+	return enot;
+};
 
 
 
@@ -474,7 +495,7 @@ enot.modifiers['one'] = function(evt, fn, emptyArg, sourceFn){
 		// console.log('off', fn)
 		result !== DENY_EVT_CODE && enot.off(this, evt, sourceFn);
 		return result;
-	}
+	};
 	return cb;
 };
 
@@ -493,16 +514,16 @@ enot.modifiers['pass'] = function(evt, fn, keys){
 	var cb = function(e){
 		var pass = false, key;
 		for (var i = keys.length; i--;){
-			key = keys[i]
+			key = keys[i];
 			var which = 'originalEvent' in e ? e.originalEvent.which : e.which;
 			if ((key in keyDict && keyDict[key] == which) || which == key){
 				pass = true;
 				return fn.call(this, e);
 			}
-		};
+		}
 		return DENY_EVT_CODE;
-	}
-	return cb
+	};
+	return cb;
 };
 
 
@@ -580,6 +601,7 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
 		// console.log('thro cb')
 		var self = this;
 
+		//FIXME: multiple throttles may interfere on target (key throttles by id)
 		if (throttleCache.get(self)) return DENY_EVT_CODE;
 		else {
 			var result = fn.call(self, e);
@@ -595,6 +617,10 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
 };
 
 
+/** List of postponed calls, keyed by evt name */
+var dfdCalls = {};
+
+
 /**
  * Defer call - afnet Nms after real method/event
  *
@@ -602,20 +628,44 @@ enot.modifiers['throttle'] = function(evt, fn, interval){
  * @param  {string}   evt   Event name
  * @param  {Function} fn    Handler
  * @param  {number|string}   delay Number of ms to wait
+ * @param  {Function|string} sourceFn Source (unmodified) callback
+ * @alias async
  * @return {Function}         Modified handler
  */
 
-enot.modifiers['async'] =
 enot.modifiers['after'] =
-enot.modifiers['defer'] = function(evt, fn, delay){
+enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 	delay = parseFloat(delay);
 	// console.log('defer', evt, delay)
+	var self = this;
+
 	var cb = function(e){
 		// console.log('defer cb', fn);
-		var self = this;
-		setTimeout(function(){
-			return fn.call(self, e);
+
+		//plan fire of this event after N ms
+		var interval = setTimeout(function(){
+			var evtName =  evt + '.' + interval;
+
+			// console.log('emit', evtName, self)
+
+			//fire once
+			enot['emit'](self, evtName);
+			enot['off'](self, evtName);
+
+			//forget interval
+			var idx = dfdCalls[evt].indexOf(interval);
+			if (idx > -1) dfdCalls[evt].splice(idx, 1);
 		}, delay);
+
+		// console.log('on', evt + '.' + interval, self);
+
+		//bind :one fire of this event
+		enot['on'](self, evt + '.' + interval, fn);
+
+		//save planned interval for an evt
+		(dfdCalls[evt] = dfdCalls[evt] || []).push(interval);
+
+		return interval;
 	};
 
 	return cb;
