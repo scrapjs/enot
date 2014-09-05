@@ -935,4 +935,9 @@ describe("Enot", function(){
 		enot.emit(a, 'click', true, true);
 		assert.notEqual(document.location.hash, '#xxx')
 	})
+
+	it.skip("emit events passed", function(){
+		var e = new CustomEvent();
+		enot.emit({}, e);
+	})
 });
