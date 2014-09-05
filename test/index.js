@@ -908,4 +908,31 @@ describe("Enot", function(){
 
 		assert.equal(i, 0);
 	})
+
+	it("stopPropagation shortcut", function(){
+		var i = 0;
+		var a = document.createElement('div');
+		document.body.appendChild(a);
+
+		enot.on(document.body, 'click', function(){
+			i++;
+		})
+		enot.emit(a, 'click', true, true);
+		assert.equal(i, 1);
+
+		enot.on(a, 'click', 'stopPropagation');
+		enot.emit(a, 'click', true, true);
+		assert.equal(i, 1);
+	})
+
+	it("preventDefault shortcut", function(){
+		var i = 0;
+		var a = document.createElement('a');
+		document.body.appendChild(a);
+		a.href="#xxx";
+		enot.on(a, 'click', 'preventDefault');
+		document.location.hash = '';
+		enot.emit(a, 'click', true, true);
+		assert.notEqual(document.location.hash, '#xxx')
+	})
 });

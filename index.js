@@ -282,15 +282,35 @@ function on(target, evtRef, fn) {
  */
 
 function getRedirector(redirectTo, ctx){
+
 	var cb = function(e){
 		eachCSV(redirectTo, function(evt){
+			if (redirectors[evt]) redirectors[evt].call(ctx, e);
 			// console.log('redirect', ctx, evt)
 			enot['emit'](ctx, evt, e.detail);
 		});
-	}
+	};
 
 	return cb;
 }
+
+
+/**
+ * Utility callbacks shortcuts
+ */
+
+var redirectors = {
+	preventDefault: function (e) {
+		e.preventDefault && e.preventDefault();
+	},
+	stopPropagation: function (e) {
+		e.stopPropagation && e.stopPropagation();
+	},
+	stopImmediatePropagation: function (e) {
+		e.stopImmediatePropagation && e.stopImmediatePropagation();
+	},
+	noop: function(){}
+};
 
 
 /**

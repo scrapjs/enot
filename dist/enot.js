@@ -283,15 +283,35 @@ function on(target, evtRef, fn) {
  */
 
 function getRedirector(redirectTo, ctx){
+
 	var cb = function(e){
 		eachCSV(redirectTo, function(evt){
+			if (redirectors[evt]) redirectors[evt].call(ctx, e);
 			// console.log('redirect', ctx, evt)
 			enot['emit'](ctx, evt, e.detail);
 		});
-	}
+	};
 
 	return cb;
 }
+
+
+/**
+ * Utility callbacks shortcuts
+ */
+
+var redirectors = {
+	preventDefault: function (e) {
+		e.preventDefault && e.preventDefault();
+	},
+	stopPropagation: function (e) {
+		e.stopPropagation && e.stopPropagation();
+	},
+	stopImmediatePropagation: function (e) {
+		e.stopImmediatePropagation && e.stopImmediatePropagation();
+	},
+	noop: function(){}
+};
 
 
 /**
@@ -724,6 +744,7 @@ function match(el, selector) {
   return false;
 }
 },{}],4:[function(require,module,exports){
+/** @module muevents */
 module.exports = {
 	on: bind,
 	off: unbind,
@@ -743,6 +764,7 @@ var targetCbCache = new WeakMap;
 
 /**
 * Bind fn to a target
+* @todo  recognize jquery object
 */
 function bind(target, evt, fn){
 	//DOM events
@@ -764,8 +786,7 @@ function bind(target, evt, fn){
 	var targetCallbacks = targetCbCache.get(target);
 
 	//save callback
-	// console.log('on', fn)
-	;(targetCallbacks[evt] = targetCallbacks[evt] || []).push(fn);
+	(targetCallbacks[evt] = targetCallbacks[evt] || []).push(fn);
 }
 
 
@@ -817,7 +838,6 @@ function unbind(target, evt, fn){
 	var evtCallbacks = targetCbCache.get(target)[evt];
 
 	if (!evtCallbacks) return;
-	// console.log('off', '\n> cb:\n', evtCallbacks[0], '\n> passed:\n', fn)
 
 	//remove specific handler
 	for (var i = 0; i < evtCallbacks.length; i++) {
@@ -851,7 +871,7 @@ function fire(target, eventName, data, bubbles){
 				evt = eventName;
 			} else {
 				evt =  document.createEvent('CustomEvent');
-				evt.initCustomEvent(eventName, bubbles, null, data)
+				evt.initCustomEvent(eventName, bubbles, true, data)
 			}
 
 			// var evt = new CustomEvent(eventName, { detail: data, bubbles: bubbles })
@@ -871,7 +891,6 @@ function fire(target, eventName, data, bubbles){
 
 		//copy callbacks to fire because list can change in some handler
 		var fireList = evtCallbacks.slice();
-		// console.log(fireList)
 		for (var i = 0; i < fireList.length; i++ ) {
 			fireList[i] && fireList[i].call(target, {
 				detail: data,
@@ -884,8 +903,10 @@ function fire(target, eventName, data, bubbles){
 
 
 
-//detects whether element is able to emit/dispatch events
-//TODO: detect eventful objects in a more wide way
+/**
+ * detects whether element is able to emit/dispatch events
+ * @todo detect eventful objects in a more wide way
+ */
 function isEventTarget (target){
 	return target && !!target.addEventListener;
 }
