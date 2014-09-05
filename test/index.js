@@ -436,22 +436,40 @@ describe("Enot", function(){
 	})
 
 	it(":not(selector) modifier", function(){
-		var i = 0;
+		var i = 0, j = 0;
 
 		var a = document.createElement('div');
-		a.className = 'abc';
+		a.className = 'a';
 
 		document.body.appendChild(a);
 
-		enot.on('document click:not(.abc)', function(){
+		var b = document.createElement('div');
+		b.className = 'b';
+		a.appendChild(b);
+		var c = document.createElement('div');
+		c.className = 'c';
+		b.appendChild(c);
+		var d = document.createElement('span');
+		d.className = 'd';
+		c.appendChild(d);
+
+		enot.on('document click:not(.a)', function(){
 			i++
 		});
-
+		enot.on('.b click:not(.c)', function(){
+			j++
+		})
+		// console.log('--------emit body click');
 		enot.emit('body click', null, true);
 		assert.equal(i, 1);
 
+		// console.log('--------emit a click');
 		enot.emit(a, 'click', null, true);
+		enot.emit(b, 'click', null, true);
+		enot.emit(c, 'click', null, true);
+		enot.emit(d, 'click', null, true);
 		assert.equal(i, 1);
+		assert.equal(j, 1);
 	})
 
 	it.skip(":not(this.prop) modifier", function(){
@@ -868,5 +886,26 @@ describe("Enot", function(){
 		enot.emit('window x');
 
 		assert.equal(i, 2);
+	});
+
+	it(":not on elements which are no more in the DOM", function(){
+		var a = document.createElement('div');
+		a.className = 'a';
+		a.innerHTML = '<span></span>'
+		document.body.appendChild(a);
+
+		var i = 0;
+
+
+		enot.on(a, 'click', function(){
+			this.innerHTML = '<span></span>'
+		})
+		enot.on('document click:not(.a)', function(e){
+			i++
+		});
+		// console.log('----emit click', a.firstChild)
+		enot.emit(a.firstChild, 'click', true, true);
+
+		assert.equal(i, 0);
 	})
 });

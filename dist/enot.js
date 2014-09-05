@@ -105,7 +105,7 @@ function parseTarget(target, str) {
 	else if(str === selfReference) return target;
 
 	else if(/^body|^html/.test(str)) {
-		return document.querySelectorAll(str);
+		return doc.querySelectorAll(str);
 	}
 	else if(str === 'root') return doc.documentElement;
 	else if(str === 'window') return global;
@@ -544,7 +544,7 @@ enot.modifiers['delegate'] = function(evtName, fn, selector){
 		if (!isElement(el)) return DENY_EVT_CODE;
 
 		//intercept bubbling event by delegator
-		while (el && el !== document && el !== this) {
+		while (el && el !== doc && el !== this) {
 			if (matches(el, selector)) {
 				//set proper current el
 				evt.delegateTarget = el;
@@ -577,12 +577,15 @@ enot.modifiers['not'] = function(evt, fn, selector){
 		var target = e.target;
 
 		//traverse each node from target to holder and filter if event happened within banned element
-		while (target && target !== document && target !== this) {
+		while (target) {
+			if (target === doc || target === this) {
+				return fn.call(this, e);
+			}
 			if (matches(target, selector)) return DENY_EVT_CODE;
 			target = target.parentNode;
 		}
 
-		return fn.call(this, e);
+		return DENY_EVT_CODE;
 	};
 	return cb;
 };
@@ -650,7 +653,7 @@ enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 			// console.log('emit', evtName, self)
 
 			//fire once
-			enot['emit'](self, evtName);
+			enot['emit'](self, evtName, {sourceEvent: e});
 			enot['off'](self, evtName);
 
 			//forget interval
