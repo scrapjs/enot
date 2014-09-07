@@ -1,6 +1,6 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.enot=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /** @module enot */
-var enot = module['exports'] = {};
+var enot = module.exports = {};
 
 var matches = require('matches-selector');
 var eachCSV = require('each-csv');
@@ -8,15 +8,15 @@ var evt = require('muevents');
 var str = require('mustring');
 var types = require('mutypes');
 
-var isString = types['isString'];
-var isElement = types['isElement'];
-var isArray = types['isArray'];
-var has = types['has'];
-var bind = evt['on'];
-var unbind = evt['off'];
-var fire = evt['emit'];
-var unprefixize = str['unprefixize'];
-var upper = str['upper'];
+var isString = types.isString;
+var isElement = types.isElement;
+var isArray = types.isArray;
+var has = types.has;
+var bind = evt.on;
+var unbind = evt.off;
+var fire = evt.emit;
+var unprefixize = str.unprefixize;
+var upper = str.upper;
 
 var global = (1, eval)('this');
 var doc = global.document;
@@ -187,7 +187,7 @@ var modifiedCbCache = new WeakMap();
 * @alias bind
 * @chainable
 */
-enot['on'] = function(target, evtRefs, fn){
+enot.on = function(target, evtRefs, fn){
 	//if no target specified
 	if (isString(target)) {
 		fn = evtRefs;
@@ -288,7 +288,7 @@ function getRedirector(redirectTo, ctx){
 		eachCSV(redirectTo, function(evt){
 			if (redirectors[evt]) redirectors[evt].call(ctx, e);
 			// console.log('redirect', ctx, evt)
-			enot['emit'](ctx, evt, e.detail, e.bubbles);
+			enot.emit(ctx, evt, e);
 		});
 	};
 
@@ -322,7 +322,7 @@ var redirectors = {
  * @chainable
  */
 
-enot['off'] = function(target, evtRefs, fn){
+enot.off = function(target, evtRefs, fn){
 	//if no target specified
 	if (isString(target)) {
 		fn = evtRefs;
@@ -411,8 +411,8 @@ function off(target, evtRef, fn){
  * @chainable
  */
 
-enot['emit'] =
-enot['fire'] = function(target, evtRefs, data, bubbles){
+enot.emit =
+enot.fire = function(target, evtRefs, data, bubbles){
 	//if no target specified
 	if (isString(target)) {
 		bubbles = data;
@@ -421,6 +421,7 @@ enot['fire'] = function(target, evtRefs, data, bubbles){
 		target = null;
 	}
 
+	//just fire straight event passed
 	if (evtRefs instanceof Event) {
 		fire(target, evtRefs);
 		return enot;
@@ -673,8 +674,8 @@ enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 			// console.log('emit', evtName, self)
 
 			//fire once
-			enot['emit'](self, evtName, {sourceEvent: e});
-			enot['off'](self, evtName);
+			enot.emit(self, evtName, {sourceEvent: e});
+			enot.off(self, evtName);
 
 			//forget interval
 			var idx = dfdCalls[evt].indexOf(interval);
@@ -684,7 +685,7 @@ enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 		// console.log('on', evt + '.' + interval, self);
 
 		//bind :one fire of this event
-		enot['on'](self, evt + '.' + interval, fn);
+		enot.on(self, evt + '.' + interval, fn);
 
 		//save planned interval for an evt
 		(dfdCalls[evt] = dfdCalls[evt] || []).push(interval);
