@@ -939,5 +939,7 @@ describe("Enot", function(){
 	it.skip("emit events passed", function(){
 		var e = new CustomEvent();
 		enot.emit({}, e);
+
+		//TODO: faced this case in MOD with enot.emit(a,b, event) in redirector
 	})
 });

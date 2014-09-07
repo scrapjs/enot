@@ -286,8 +286,8 @@ function getRedirector(redirectTo, ctx){
 	var cb = function(e){
 		eachCSV(redirectTo, function(evt){
 			if (redirectors[evt]) redirectors[evt].call(ctx, e);
-			// console.log('redirect', ctx, evt)
-			enot.emit(ctx, evt, e);
+			// console.log('redirect', ctx, e)
+			enot.emit(ctx, evt, e.detail, e.bubbles);
 		});
 	};
 
