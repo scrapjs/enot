@@ -795,8 +795,10 @@ describe("Enot", function(){
 
 
 		enot.on(a, 'inc', a.inc);
+		// console.log('----bind three')
 		enot.on(a, '@a evt, body evt, evt', 'inc');
 
+		// console.log('---emit inner evt')
 		enot.emit(a.a, 'evt');
 		assert.equal(i, 1);
 		// console.log('---emit body evt')
@@ -835,17 +837,18 @@ describe("Enot", function(){
 	it("prevent planned :async call via off", function(done){
 		var i = 0, a = {};
 
-		enot.on(a, 'x', function(){
+		var inc = function(){
 			i++
-		});
+		}
+		enot.on(a, 'x', inc);
 
-		enot.emit(a, 'x:defer(50)', 'x');
-		enot.emit(a, 'x:defer(100)', 'x');
+		enot.emit(a, 'x:defer(50)');
+		enot.emit(a, 'x:defer(100)');
 
 		setTimeout(function(){
 			assert.equal(i, 1);
 
-			enot.off(a, 'x', 'x');
+			enot.off(a, 'x', inc);
 		}, 55)
 
 		setTimeout(function(){
@@ -945,4 +948,23 @@ describe("Enot", function(){
 	})
 
 	it('TODO: jQuery event separator (.)')
+
+	it('Catch :defer redirector (draggy case - it shouldn’t work)', function(done){
+		var a = {
+			track: function(){}
+		};
+		var i = 0;
+		enot.on(a,'track', a.track);
+		enot.emit(a, 'track:defer');
+		enot.off(a,'track', a.track)
+		//make track change after emit
+		a.track = function(){
+			i++
+		}
+		enot.on(a,'track',a.track)
+		setTimeout(function(){
+			assert.equal(i, 1);
+			done();
+		})
+	})
 });
