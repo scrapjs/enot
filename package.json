@@ -1,6 +1,6 @@
 {
   "name": "enot",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "Event NOTation system",
   "main": "index.js",
   "scripts": {
