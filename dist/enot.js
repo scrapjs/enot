@@ -21,6 +21,8 @@ var upper = str.upper;
 var global = (1, eval)('this');
 var doc = global.document;
 
+var evtSeparator = '-';
+
 
 
 /** @type {RegExp} Use as `.split(commaSplitRe)` */
@@ -270,7 +272,7 @@ function on(target, evtRef, fn) {
 		modifiedCbs[evtObj.evt] = targetFn;
 	}
 
-	// console.log('---bind', newTarget, evtObj.evt, targetFn)
+	// console.log('bind', newTarget, evtObj.evt)
 	bind(newTarget, evtObj.evt, targetFn);
 }
 
@@ -368,8 +370,8 @@ function off(target, evtRef, fn){
 	//clear planned calls for an event
 	if (dfdCalls[evtObj.evt]) {
 		for (var i = 0; i < dfdCalls[evtObj.evt].length; i++){
-			// console.log('off-interval', evtObj.evt + '.' + dfdCalls[evtObj.evt][i])
-			enot.off(newTarget, evtObj.evt + '.' + dfdCalls[evtObj.evt][i]);
+			// console.log('off-interval', evtObj.evt + evtSeparator + dfdCalls[evtObj.evt][i])
+			enot.off(newTarget, evtObj.evt + evtSeparator + dfdCalls[evtObj.evt][i]);
 		}
 	}
 
@@ -668,7 +670,7 @@ enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 
 		//plan fire of this event after N ms
 		var interval = setTimeout(function(){
-			var evtName =  evt + '.' + interval;
+			var evtName =  evt + evtSeparator + interval;
 
 			// console.log('emit', evtName, self)
 
@@ -681,10 +683,10 @@ enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 			if (idx > -1) dfdCalls[evt].splice(idx, 1);
 		}, delay);
 
-		// console.log('on', evt + '.' + interval, self);
+		// console.log('on', evt + evtSeparator + interval, self);
 
 		//bind :one fire of this event
-		enot.on(self, evt + '.' + interval, fn);
+		enot.on(self, evt + evtSeparator + interval, fn);
 
 		//save planned interval for an evt
 		(dfdCalls[evt] = dfdCalls[evt] || []).push(interval);

@@ -937,10 +937,12 @@ describe("Enot", function(){
 		assert.notEqual(document.location.hash, '#xxx')
 	})
 
-	it.skip("emit events passed", function(){
+	it.skip("TODO: emit event instances passed", function(){
 		var e = new CustomEvent();
 		enot.emit({}, e);
 
 		//TODO: faced this case in MOD with enot.emit(a,b, event) in redirector
 	})
+
+	it('TODO: jQuery event separator (.)')
 });
