@@ -235,7 +235,6 @@ function on(target, evtRef, fn) {
 	//iterate list of targets
 	if (targets instanceof NodeList || isArray(targets)) {
 		for (var i = targets.length; i--;){
-			// console.log('list',)
 			on(targets[i], evtObj.evt, targetFn);
 		}
 
@@ -259,9 +258,6 @@ function on(target, evtRef, fn) {
 
 	//if fn has been modified - save modified fn (in order to unbind it properly)
 	else {
-		//bind to old target
-		// if (target) targetFn = targetFn.bind(target);
-
 		//bind new event
 		if (!modifiedCbCache.has(fn)) modifiedCbCache.set(fn, {});
 		var modifiedCbs = modifiedCbCache.get(fn);
@@ -373,7 +369,6 @@ function off(target, evtRef, fn){
 	//clear planned calls for an event
 	if (dfdCalls[evtObj.evt]) {
 		for (var i = 0; i < dfdCalls[evtObj.evt].length; i++){
-			// console.log('off-interval', evtObj.evt + evtSeparator + dfdCalls[evtObj.evt][i], intervalCallbacks[dfdCalls[evtObj.evt][i]], fn)
 			if (intervalCallbacks[dfdCalls[evtObj.evt][i]] === fn)
 				enot.off(newTarget, evtObj.evt + evtSeparator + dfdCalls[evtObj.evt][i]);
 		}
@@ -685,18 +680,14 @@ var intervalCallbacks = {};
 
 enot.modifiers['after'] =
 enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
-	delay = parseFloat(delay);
-	// console.log('defer', evt, delay, sourceFn)
+	delay = parseFloat(delay) || 0;
+
 	var self = this;
 
 	var cb = function(e){
-		// console.log('defer cb', fn);
-
 		//plan fire of this event after N ms
 		var interval = setTimeout(function(){
 			var evtName =  evt + evtSeparator + interval;
-
-			// console.log('emit', evtName, evt)
 
 			//fire once planned evt
 			enot.emit(self, evtName, {sourceEvent: e});
@@ -707,8 +698,6 @@ enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 			if (idx > -1) dfdCalls[evt].splice(idx, 1);
 			intervalCallbacks[interval] = null;
 		}, delay);
-
-		// console.log('catch defer', evt + evtSeparator + interval);
 
 		//bind :one fire of this event
 		enot.on(self, evt + evtSeparator + interval, sourceFn);
