@@ -1,7 +1,8 @@
 //testing helpers stuff
 
 function createKeyEvt(name, code){
-	var evt = document.createEvent("KeyboardEvent")
+	var evt = document.createEvent("KeyboardEvent");
+
 	Object.defineProperty(evt, 'keyCode', {
 		get : function() {
 			return this.keyCodeVal;
@@ -12,18 +13,19 @@ function createKeyEvt(name, code){
 			return this.keyCodeVal;
 		}
 	});
-	// evt.keyCode = this.keyCodeVal;
-	// evt.which = this.keyCodeVal;
+
+	evt.keyCode = this.keyCodeVal;
+	evt.which = this.keyCodeVal;
 
 	if (evt.initKeyboardEvent) {
 		evt.initKeyboardEvent("keydown", true, true, document.defaultView, false, false, false, false, code, code);
 	} else {
-		evt.initKeyEvent("keydown", true, true, document.defaultView, false, false, false, false, code, 0);
+		evt.initKeyEvent("keydown", true, true, document.defaultView, false, false, false, false, code, code);
 	}
 
 	evt.keyCodeVal = code;
 
-	return evt
+	return evt;
 }
 
 function createMouseEvt(name, btn){

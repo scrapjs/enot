@@ -411,8 +411,7 @@ function off(target, evtRef, fn){
  * @chainable
  */
 
-enot.emit =
-enot.fire = function(target, evtRefs, data, bubbles){
+enot.emit = function(target, evtRefs, data, bubbles){
 	//if no target specified
 	if (isString(target)) {
 		bubbles = data;
@@ -423,7 +422,7 @@ enot.fire = function(target, evtRefs, data, bubbles){
 
 	//just fire straight event passed
 	if (evtRefs instanceof Event) {
-		fire(target, evtRefs);
+		fire(target, evtRefs, data, bubbles);
 		return enot;
 	}
 
@@ -559,7 +558,7 @@ enot.modifiers['delegate'] = function(evtName, fn, selector){
 	// console.log('del', selector)
 	var cb = function(evt){
 		var el = evt.target;
-		// console.log('delegate', evt.target.tagName)
+		// console.log('delegate')
 
 		//filter document/object/etc
 		if (!isElement(el)) return DENY_EVT_CODE;
@@ -755,7 +754,6 @@ module.exports = {
 var _ = require('mutypes');
 
 
-
 //jquery guarant
 var $ = typeof jQuery === 'undefined' ? undefined : jQuery;
 
@@ -856,7 +854,6 @@ function unbind(target, evt, fn){
 */
 function fire(target, eventName, data, bubbles){
 	if (!target) return;
-
 	//DOM events
 	if (isEventTarget(target)) {
 		if ($){
@@ -872,7 +869,7 @@ function fire(target, eventName, data, bubbles){
 				evt = eventName;
 			} else {
 				evt =  document.createEvent('CustomEvent');
-				evt.initCustomEvent(eventName, bubbles, true, data)
+				evt.initCustomEvent(eventName, bubbles, true, data);
 			}
 
 			// var evt = new CustomEvent(eventName, { detail: data, bubbles: bubbles })

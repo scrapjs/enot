@@ -410,8 +410,7 @@ function off(target, evtRef, fn){
  * @chainable
  */
 
-enot.emit =
-enot.fire = function(target, evtRefs, data, bubbles){
+enot.emit = function(target, evtRefs, data, bubbles){
 	//if no target specified
 	if (isString(target)) {
 		bubbles = data;
@@ -422,7 +421,7 @@ enot.fire = function(target, evtRefs, data, bubbles){
 
 	//just fire straight event passed
 	if (evtRefs instanceof Event) {
-		fire(target, evtRefs);
+		fire(target, evtRefs, data, bubbles);
 		return enot;
 	}
 
@@ -558,7 +557,7 @@ enot.modifiers['delegate'] = function(evtName, fn, selector){
 	// console.log('del', selector)
 	var cb = function(evt){
 		var el = evt.target;
-		// console.log('delegate', evt.target.tagName)
+		// console.log('delegate')
 
 		//filter document/object/etc
 		if (!isElement(el)) return DENY_EVT_CODE;

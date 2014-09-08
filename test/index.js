@@ -231,6 +231,7 @@ describe("Enot", function(){
 
 		enot.emit(document.body, createKeyEvt("keypress", 27), 123, true)
 		assert.equal(i, 0)
+		// console.log('-----emit', el)
 		enot.emit(el, createKeyEvt("keydown", 27), 123, true)
 		assert.equal(i, 1)
 		enot.emit(el2, "hello", createKeyEvt("keydown", 27), 123, true)
