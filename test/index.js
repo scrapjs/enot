@@ -967,4 +967,31 @@ describe("Enot", function(){
 			done();
 		})
 	})
+
+	it('stringy modifiers', function(){
+		var a = document.createElement('div');
+		var b = document.createElement('div');
+		a.className = 'special';
+
+		document.body.appendChild(a);
+		document.body.appendChild(b);
+
+		var i = 0;
+
+		var x = {
+			inc: function(){
+				i++
+			}
+		}
+
+		enot.on(x, 'inc', x.inc)
+		enot.on(x, 'document x:not(.special)', 'inc');
+
+		enot.emit(b, 'x', true, true);
+		assert.equal(i, 1);
+
+		enot.emit(a, 'x', true, true);
+		assert.equal(i, 1);
+
+	})
 });

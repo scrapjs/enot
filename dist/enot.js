@@ -226,7 +226,8 @@ function on(target, evtRef, fn) {
 	var targets = evtObj.targets,
 
 		//get modified fn or redirector
-		targetFn = isString(fn) ? getRedirector(fn, target) : applyModifiers.call(target, fn, evtObj.evt, evtObj.modifiers);
+		targetFn = isString(fn) ? getRedirector(fn, target) : fn;
+		targetFn = applyModifiers.call(target, targetFn, evtObj.evt, evtObj.modifiers);
 
 
 	//ignore not bindable sources
