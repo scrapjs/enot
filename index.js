@@ -198,6 +198,20 @@ enot.on = function(target, evtRefs, fn){
 	return enot;
 };
 
+/**
+ * Listed ref binder with :one modifier
+ *
+ * @chainable
+ */
+enot.one = function(target, evtRefs, fn){
+	//append ':one' to each event from the references passed
+	var processedRefs = '';
+	eachCSV(evtRefs, function(item){
+		processedRefs += item + ':one';
+	});
+	return enot.on(target, processedRefs, fn);
+};
+
 
 /**
  * Cache of redirectors

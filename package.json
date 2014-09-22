@@ -35,7 +35,6 @@
     "matches-selector": "~1.0.0",
     "each-csv": "*",
     "mutypes": "*",
-    "muevent": "*",
     "mustring": "*",
     "muevents": "*"
   }

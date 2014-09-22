@@ -994,4 +994,22 @@ describe("Enot", function(){
 		assert.equal(i, 1);
 
 	})
+
+	it('one method', function(){
+		var i = 0, j = 0;
+		enot.one(document, "hello", function(e){
+			e.detail === 123 && i++
+		})
+		enot.one(document, "hello", function(e){
+			e.detail === 123 && i++
+		})
+		enot.emit(document, "hello", 123)
+		assert.equal(i, 2)
+
+		enot.emit(document, "hello", 123)
+		assert.equal(i, 2)
+
+		enot.emit(document, "hello", 123)
+		assert.equal(i, 2)
+	})
 });

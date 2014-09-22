@@ -199,6 +199,20 @@ enot.on = function(target, evtRefs, fn){
 	return enot;
 };
 
+/**
+ * Listed ref binder with :one modifier
+ *
+ * @chainable
+ */
+enot.one = function(target, evtRefs, fn){
+	//append ':one' to each event from the references passed
+	var processedRefs = '';
+	eachCSV(evtRefs, function(item){
+		processedRefs += item + ':one';
+	});
+	return enot.on(target, processedRefs, fn);
+};
+
 
 /**
  * Cache of redirectors
@@ -771,56 +785,80 @@ module.exports = {
 	emit: fire
 };
 
-var _ = require('mutypes');
 
-
-//jquery guarant
+/** jquery guarant */
 var $ = typeof jQuery === 'undefined' ? undefined : jQuery;
 
-//set of target callbacks, {target: [cb1, cb2, ...]}
+
+/** set of target callbacks, {target: [cb1, cb2, ...]} */
 var targetCbCache = new WeakMap;
 
 
 /**
-* Bind fn to a target
+* Bind fn to the target
 * @todo  recognize jquery object
+* @chainable
 */
 function bind(target, evt, fn){
+	//walk by list of instances
+	if (fn instanceof Array){
+		for (var i = fn.length; i--;){
+			bind(target, evt, fn[i]);
+		}
+		return;
+	}
+
+
 	//DOM events
-	if (isEventTarget(target)) {
+	if (isDOMEventTarget(target)) {
 		//bind target fn
 		if ($){
 			//delegate to jquery
 			$(target).on(evt, fn);
 		} else {
-			//listen element
-			target.addEventListener(evt, fn)
+			//listen to element
+			target.addEventListener(evt, fn);
 		}
 		//FIXME: old IE
 	}
 
-	//Non-DOM events
+	//target events
+	else {
+		var onMethod = getOn(target);
+
+		//use target event system, if possible
+		if (onMethod) {
+			onMethod.call(target, evt, fn);
+		}
+	}
+
+
+	//Save callback
 	//ensure callbacks array for target exist
 	if (!targetCbCache.has(target)) targetCbCache.set(target, {});
 	var targetCallbacks = targetCbCache.get(target);
 
-	//save callback
 	(targetCallbacks[evt] = targetCallbacks[evt] || []).push(fn);
+
+
+	return this;
 }
 
 
 
 /**
 * Bind fn to a target
+* @chainable
 */
 function unbind(target, evt, fn){
 	//unbind all listeners passed
-	if (_.isArray(fn)){
+	if (fn instanceof Array){
 		for (var i = fn.length; i--;){
 			unbind(target, evt, fn[i]);
 		}
 		return;
 	}
+
 
 	//unbind all listeners if no fn specified
 	if (fn === undefined) {
@@ -838,19 +876,32 @@ function unbind(target, evt, fn){
 		return;
 	}
 
-	//DOM events on elements
-	if (isEventTarget(target)) {
+
+	//DOM events
+	if (isDOMEventTarget(target)) {
 		//delegate to jquery
 		if ($){
 			$(target).off(evt, fn);
 		}
 
-		//listen element
+		//listen to element
 		else {
-			target.removeEventListener(evt, fn)
+			target.removeEventListener(evt, fn);
 		}
 	}
 
+	//target events
+	else {
+		var offMethod = getOff(target);
+
+		//use target event system, if possible
+		if (offMethod) {
+			offMethod.call(target, evt, fn);
+		}
+	}
+
+
+	//Forget callback
 	//ignore if no event specified
 	if (!targetCbCache.has(target)) return;
 
@@ -865,17 +916,23 @@ function unbind(target, evt, fn){
 			break;
 		}
 	}
+
+
+	return this;
 }
 
 
 
 /**
 * Event trigger
+* @chainable
 */
 function fire(target, eventName, data, bubbles){
 	if (!target) return;
+
+
 	//DOM events
-	if (isEventTarget(target)) {
+	if (isDOMEventTarget(target)) {
 		if ($){
 			//TODO: decide how to pass data
 			var evt = $.Event( eventName, data );
@@ -900,6 +957,16 @@ function fire(target, eventName, data, bubbles){
 
 	//no-DOM events
 	else {
+		//Target events
+		var emitMethod = getEmit(target);
+
+		//use target event system, if possible
+		if (emitMethod) {
+			return emitMethod.call(target, eventName, data);
+		}
+
+
+		//fall back to default event system
 		//ignore if no event specified
 		if (!targetCbCache.has(target)) return;
 
@@ -916,19 +983,45 @@ function fire(target, eventName, data, bubbles){
 			});
 		}
 	}
-}
 
+
+	return this;
+}
 
 
 
 /**
- * detects whether element is able to emit/dispatch events
+ * detect whether DOM element implements EventTarget interface
  * @todo detect eventful objects in a more wide way
  */
-function isEventTarget (target){
-	return target && !!target.addEventListener;
+function isDOMEventTarget (target){
+	return target && (!!target.addEventListener);
 }
-},{"mutypes":6}],5:[function(require,module,exports){
+
+
+/**
+ * Return target’s `on` method, if it is eventable
+ */
+function getOn (target){
+	return target.on || target.bind || target.addEventListener || target.addListener;
+}
+
+
+/**
+ * Return target’s `off` method, if it is eventable
+ */
+function getOff (target){
+	return target.off || target.unbind || target.removeEventListener || target.removeListener;
+}
+
+
+/**
+ * Return target’s `emit` method, if it is eventable
+ */
+function getEmit (target){
+	return target.emit || target.trigger || target.fire || target.dispatchEvent || target.dispatch;
+}
+},{}],5:[function(require,module,exports){
 var S = module.exports = {
 	//camel-case → CamelCase
 	camel: function (str){
