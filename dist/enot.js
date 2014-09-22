@@ -1022,115 +1022,136 @@ function getEmit (target){
 	return target.emit || target.trigger || target.fire || target.dispatchEvent || target.dispatch;
 }
 },{}],5:[function(require,module,exports){
-var S = module.exports = {
-	//camel-case → CamelCase
-	camel: function (str){
-		return str && str.replace(/-[a-z]/g, function(match, position){
-			return S.upper(match[1])
-		})
-	},
-
-	//CamelCase → camel-case
-	dashed: function (str){
-		return str && str.replace(/[A-Z]/g, function(match, position){
-			return (position ? '-' : '') + S.lower(match)
-		})
-	},
-
-	//uppercaser
-	upper: function (str){
-		return str.toUpperCase();
-	},
-
-	//lowercasify
-	lower: function (str){
-		return str.toLowerCase();
-	},
-
-	//aaa → Aaa
-	capfirst: function (str){
-		str+='';
-		if (!str) return str;
-		return S.upper(str[0]) + str.slice(1);
-	},
-
-	// onEvt → envt
-	unprefixize: function (str, pf){
-		return (str.slice(0,pf.length) === pf) ? S.lower(str.slice(pf.length)) : str;
-	}
+module.exports = {
+	camel:camel,
+	dashed:dashed,
+	upper:upper,
+	lower:lower,
+	capfirst:capfirst,
+	unprefixize:unprefixize
 };
+
+//camel-case → CamelCase
+function camel(str){
+	return str && str.replace(/-[a-z]/g, function(match, position){
+		return upper(match[1])
+	})
+}
+
+//CamelCase → camel-case
+function dashed(str){
+	return str && str.replace(/[A-Z]/g, function(match, position){
+		return (position ? '-' : '') + lower(match)
+	})
+}
+
+//uppercaser
+function upper(str){
+	return str.toUpperCase();
+}
+
+//lowercasify
+function lower(str){
+	return str.toLowerCase();
+}
+
+//aaa → Aaa
+function capfirst(str){
+	str+='';
+	if (!str) return str;
+	return upper(str[0]) + str.slice(1);
+}
+
+// onEvt → envt
+function unprefixize(str, pf){
+	return (str.slice(0,pf.length) === pf) ? lower(str.slice(pf.length)) : str;
+}
 },{}],6:[function(require,module,exports){
 /**
 * Trivial types checkers.
 * Because there’re no common lib for that ( lodash_ is a fatguy)
 */
-var _ = module.exports = {
-	//speedy impl,ementation of `in`
-	//NOTE: `!target[propName]` 2-3 orders faster than `!(propName in target)`
-	has: function(a, b){
-		if (!a) return false;
-		//NOTE: this causes getter fire
-		if (a[b]) return true;
-		return b in a;
-		// return a.hasOwnProperty(b);
-	},
+//TODO: make main use as `is.array(target)`
 
-	//isPlainObject
-	isObject: function(a){
-		var Ctor, result;
+module.exports = {
+	has: has,
+	isObject: isObject,
+	isFn: isFn,
+	isString: isString,
+	isNumber: isNumber,
+	isBool: isBool,
+	isPlain: isPlain,
+	isArray: isArray,
+	isElement: isElement,
+	isPrivateName: isPrivateName
+};
 
-		if (_.isPlain(a) || _.isArray(a) || _.isElement(a) || _.isFn(a)) return false;
+//speedy impl,ementation of `in`
+//NOTE: `!target[propName]` 2-3 orders faster than `!(propName in target)`
+function has(a, b){
+	if (!a) return false;
+	//NOTE: this causes getter fire
+	if (a[b]) return true;
+	return b in a;
+	// return a.hasOwnProperty(b);
+}
 
-		// avoid non `Object` objects, `arguments` objects, and DOM elements
-		if (
-			//FIXME: this condition causes weird behaviour if a includes specific valueOf or toSting
-			// !(a && ('' + a) === '[object Object]') ||
-			(!_.has(a, 'constructor') && (Ctor = a.constructor, isFn(Ctor) && !(Ctor instanceof Ctor))) ||
-			!(typeof a === 'object')
-			) {
-			return false;
-		}
-		// In most environments an object's own properties are iterated before
-		// its inherited properties. If the last iterated property is an object's
-		// own property then there are no inherited enumerable properties.
-		for(var key in a) {
-			result = key;
-		};
+//isPlainObject
+function isObject(a){
+	var Ctor, result;
 
-		return typeof result == 'undefined' || _.has(a, result);
-	},
+	if (isPlain(a) || isArray(a) || isElement(a) || isFn(a)) return false;
 
-	isFn: function(a){
-		return !!(a && a.apply);
-	},
-
-	isString: function(a){
-		return typeof a === 'string'
-	},
-
-	isNumber: function(a){
-		return typeof a === 'number'
-	},
-
-	isBool: function(a){
-		return typeof a === 'boolean'
-	},
-
-	isPlain: function(a){
-		return !a || _.isString(a) || _.isNumber(a) || _.isBool(a);
-	},
-
-	isArray: function(a){
-		return a instanceof Array;
-	},
-
-	isElement: function(target){
-		return target instanceof HTMLElement
-	},
-
-	isPrivateName: function(n){
-		return n[0] === '_' && n.length > 1
+	// avoid non `Object` objects, `arguments` objects, and DOM elements
+	if (
+		//FIXME: this condition causes weird behaviour if a includes specific valueOf or toSting
+		// !(a && ('' + a) === '[object Object]') ||
+		(!has(a, 'constructor') && (Ctor = a.constructor, isFn(Ctor) && !(Ctor instanceof Ctor))) ||
+		!(typeof a === 'object')
+		) {
+		return false;
 	}
+	// In most environments an object's own properties are iterated before
+	// its inherited properties. If the last iterated property is an object's
+	// own property then there are no inherited enumerable properties.
+	for(var key in a) {
+		result = key;
+	};
+
+	return typeof result == 'undefined' || has(a, result);
+}
+
+function isFn(a){
+	return !!(a && a.apply);
+}
+
+function isString(a){
+	return typeof a === 'string';
+}
+
+function isNumber(a){
+	return typeof a === 'number';
+}
+
+function isBool(a){
+	return typeof a === 'boolean';
+}
+
+function isPlain(a){
+	return !a || isString(a) || isNumber(a) || isBool(a);
+}
+
+function isArray(a){
+	return a instanceof Array;
+}
+
+function isElement(target){
+	if (typeof document === 'undefined') return;
+	return target instanceof HTMLElement;
+}
+
+function isPrivateName(n){
+	return n[0] === '_' && n.length > 1;
 }
 },{}]},{},[1])(1)
 });
