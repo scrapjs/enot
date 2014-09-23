@@ -11,9 +11,6 @@ var isString = types.isString;
 var isElement = types.isElement;
 var isArray = types.isArray;
 var has = types.has;
-var bind = evt.on;
-var unbind = evt.off;
-var fire = evt.emit;
 var unprefixize = str.unprefixize;
 var upper = str.upper;
 
@@ -198,6 +195,7 @@ enot.on = function(target, evtRefs, fn){
 	return enot;
 };
 
+
 /**
  * Listed ref binder with :one modifier
  *
@@ -284,7 +282,7 @@ function on(target, evtRef, fn) {
 	}
 
 	// console.log('bind', evtRef, newTarget, evtObj.evt)
-	bind(newTarget, evtObj.evt, targetFn);
+	evt.on(newTarget, evtObj.evt, targetFn);
 }
 
 
@@ -413,7 +411,7 @@ function off(target, evtRef, fn){
 		}
 	}
 
-	unbind(newTarget, evtObj.evt, targetFn);
+	evt.off(newTarget, evtObj.evt, targetFn);
 }
 
 
@@ -434,10 +432,9 @@ enot.emit = function(target, evtRefs, data, bubbles){
 		evtRefs = target;
 		target = null;
 	}
-
 	//just fire straight event passed
 	if (evtRefs instanceof Event) {
-		fire(target, evtRefs, data, bubbles);
+		evt.emit(target, evtRefs, data, bubbles);
 		return enot;
 	}
 
@@ -456,13 +453,13 @@ enot.emit = function(target, evtRefs, data, bubbles){
 			//iterate list of targets
 			if (target instanceof NodeList || isArray(target)) {
 				for (var i = target.length; i--;){
-					fire(target[i], evtObj.evt, data, bubbles);
+					evt.emit(target[i], evtObj.evt, data, bubbles);
 				}
 			}
 
 			//fire single target
 			else {
-				fire(target, evtObj.evt, data, bubbles);
+				evt.emit(target, evtObj.evt, data, bubbles);
 			}
 
 		}, evtObj.evt, evtObj.modifiers)();

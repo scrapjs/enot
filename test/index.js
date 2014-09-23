@@ -405,7 +405,7 @@ describe("Enot", function(){
 	it("key modifiers")
 
 	// <!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
-	it("sequence of events")
+	it("sequence of keypresses")
 
 	// <!-- `touch` - normalized crossbrowser gesture -->
 	it("normalized touch")
@@ -531,11 +531,6 @@ describe("Enot", function(){
 		assert.equal(i, 4);
 	})
 
-	it.skip("fire defined on object properties", function(){
-		var a = {}
-
-	})
-
 	it("ignore empty callback", function(){
 		var i = 0;
 		var target = {
@@ -605,7 +600,7 @@ describe("Enot", function(){
 		assert.equal(i,1);
 	})
 
-	it("target order agnostic");
+	it("target order in notation agnostic");
 
 	it("no target means viewport === any event of this type", function(){
 		var i = 0;
