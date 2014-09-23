@@ -507,7 +507,7 @@ describe("Enot", function(){
 		assert.equal(cTarget, a);
 	})
 
-	it(".items event - bind all selected items, not the only one", function(){
+	it.only(".items event - bind all selected items, not the only one", function(){
 		var a1 = document.createElement('div')
 		a1.className = 'aer';
 		var a2 = a1.cloneNode(true);
@@ -519,7 +519,7 @@ describe("Enot", function(){
 		var inc = function(){
 			i++
 		}
-		enot.on('.aer click', inc)
+		enot.on('.aer click', inc);
 		enot.emit(document.querySelectorAll('.aer'), 'click');
 		assert.equal(i, 2);
 
@@ -529,6 +529,13 @@ describe("Enot", function(){
 		enot.off('.aer click', inc);
 		enot.emit('.aer click');
 		assert.equal(i, 4);
+
+		//NodeList tests
+		// var nativeNodeList = NodeList;
+		// window.NodeList = null;
+		// enot.emit(document.querySelectorAll('.aer'), 'click');
+		// assert.equal(i, 4);
+		// window.NodeList = nativeNodeList;
 	})
 
 	it("ignore empty callback", function(){

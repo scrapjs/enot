@@ -9,7 +9,7 @@ var types = require('mutypes');
 
 var isString = types.isString;
 var isElement = types.isElement;
-var isArray = types.isArray;
+var isArrayLike = types.isArrayLike;
 var has = types.has;
 var unprefixize = str.unprefixize;
 var upper = str.upper;
@@ -245,7 +245,7 @@ function on(target, evtRef, fn) {
 	if (!targets) return false;
 
 	//iterate list of targets
-	if (targets instanceof NodeList || isArray(targets)) {
+	if (isArrayLike(targets)) {
 		for (var i = targets.length; i--;){
 			on(targets[i], evtObj.evt, targetFn);
 		}
@@ -451,7 +451,7 @@ enot.emit = function(target, evtRefs, data, bubbles){
 			if (!target) return;
 
 			//iterate list of targets
-			if (target instanceof NodeList || isArray(target)) {
+			if (isArrayLike(target)) {
 				for (var i = target.length; i--;){
 					evt.emit(target[i], evtObj.evt, data, bubbles);
 				}

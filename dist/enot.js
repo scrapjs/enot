@@ -10,7 +10,7 @@ var types = require('mutypes');
 
 var isString = types.isString;
 var isElement = types.isElement;
-var isArray = types.isArray;
+var isArrayLike = types.isArrayLike;
 var has = types.has;
 var unprefixize = str.unprefixize;
 var upper = str.upper;
@@ -246,7 +246,7 @@ function on(target, evtRef, fn) {
 	if (!targets) return false;
 
 	//iterate list of targets
-	if (targets instanceof NodeList || isArray(targets)) {
+	if (isArrayLike(targets)) {
 		for (var i = targets.length; i--;){
 			on(targets[i], evtObj.evt, targetFn);
 		}
@@ -452,7 +452,7 @@ enot.emit = function(target, evtRefs, data, bubbles){
 			if (!target) return;
 
 			//iterate list of targets
-			if (target instanceof NodeList || isArray(target)) {
+			if (isArrayLike(target)) {
 				for (var i = target.length; i--;){
 					evt.emit(target[i], evtObj.evt, data, bubbles);
 				}
@@ -1165,9 +1165,12 @@ module.exports = {
 	isBool: isBool,
 	isPlain: isPlain,
 	isArray: isArray,
+	isArrayLike: isArrayLike,
 	isElement: isElement,
 	isPrivateName: isPrivateName
 };
+
+var win = typeof window === 'undefined' ? this : window;
 
 //speedy impl,ementation of `in`
 //NOTE: `!target[propName]` 2-3 orders faster than `!(propName in target)`
@@ -1228,8 +1231,13 @@ function isArray(a){
 	return a instanceof Array;
 }
 
+//FIXME: add tests from http://jsfiddle.net/ku9LS/1/
+function isArrayLike(a){
+	return isArray(a) || (a && !isString(a) && !a.nodeType && a != win && !isFn(a) && typeof a.length === 'number');
+}
+
 function isElement(target){
-	if (typeof document === 'undefined') return;
+	if (typeof doc === 'undefined') return;
 	return target instanceof HTMLElement;
 }
 

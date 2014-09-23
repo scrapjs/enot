@@ -36,6 +36,7 @@
     "each-csv": "*",
     "mutypes": "*",
     "mustring": "*",
-    "muevents": "*"
+    "muevents": "*",
+    "icicle": "~0.1.1"
   }
 }
