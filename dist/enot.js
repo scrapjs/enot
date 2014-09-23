@@ -725,7 +725,7 @@ enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 
 	return cb;
 };
-},{"each-csv":2,"matches-selector":3,"muevents":4,"mustring":5,"mutypes":6}],2:[function(require,module,exports){
+},{"each-csv":2,"matches-selector":3,"muevents":4,"mustring":6,"mutypes":7}],2:[function(require,module,exports){
 module.exports = eachCSV;
 
 //match every comma-separated element ignoring 1-level parenthesis, like `1,2(3,4),5`
@@ -775,6 +775,8 @@ function match(el, selector) {
   return false;
 }
 },{}],4:[function(require,module,exports){
+var icicle = require('icicle');
+
 /** @module muevents */
 module.exports = {
 	on: bind,
@@ -821,11 +823,15 @@ function bind(target, evt, fn){
 
 	//target events
 	else {
-		var onMethod = getOn(target);
+		var onMethod = getMethodOneOf(target, onNames);
 
 		//use target event system, if possible
+		//avoid self-recursions from the outside
 		if (onMethod) {
+			//if it’s frozen - ignore call
+			if (!icicle.freeze(target, onFlag)) return this;
 			onMethod.call(target, evt, fn);
+			icicle.unfreeze(target, onFlag);
 		}
 	}
 
@@ -889,11 +895,15 @@ function unbind(target, evt, fn){
 
 	//target events
 	else {
-		var offMethod = getOff(target);
+		var offMethod = getMethodOneOf(target, offNames);
 
 		//use target event system, if possible
+		//avoid self-recursion from the outside
 		if (offMethod) {
+			//if it’s frozen - ignore call
+			if (!icicle.freeze(target, offFlag)) return this;
 			offMethod.call(target, evt, fn);
+			icicle.unfreeze(target, offFlag);
 		}
 	}
 
@@ -955,21 +965,27 @@ function fire(target, eventName, data, bubbles){
 	//no-DOM events
 	else {
 		//Target events
-		var emitMethod = getEmit(target);
+		var emitMethod = getMethodOneOf(target, emitNames);
 
-		//use target event system, if possible
+		//use locks to avoid self-recursion on objects wrapping this method (e. g. mod instances)
 		if (emitMethod) {
-			return emitMethod.call(target, eventName, data);
+			if (icicle.freeze(target, emitFlag)) {
+				//use target event system, if possible
+				emitMethod.call(target, eventName, data);
+				icicle.unfreeze(target, emitFlag);
+				return this;
+			}
+			//if event was frozen - perform normal callback
 		}
 
 
 		//fall back to default event system
 		//ignore if no event specified
-		if (!targetCbCache.has(target)) return;
+		if (!targetCbCache.has(target)) return this;
 
 		var evtCallbacks = targetCbCache.get(target)[eventName];
 
-		if (!evtCallbacks) return;
+		if (!evtCallbacks) return this;
 
 		//copy callbacks to fire because list can change in some handler
 		var fireList = evtCallbacks.slice();
@@ -992,33 +1008,103 @@ function fire(target, eventName, data, bubbles){
  * @todo detect eventful objects in a more wide way
  */
 function isDOMEventTarget (target){
-	return target && (!!target.addEventListener);
+	return target && target.addEventListener;
+}
+
+
+/** List of methods */
+var onNames = ['on', 'bind', 'addEventListener', 'addListener'];
+var offNames = ['off', 'unbind', 'removeEventListener', 'removeListener'];
+var emitNames = ['emit', 'trigger', 'fire', 'dispatchEvent'];
+
+
+/** Locker flags */
+var emitFlag = emitNames[0], onFlag = onNames[0], offFlag = offNames[0];
+
+
+/**
+ * Return target’s method one of passed list, if it is eventable
+ */
+function getMethodOneOf (target, list){
+	var result;
+	for (var i = 0, l = list.length; i < l; i++) {
+		result = target[list[i]];
+		if (result) return result;
+	}
+}
+},{"icicle":5}],5:[function(require,module,exports){
+/**
+ * @module Icicle
+ */
+module.exports = {
+	freeze: lock,
+	unfreeze: unlock,
+	isFrozen: isLocked
+};
+
+
+/** Set of targets  */
+var lockCache = new WeakMap;
+
+
+/**
+ * Set flag on target with the name passed
+ *
+ * @return {bool} Whether lock succeeded
+ */
+function lock(target, name){
+	var locks = lockCache.get(target);
+	if (locks && locks[name]) return false;
+
+	//create lock set for a target, if none
+	if (!locks) {
+		locks = {};
+		lockCache.set(target, locks);
+	}
+
+	//set a new lock
+	locks[name] = true;
+
+	//return success
+	return true;
 }
 
 
 /**
- * Return target’s `on` method, if it is eventable
+ * Unset flag on the target with the name passed.
+ *
+ * Note that if to return new value from the lock/unlock,
+ * then unlock will always return false and lock will always return true,
+ * which is useless for the user, though maybe intuitive.
+ *
+ * @param {*} target Any object
+ * @param {string} name A flag name
+ *
+ * @return {bool} Whether unlock failed.
  */
-function getOn (target){
-	return target.on || target.bind || target.addEventListener || target.addListener;
+function unlock(target, name){
+	var locks = lockCache.get(target);
+	if (!locks || !locks[name]) return false;
+
+	locks[name] = null;
+
+	return true;
 }
 
 
 /**
- * Return target’s `off` method, if it is eventable
+ * Return whether flag is set
+ *
+ * @param {*} target Any object to associate lock with
+ * @param {string} name A flag name
+ *
+ * @return {Boolean} Whether locked or not
  */
-function getOff (target){
-	return target.off || target.unbind || target.removeEventListener || target.removeListener;
+function isLocked(target, name){
+	var locks = lockCache.get(target);
+	return (locks && locks[name]);
 }
-
-
-/**
- * Return target’s `emit` method, if it is eventable
- */
-function getEmit (target){
-	return target.emit || target.trigger || target.fire || target.dispatchEvent || target.dispatch;
-}
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports = {
 	camel:camel,
 	dashed:dashed,
@@ -1063,7 +1149,7 @@ function capfirst(str){
 function unprefixize(str, pf){
 	return (str.slice(0,pf.length) === pf) ? lower(str.slice(pf.length)) : str;
 }
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /**
 * Trivial types checkers.
 * Because there’re no common lib for that ( lodash_ is a fatguy)
