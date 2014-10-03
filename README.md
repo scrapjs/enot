@@ -1,9 +1,97 @@
-# Enot
-_`1.59 kb`_ min & gz
+# Enot [![Build Status](https://travis-ci.org/dfcreative/enot.svg?branch=master)](https://travis-ci.org/dfcreative/enot)
 
-Enot is an <em>e</em>vent <em>not</em>ation system. Rules are similar to CSS, but for events.
+[![browser support](https://ci.testling.com/dfcreative/enot.png)
+](https://ci.testling.com/dfcreative/enot)
 
-Inspired by xtags events, backbone events and component/events notations.
+
+_`1.59 kb`_ gzipped
+
+
+Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation system.
+
+
+
+## Usage
+
+#### 1. Install
+
+`npm install enot`
+
+
+#### 2. Use
+
+There are 2 possible use-cases for Enot.
+
+1. Use static event methods:
+
+	```js
+	var enot = require('enot');
+
+	enot.on(target, 'document click:pass(right_mouse)', callback);
+	enot.off(target, 'document click:pass(right_mouse)', callback);
+	enot.emit(target, 'document click:pass(right_mouse)');
+	```
+
+	It might be useful if you want to use events "externally", not touching the initial objects — whether elements, expando objects etc.
+
+2. Use as a [component/emitter](https://github.com/component/emitter) replacement:
+
+	Instance:
+	```js
+	var Emitter = require('enot');
+
+	var emitter = new Emitter;
+	emitter.emit('something');
+	```
+
+	Mixin:
+	```js
+	var Emitter = require('enot');
+
+	var user = {name: 'Toby'};
+	Emitter(user);
+	```
+
+	Or inherit:
+
+	```js
+	var Emitter = require('emitter');
+
+	var User = function(name){this.name = name};
+
+	User.prototype = Object.create(Emitter.prototype);
+	//or Emitter(User.prototype);
+
+	var user = function('George');
+
+	user.emit('I wanna poo');
+
+
+	```
+
+	This case is a common pattern of EventEmitter, so you can safely replace existing emitter with ENot.
+
+
+## API
+
+
+
+
+
+Binding options:
+```js
+//enable `a` event for `a` method
+enot.on({a: function(){i++}}, 'a');
+
+//bind to the document
+enot.on('document click:delegate(a)', function(){})
+
+//bind to the window (any click event)
+enot.on('click:delegate(a)', function(){})
+
+//redirect events
+enot.on(target, 'click', 'close, hide');
+```
 
 
 ##### Examples
@@ -38,38 +126,6 @@ Inspired by xtags events, backbone events and component/events notations.
 
 <!-- `all` - call on any event -->
 
-
-## Usage
-
-#### 1. Install
-
-`npm install enot`
-
-
-#### 2. Use
-
-Enot implements [Emitter](https://github.com/component/emitter) interface:
-
-```js
-enot.on(target, 'document click:pass(right_mouse)', callback);
-enot.off(target, 'document click:pass(right_mouse)', callback);
-enot.emit(target, 'document click:pass(right_mouse)');
-```
-
-Binding options:
-```js
-//enable `a` event for `a` method
-enot.on({a: function(){i++}}, 'a');
-
-//bind to the document
-enot.on('document click:delegate(a)', function(){})
-
-//bind to the window (any click event)
-enot.on('click:delegate(a)', function(){})
-
-//redirect events
-enot.on(target, 'click', 'close, hide');
-```
 
 ## Targets
 
@@ -112,13 +168,12 @@ enot.on(target, 'click', 'close, hide');
 Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
 
 
-## Development
 
-`npm run build`.
+---
 
-## TODO
+Inspired by _xtags_ events, _backbone_ events, _component/events_ and _CSS selectors_ notations.
 
-* Collect & minify modules with closure compiler
+Utilizes [emmy event emitter](https://github.com/dfcreative/emmy) internally.
 
 
 ## License

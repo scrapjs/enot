@@ -1,69 +1,66 @@
+// var Enot = require('../index');
+var assert = require('chai').assert;
+
 describe("Enot", function(){
 	it.skip("parse", function(){
 		var i = 0;
 		var x = {};
-		var fn = function(){i++}
+		var fn = function(){i++;};
 		var obj = enot.parse(x, 'document click:one', fn);
 
-		assert.equal(obj.evt, 'click')
-		assert.notEqual(obj.handler, fn)
-		assert.equal(obj.el, document)
+		assert.equal(obj.evt, 'click');
+		assert.notEqual(obj.handler, fn);
+		assert.equal(obj.el, document);
 	});
 
 
 	it("able to fire events", function(){
 		var i = 0;
 		var cb = function(e){
-			assert.equal(e.detail, 123)
-			enot.off(document, "hello", cb)
+			assert.equal(e.detail, 123);
+			Enot.off(document, "hello", cb);
 			i++;
-		}
-		enot.on(document, "hello", cb)
-		enot.emit(document, "hello", 123)
-		enot.emit(document, "hello", 123)
+		};
+		Enot.on(document, "hello", cb);
+		Enot.emit(document, "hello", 123);
+		Enot.emit(document, "hello", 123);
 
 		assert.equal(i,1);
 	});
 
-	it.skip("proper isEventTarget test", function(){
-		assert.ok(enot.isEventTarget(document.body))
-		assert.ok(enot.isEventTarget(document.createElement("div")))
-		assert.notOk(enot.isEventTarget({}))
-	})
-
 	it("turn off callbacks", function(){
 		var i = 0;
 		var fn = function(e){
-			e.detail === 123 && i++
-		}
-		enot.on(document, "hello", fn)
-		enot.emit(document, "hello", 123)
+			e.detail === 123 && i++;
+		};
+		Enot.on(document, "hello", fn);
+		Enot.emit(document, "hello", 123);
 		assert.equal(i, 1)
 
-		enot.off(document, "hello", fn)
-		enot.emit(document, "hello", 123)
-		assert.equal(i, 1)
-	})
+		Enot.off(document, "hello", fn);
+		Enot.emit(document, "hello", 123);
+		assert.equal(i, 1);
+	});
 
 	it("fire `one` callback once", function(){
 		var i = 0, j = 0;
-		enot.on(document, "hello:one", function(e){
+		Enot.on(document, "hello:one", function(e){
 			e.detail === 123 && i++
 		})
-		enot.on(document, "hello:one", function(e){
+		Enot.on(document, "hello:one", function(e){
 			e.detail === 123 && i++
 		})
-		enot.emit(document, "hello", 123)
+		Enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 
-		enot.emit(document, "hello", 123)
+		Enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 
-		enot.emit(document, "hello", 123)
+		Enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 
 		//TODO: add multiple once events assertion (to test proper target fns bound in evtModifiers (there’re no closures))
-	})
+	});
 
 
 	it("unbind :one callbacks", function(){
@@ -71,23 +68,22 @@ describe("Enot", function(){
 		var log = []
 		var fn = function(){log.push(1)}
 
-		enot.on(a, 'a:one', fn)
-		enot.on(a, 'a:one', fn)
-		enot.emit(a, 'a');
-		enot.emit(a, 'a');
+		Enot.on(a, 'a:one', fn)
+		Enot.on(a, 'a:one', fn)
+		Enot.emit(a, 'a');
+		Enot.emit(a, 'a');
 
 		assert.deepEqual(log, [1])
 
 		log = [];
-		enot.on(a, 'b:one', fn)
-		enot.off(a, 'b:one', fn)
-		enot.on(a, 'b:one', fn)
-		enot.emit(a, 'b');
-		enot.emit(a, 'b');
+		Enot.on(a, 'b:one', fn);
+		Enot.off(a, 'b:one', fn);
+		Enot.on(a, 'b:one', fn);
+		Enot.emit(a, 'b');
+		Enot.emit(a, 'b');
 
-		assert.deepEqual(log, [1])
-
-	})
+		assert.deepEqual(log, [1]);
+	});
 
 	it("handle :delegate modifier", function(){
 		if (window.mochaPhantomJS) return;
@@ -97,54 +93,53 @@ describe("Enot", function(){
 		document.body.appendChild(el);
 
 		var inc = function(){
-			i++
-		}
-		enot.on(document.body, "document hello:delegate(p, div, .some)", inc)
+			i++;
+		};
+		Enot.on(document.body, "document hello:delegate(p, div, .some)", inc);
 
 		var sideLink = document.createElement("span");
 		document.body.appendChild(sideLink);
-		enot.on(sideLink, "hello", function(){
-			j++
-		})
+		Enot.on(sideLink, "hello", function(){
+			j++;
+		});
 
-		enot.emit(document.body, "hello");
+		Enot.emit(document.body, "hello");
 		assert.equal(i, 0);
 
-		enot.emit(el, "hello", null, true);
+		Enot.emit(el, "hello", null, true);
 		assert.equal(i, 1);
 
-		enot.emit(sideLink, "hello", null, true);
+		Enot.emit(sideLink, "hello", null, true);
 		assert.equal(i, 1);
 		assert.equal(j, 1);
 
-		enot.off(document.body, "document hello:delegate(div)", inc)
-	})
+		Enot.off(document.body, "document hello:delegate(div)", inc);
+	});
 
 	it("filter click:pass modifier", function(){
-			var i = 0;
-			var el = document.createElement("div");
-			document.body.appendChild(el);
+		var i = 0;
+		var el = document.createElement("div");
+		document.body.appendChild(el);
 
-			enot.on(el, "click:pass(right_mouse, left_mouse)", function(e){
-				// console.log("filtered click")
-				i++
-			})
-			enot.on(el, "click", function(){
-				// console.log("simple click")
-			})
-
-			var evt = createMouseEvt("click", 1)
-			enot.emit(el, evt);
-
-			assert.equal(i, 0)
-
-			// console.log("----fire 2")
-			var evt = createMouseEvt("click", 2)
-			enot.emit(el, evt);
-
-			assert.equal(i, 1)
-
+		Enot.on(el, "click:pass(right_mouse, left_mouse)", function(e){
+			// console.log("filtered click")
+			i++
 		})
+		Enot.on(el, "click", function(){
+			// console.log("simple click")
+		})
+
+		var evt = createMouseEvt("click", 1)
+		Enot.emit(el, evt);
+
+		assert.equal(i, 0)
+
+		// console.log("----fire 2")
+		var evt = createMouseEvt("click", 2)
+		Enot.emit(el, evt);
+
+		assert.equal(i, 1);
+	});
 
 	it("filter keypress:pass modifier", function(){
 		if (window.mochaPhantomJS) return;
@@ -152,43 +147,43 @@ describe("Enot", function(){
 		var k = 0, a = 0, ka=0;
 		var el = document.createElement("div");
 
-		enot.on(el, "keydown", function(e){
+		Enot.on(el, "keydown", function(e){
 			// console.log("all", e)
 			a++
 		})
-		enot.on(el, "keydown:pass(83, Enter)", function(e){
+		Enot.on(el, "keydown:pass(83, Enter)", function(e){
 			// console.log("→ filtered 1")
 			k++
 		})
-		enot.on(el, "keydown:pass(65, enter, 68)", function(e){
+		Enot.on(el, "keydown:pass(65, enter, 68)", function(e){
 			// console.log("→ filtered 2")
 			ka++
 		})
 
 		var evt = createKeyEvt("keydown", 65)
 
-		enot.emit(el, evt);
+		Enot.emit(el, evt);
 		assert.equal(a, 1)
 		assert.equal(k, 0)
 		assert.equal(ka, 1)
 
 		// s
 		var evt = createKeyEvt("keydown", 83)
-		enot.emit(el, evt);
+		Enot.emit(el, evt);
 		assert.equal(a, 2)
 		assert.equal(k, 1)
 		assert.equal(ka, 1)
 
 		// s2
 		var evt = createKeyEvt("keydown", 83)
-		enot.emit(el, evt);
+		Enot.emit(el, evt);
 		assert.equal(a, 3)
 		assert.equal(k, 2)
 		assert.equal(ka, 1)
 
 		//enter
 		var evt = createKeyEvt("keydown", 13)
-		enot.emit(el, evt);
+		Enot.emit(el, evt);
 		assert.equal(a, 4)
 		assert.equal(k, 3)
 		assert.equal(ka, 2)
@@ -208,51 +203,51 @@ describe("Enot", function(){
 		document.body.appendChild(el)
 		document.body.appendChild(el2)
 
-		enot.on(document.body, "hello:one:delegate(.item)", function(e){
+		Enot.on(document.body, "hello:one:delegate(.item)", function(e){
 			e.detail === 123 && i++
 		})
-		enot.emit(document.body, "hello", 123, true)
+		Enot.emit(document.body, "hello", 123, true)
 		assert.equal(i, 0)
-		enot.emit(el, "hello", 123, true)
+		Enot.emit(el, "hello", 123, true)
 		assert.equal(i, 1)
-		enot.emit(el2, "hello", 123, true)
+		Enot.emit(el2, "hello", 123, true)
 		assert.equal(i, 1)
-		enot.emit(el, "hello", 123, true)
+		Enot.emit(el, "hello", 123, true)
 		assert.equal(i, 1)
-		enot.emit(el, "hello", 123, true)
+		Enot.emit(el, "hello", 123, true)
 		assert.equal(i, 1)
 
 		// once again
 		var i = 0;
-		enot.on(document.body, "keydown:delegate(.item, .post):pass(escape)", function(e){
+		Enot.on(document.body, "keydown:delegate(.item, .post):pass(escape)", function(e){
 			// console.log("keypress shit", e)
 			i++
 		})
 
-		enot.emit(document.body, createKeyEvt("keypress", 27), 123, true)
+		Enot.emit(document.body, createKeyEvt("keypress", 27), 123, true)
 		assert.equal(i, 0)
 		// console.log('-----emit', el)
-		enot.emit(el, createKeyEvt("keydown", 27), 123, true)
+		Enot.emit(el, createKeyEvt("keydown", 27), 123, true)
 		assert.equal(i, 1)
-		enot.emit(el2, "hello", createKeyEvt("keydown", 27), 123, true)
+		Enot.emit(el2, "hello", createKeyEvt("keydown", 27), 123, true)
 		assert.equal(i, 1)
-		enot.emit(el, "hello", createKeyEvt("keydown", 29), 123, true)
+		Enot.emit(el, "hello", createKeyEvt("keydown", 29), 123, true)
 		assert.equal(i, 1)
-		enot.emit(el, createKeyEvt("keydown", 27), 123, true)
+		Enot.emit(el, createKeyEvt("keydown", 27), 123, true)
 		assert.equal(i, 2)
 	})
 
 	it("treat unknown modifiers as a part of event", function(){
 		var i = 0;
-		enot.on(document,"hello:world", function(){
+		Enot.on(document,"hello:world", function(){
 			i++
 		})
-		enot.emit(document, "hello:world")
+		Enot.emit(document, "hello:world")
 		assert.equal(i, 1);
 	})
 
 	it("not shit the bed with window binding", function(){
-		enot.on(document.body, 'window resize', function(){})
+		Enot.on(document.body, 'window resize', function(){})
 	})
 
 	it("fire on discrete delegate target", function(){
@@ -260,7 +255,7 @@ describe("Enot", function(){
 
 		var log = [];
 
-		enot.on(document, "document hello:delegate(.target)", function(){
+		Enot.on(document, "document hello:delegate(.target)", function(){
 			log.push("hello")
 		})
 
@@ -281,23 +276,23 @@ describe("Enot", function(){
 		var a = document.createElement('div');
 		var b = document.createElement('div');
 		var fn = function(){i++}
-		enot.on(a, 'a', fn);
-		enot.on(b, 'a', fn);
-		enot.emit(a, 'a')
-		enot.emit(b, 'a')
+		Enot.on(a, 'a', fn);
+		Enot.on(b, 'a', fn);
+		Enot.emit(a, 'a')
+		Enot.emit(b, 'a')
 
 		assert.equal(i,2)
 	})
 
 	it("empty target", function(){
-		enot.on({}, '.xy a', function(){})
-		enot.off({}, '.xy a', function(){})
+		Enot.on({}, '.xy a', function(){})
+		Enot.off({}, '.xy a', function(){})
 	})
 
 	it("fire recognizes evtRef events", function(){
 		var i = 0;
-		enot.on(document, 'x', function(){i++});
-		enot.emit({}, 'document x');
+		Enot.on(document, 'x', function(){i++});
+		Enot.emit({}, 'document x');
 
 		assert.equal(i, 1);
 	})
@@ -309,17 +304,17 @@ describe("Enot", function(){
 			b: document.body
 		}
 
-		enot.on(target, '@a x, this.a y, @b z', function(){
+		Enot.on(target, '@a x, this.a y, @b z', function(){
 			i++;
 		});
-		enot.on(document, 'f', function(){
+		Enot.on(document, 'f', function(){
 			i++
 		})
 
-		enot.emit(target.a, 'x,y');
+		Enot.emit(target.a, 'x,y');
 		assert.equal(i, 2);
 
-		enot.emit(document.body, 'z,document f');
+		Enot.emit(document.body, 'z,document f');
 		assert.equal(i,4);
 	})
 
@@ -327,7 +322,7 @@ describe("Enot", function(){
 		if (window.mochaPhantomJS) return;
 
 		var i = 0;
-		enot.on(null, 'body evt:delegate(.a)', function(){
+		Enot.on(null, 'body evt:delegate(.a)', function(){
 			i++
 		});
 
@@ -342,7 +337,7 @@ describe("Enot", function(){
 	it(':throttle mod case', function(done){
 		var i = 0;
 		var a = document.createElement('div');
-		enot.on(a, "click:throttle(20)", function(){
+		Enot.on(a, "click:throttle(20)", function(){
 			i++
 			assert.equal(this, a);
 		})
@@ -375,10 +370,10 @@ describe("Enot", function(){
 				}
 			}
 		}
-		enot.on(a, 'this.b.c c', function(){
+		Enot.on(a, 'this.b.c c', function(){
 			i++
 		})
-		enot.emit(a.b.c, 'c');
+		Enot.emit(a.b.c, 'c');
 
 		assert.equal(i, 1);
 	})
@@ -391,11 +386,11 @@ describe("Enot", function(){
 			children: [{}, {}, {}]
 		};
 
-		enot.on(a, 'this.children x', function(){
+		Enot.on(a, 'this.children x', function(){
 			i++
 		});
 
-		enot.emit(a, 'this.children x');
+		Enot.emit(a, 'this.children x');
 
 		assert.equal(i, 3);
 
@@ -419,19 +414,19 @@ describe("Enot", function(){
 		var inc = function(){
 			i++
 		};
-		enot.on("document click", inc);
-		enot.emit("document click");
-		enot.emit(document, "click");
+		Enot.on("document click", inc);
+		Enot.emit("document click");
+		Enot.emit(document, "click");
 
 		assert.equal(i, 2);
 
-		enot.emit("document click");
+		Enot.emit("document click");
 		assert.equal(i, 3);
 
 		// console.log('---off doc')
-		enot.off(document, "click", inc);
-		enot.emit("document click");
-		enot.emit(document, "click");
+		Enot.off(document, "click", inc);
+		Enot.emit("document click");
+		Enot.emit(document, "click");
 		assert.equal(i, 3);
 
 	})
@@ -454,21 +449,21 @@ describe("Enot", function(){
 		d.className = 'd';
 		c.appendChild(d);
 
-		enot.on('document click:not(.a)', function(){
+		Enot.on('document click:not(.a)', function(){
 			i++
 		});
-		enot.on('.b click:not(.c)', function(){
+		Enot.on('.b click:not(.c)', function(){
 			j++
 		})
 		// console.log('--------emit body click');
-		enot.emit('body click', null, true);
+		Enot.emit('body click', null, true);
 		assert.equal(i, 1);
 
 		// console.log('--------emit a click');
-		enot.emit(a, 'click', null, true);
-		enot.emit(b, 'click', null, true);
-		enot.emit(c, 'click', null, true);
-		enot.emit(d, 'click', null, true);
+		Enot.emit(a, 'click', null, true);
+		Enot.emit(b, 'click', null, true);
+		Enot.emit(c, 'click', null, true);
+		Enot.emit(d, 'click', null, true);
 		assert.equal(i, 1);
 		assert.equal(j, 1);
 	})
@@ -479,14 +474,14 @@ describe("Enot", function(){
 		var a = document.createElement('div');
 		document.body.appendChild(a);
 
-		enot.on(a, 'click:not(this)', function(){
+		Enot.on(a, 'click:not(this)', function(){
 			i++
 		});
 
-		enot.emit('body click');
+		Enot.emit('body click');
 		assert.equal(i, 1);
 
-		enot.emit(a, 'click');
+		Enot.emit(a, 'click');
 		assert.equal(i, 1);
 	})
 
@@ -500,14 +495,14 @@ describe("Enot", function(){
 		document.body.appendChild(a);
 
 		var cTarget;
-		enot.on('document click:delegate(.d)', function(e){
+		Enot.on('document click:delegate(.d)', function(e){
 			cTarget = e.delegateTarget;
 		});
-		enot.emit(b, 'click', null, true);
+		Enot.emit(b, 'click', null, true);
 		assert.equal(cTarget, a);
 	})
 
-	it.only(".items event - bind all selected items, not the only one", function(){
+	it(".items event - bind all selected items, not the only one", function(){
 		var a1 = document.createElement('div')
 		a1.className = 'aer';
 		var a2 = a1.cloneNode(true);
@@ -519,21 +514,21 @@ describe("Enot", function(){
 		var inc = function(){
 			i++
 		}
-		enot.on('.aer click', inc);
-		enot.emit(document.querySelectorAll('.aer'), 'click');
+		Enot.on('.aer click', inc);
+		Enot.emit(document.querySelectorAll('.aer'), 'click');
 		assert.equal(i, 2);
 
-		enot.emit('.aer click');
+		Enot.emit('.aer click');
 		assert.equal(i, 4);
 
-		enot.off('.aer click', inc);
-		enot.emit('.aer click');
+		Enot.off('.aer click', inc);
+		Enot.emit('.aer click');
 		assert.equal(i, 4);
 
 		//NodeList tests
 		// var nativeNodeList = NodeList;
 		// window.NodeList = null;
-		// enot.emit(document.querySelectorAll('.aer'), 'click');
+		// Enot.emit(document.querySelectorAll('.aer'), 'click');
 		// assert.equal(i, 4);
 		// window.NodeList = nativeNodeList;
 	})
@@ -546,15 +541,15 @@ describe("Enot", function(){
 			}
 		}
 
-		enot.on(target, 'a');
-		enot.emit(target, 'a');
+		Enot.on(target, 'a');
+		Enot.emit(target, 'a');
 		assert.equal(i, 0);
 
-		enot.off(target, 'a');
-		enot.emit(target, 'a');
+		Enot.off(target, 'a');
+		Enot.emit(target, 'a');
 
 
-		enot.emit({}, 'b');
+		Enot.emit({}, 'b');
 
 		assert.equal(i, 0);
 	})
@@ -570,40 +565,40 @@ describe("Enot", function(){
 				log.push('b')
 			}
 		}
-		enot.on(target, 'a', target.a);
-		enot.on(target,'z', 'a, b');
-		enot.emit(target, 'z');
+		Enot.on(target, 'a', target.a);
+		Enot.on(target,'z', 'a, b');
+		Enot.emit(target, 'z');
 		assert.deepEqual(log, ['a']);
 
-		enot.off(target, 'a', target.a);
-		enot.on(target, 'b', target.b);
-		enot.emit(target, 'z');
+		Enot.off(target, 'a', target.a);
+		Enot.on(target, 'b', target.b);
+		Enot.emit(target, 'z');
 		assert.deepEqual(log, ['a', 'b']);
 
-		enot.off(target,'z', 'a, b');
-		enot.emit(target, 'z');
+		Enot.off(target,'z', 'a, b');
+		Enot.emit(target, 'z');
 		assert.deepEqual(log, ['a', 'b']);
 	});
 
 	it('bind numeric values', function(){
-		enot.on({1: function(){}}, 1, 1);
-		enot.off({1: function(){}}, 1, 1);
-		enot.emit({1: function(){}}, 1);
+		Enot.on({1: function(){}}, 1, 1);
+		Enot.off({1: function(){}}, 1, 1);
+		Enot.emit({1: function(){}}, 1);
 	})
 
 	it('keep context', function(){
 		var i = 0;
 		var target = {z:{}, inc: function(){i++}};
 
-		enot.on(target, 'inc', target.inc);
-		enot.on(target, 'this.z click', 'inc');
+		Enot.on(target, 'inc', target.inc);
+		Enot.on(target, 'this.z click', 'inc');
 
-		enot.emit(target.z, 'click');
+		Enot.emit(target.z, 'click');
 		assert.equal(i,1);
 
-		enot.off(target, 'this.z click', 'inc')
+		Enot.off(target, 'this.z click', 'inc')
 
-		enot.emit(target.z, 'click');
+		Enot.emit(target.z, 'click');
 		assert.equal(i,1);
 	})
 
@@ -611,20 +606,20 @@ describe("Enot", function(){
 
 	it("no target means viewport === any event of this type", function(){
 		var i = 0;
-		enot.on('a', function(){
+		Enot.on('a', function(){
 			i++
 		});
 
-		enot.emit('a');
+		Enot.emit('a');
 		assert.equal(i, 1);
 
-		enot.off('a');
-		enot.emit('a');
+		Enot.off('a');
+		Enot.emit('a');
 		assert.equal(i, 1);
 	})
 
 	it("access undefined properties", function(){
-		enot.on({}, 'this.x.y', function(){})
+		Enot.on({}, 'this.x.y', function(){})
 	})
 
 	it("indirect redirect", function(){
@@ -633,12 +628,12 @@ describe("Enot", function(){
 		var a = {inc: function(){i++}, click: undefined}
 
 		//set fake inc
-		enot.on({}, 'click', 'inc')
+		Enot.on({}, 'click', 'inc')
 
-		enot.on(a, 'inc', a.inc);
-		enot.on(a, 'click', 'inc');
+		Enot.on(a, 'inc', a.inc);
+		Enot.on(a, 'click', 'inc');
 
-		enot.emit(a, 'click');
+		Enot.emit(a, 'click');
 
 		assert.equal(i, 1);
 	})
@@ -649,17 +644,17 @@ describe("Enot", function(){
 			x: function(){i++}
 		}
 
-		enot.on(a, 'x', a.x);
-		enot.on(a, 'y', 'x');
-		enot.emit(a, 'x');
-		enot.emit(a, 'y');
+		Enot.on(a, 'x', a.x);
+		Enot.on(a, 'y', 'x');
+		Enot.emit(a, 'x');
+		Enot.emit(a, 'y');
 
 		assert.equal(i, 2);
 
-		enot.off(a, 'x');
-		enot.off(a, 'y');
-		enot.emit(a, 'x');
-		enot.emit(a, 'y');
+		Enot.off(a, 'x');
+		Enot.off(a, 'y');
+		Enot.emit(a, 'x');
+		Enot.emit(a, 'y');
 		assert.equal(i, 2);
 	});
 
@@ -673,10 +668,10 @@ describe("Enot", function(){
 		var a = document.createElement('div');
 		var i = 0;
 
-		enot.on(a, 'dsd:defer(100)', function(){
+		Enot.on(a, 'dsd:defer(100)', function(){
 			i++;
 		});
-		enot.emit(a, 'dsd');
+		Enot.emit(a, 'dsd');
 		assert.equal(i, 0);
 
 		setTimeout(function(){
@@ -691,10 +686,10 @@ describe("Enot", function(){
 			i++
 		}};
 
-		enot.on(a, 'x', a.x);
-		enot.on(a, 'click:defer(100)', 'x');
+		Enot.on(a, 'x', a.x);
+		Enot.on(a, 'click:defer(100)', 'x');
 
-		enot.emit(a, 'click');
+		Enot.emit(a, 'click');
 
 		setTimeout(function(){
 			assert.equal(i, 1);
@@ -704,7 +699,7 @@ describe("Enot", function(){
 
 	it('keep target objects untouched (jQuery intrusion)', function(){
 		var a = {};
-		enot.on(a, 'x', function(){});
+		Enot.on(a, 'x', function(){});
 
 		assert.deepEqual(a, {})
 	});
@@ -718,24 +713,24 @@ describe("Enot", function(){
 		var b = a.firstChild.cloneNode();
 		document.body.appendChild(b);
 
-		enot.on(a, 'click:on(.xxx)', function(){
+		Enot.on(a, 'click:on(.xxx)', function(){
 			log.push(1)
 		});
-		enot.on('click:on(.xxx)', function(){
+		Enot.on('click:on(.xxx)', function(){
 			log.push(2)
 		})
-		enot.on(a, '.xxx click', function(){
+		Enot.on(a, '.xxx click', function(){
 			log.push(3)
 		})
 
-		enot.emit('.xxx click', true, true);
+		Enot.emit('.xxx click', true, true);
 		assert.sameMembers(log, [1,2,3]);
 
-		enot.off(a, 'click');
-		enot.off(a, '.xxx click');
-		enot.off('.xxx click');
+		Enot.off(a, 'click');
+		Enot.off(a, '.xxx click');
+		Enot.off('.xxx click');
 
-		enot.emit('.xxx click', true, true);
+		Enot.emit('.xxx click', true, true);
 		assert.sameMembers(log, [1,2,3]);
 	})
 
@@ -743,20 +738,20 @@ describe("Enot", function(){
 	it("multiple :one callbacks", function(){
 		var a = {}, log = [];
 
-		enot.on(a, 'init:one', function(){
+		Enot.on(a, 'init:one', function(){
 			log.push(1)
 		})
-		enot.on(a, 'init:one', function(){
+		Enot.on(a, 'init:one', function(){
 			log.push(2)
 		})
-		enot.on(a, 'init:one', function(){
+		Enot.on(a, 'init:one', function(){
 			log.push(3)
 		})
 
-		enot.emit(a, 'init');
+		Enot.emit(a, 'init');
 		assert.deepEqual(log, [1,2,3])
 
-		enot.emit(a, 'init');
+		Enot.emit(a, 'init');
 		assert.deepEqual(log, [1,2,3])
 	})
 
@@ -771,16 +766,16 @@ describe("Enot", function(){
 		document.body.appendChild(a);
 		document.body.appendChild(b);
 
-		enot.on(a, 'body .item click', function(){
+		Enot.on(a, 'body .item click', function(){
 			log.push(1)
 		})
-		enot.on(a, '.item click', function(){
+		Enot.on(a, '.item click', function(){
 			log.push(2);
 		})
 
 
-		enot.emit(b, 'click');
-		enot.emit(a, 'click');
+		Enot.emit(b, 'click');
+		Enot.emit(a, 'click');
 
 		assert.deepEqual(log, [1]);
 	})
@@ -796,18 +791,19 @@ describe("Enot", function(){
 		document.body.appendChild(a);
 
 
-		enot.on(a, 'inc', a.inc);
+		Enot.on(a, 'inc', a.inc);
 		// console.log('----bind three')
-		enot.on(a, '@a evt, body evt, evt', 'inc');
+		Enot.on(a, '@a evt, body evt, evt', 'inc');
 
 		// console.log('---emit inner evt')
-		enot.emit(a.a, 'evt');
+		Enot.emit(a.a, 'evt');
 		assert.equal(i, 1);
 		// console.log('---emit body evt')
-		enot.emit(document.body, 'evt');
+		Enot.emit(document.body, 'evt');
 		assert.equal(i, 2);
 
-		enot.emit(a, 'evt');
+		Enot.emit(a, 'evt');
+
 		assert.equal(i, 3);
 	})
 
@@ -824,15 +820,15 @@ describe("Enot", function(){
 			}
 		};
 
-		enot.on(a, 'y', a.y);
-		enot.on(b, 'y', b.y);
-		enot.on(a, 'window x', 'y');
-		enot.on(b, 'window x', 'y');
+		Enot.on(a, 'y', a.y);
+		Enot.on(b, 'y', b.y);
+		Enot.on(a, 'window x', 'y');
+		Enot.on(b, 'window x', 'y');
 
-		enot.emit('window x');
+		Enot.emit('window x');
 		assert.equal(i, 2);
 
-		enot.emit(window, 'x');
+		Enot.emit(window, 'x');
 		assert.equal(i, 4);
 	})
 
@@ -842,15 +838,15 @@ describe("Enot", function(){
 		var inc = function(){
 			i++
 		}
-		enot.on(a, 'x', inc);
+		Enot.on(a, 'x', inc);
 
-		enot.emit(a, 'x:defer(50)');
-		enot.emit(a, 'x:defer(100)');
+		Enot.emit(a, 'x:defer(50)');
+		Enot.emit(a, 'x:defer(100)');
 
 		setTimeout(function(){
 			assert.equal(i, 1);
 
-			enot.off(a, 'x', inc);
+			Enot.off(a, 'x', inc);
 		}, 55)
 
 		setTimeout(function(){
@@ -866,13 +862,13 @@ describe("Enot", function(){
 			}
 		};
 		var i = 0;
-		enot.on(a, "a.b", a.inc)
-		enot.emit(a, "a.b");
+		Enot.on(a, "a.b", a.inc)
+		Enot.emit(a, "a.b");
 
 		assert.equal(i, 1);
 
-		enot.off(a, "a.b");
-		enot.emit(a, "a.b");
+		Enot.off(a, "a.b");
+		Enot.emit(a, "a.b");
 		assert.equal(i, 1);
 	});
 
@@ -884,12 +880,12 @@ describe("Enot", function(){
 		a.style.display = 'none';
 		document.body.appendChild(a);
 
-		enot.on({}, 'window x', function(){
+		Enot.on({}, 'window x', function(){
 			i++
 		})
 
-		enot.emit('window x');
-		enot.emit('window x');
+		Enot.emit('window x');
+		Enot.emit('window x');
 
 		assert.equal(i, 2);
 	});
@@ -903,14 +899,14 @@ describe("Enot", function(){
 		var i = 0;
 
 
-		enot.on(a, 'click', function(){
+		Enot.on(a, 'click', function(){
 			this.innerHTML = '<span></span>'
 		})
-		enot.on('document click:not(.a)', function(e){
+		Enot.on('document click:not(.a)', function(e){
 			i++
 		});
 		// console.log('----emit click', a.firstChild)
-		enot.emit(a.firstChild, 'click', true, true);
+		Enot.emit(a.firstChild, 'click', true, true);
 
 		assert.equal(i, 0);
 	})
@@ -920,14 +916,14 @@ describe("Enot", function(){
 		var a = document.createElement('div');
 		document.body.appendChild(a);
 
-		enot.on(document.body, 'click', function(){
+		Enot.on(document.body, 'click', function(){
 			i++;
 		})
-		enot.emit(a, 'click', true, true);
+		Enot.emit(a, 'click', true, true);
 		assert.equal(i, 1);
 
-		enot.on(a, 'click', 'stopPropagation');
-		enot.emit(a, 'click', true, true);
+		Enot.on(a, 'click', 'stopPropagation');
+		Enot.emit(a, 'click', true, true);
 		assert.equal(i, 1);
 	})
 
@@ -936,17 +932,17 @@ describe("Enot", function(){
 		var a = document.createElement('a');
 		document.body.appendChild(a);
 		a.href="#xxx";
-		enot.on(a, 'click', 'preventDefault');
+		Enot.on(a, 'click', 'preventDefault');
 		document.location.hash = '';
-		enot.emit(a, 'click', true, true);
+		Enot.emit(a, 'click', true, true);
 		assert.notEqual(document.location.hash, '#xxx')
 	})
 
 	it.skip("TODO: emit event instances passed", function(){
 		var e = new CustomEvent();
-		enot.emit({}, e);
+		Enot.emit({}, e);
 
-		//TODO: faced this case in MOD with enot.emit(a,b, event) in redirector
+		//TODO: faced this case in MOD with Enot.emit(a,b, event) in redirector
 	})
 
 	it('TODO: jQuery event separator (.)')
@@ -956,14 +952,14 @@ describe("Enot", function(){
 			track: function(){}
 		};
 		var i = 0;
-		enot.on(a,'track', a.track);
-		enot.emit(a, 'track:defer');
-		enot.off(a,'track', a.track)
+		Enot.on(a,'track', a.track);
+		Enot.emit(a, 'track:defer');
+		Enot.off(a,'track', a.track)
 		//make track change after emit
 		a.track = function(){
 			i++
 		}
-		enot.on(a,'track',a.track)
+		Enot.on(a,'track',a.track)
 		setTimeout(function(){
 			assert.equal(i, 1);
 			done();
@@ -986,32 +982,54 @@ describe("Enot", function(){
 			}
 		}
 
-		enot.on(x, 'inc', x.inc)
-		enot.on(x, 'document x:not(.special)', 'inc');
+		Enot.on(x, 'inc', x.inc)
+		Enot.on(x, 'document x:not(.special)', 'inc');
 
-		enot.emit(b, 'x', true, true);
+		Enot.emit(b, 'x', true, true);
 		assert.equal(i, 1);
 
-		enot.emit(a, 'x', true, true);
+		Enot.emit(a, 'x', true, true);
 		assert.equal(i, 1);
 
 	})
 
 	it('one method', function(){
-		var i = 0, j = 0;
-		enot.one(document, "hello", function(e){
+		var i = 0;
+		Enot.one(document, "hello", function(e){
 			e.detail === 123 && i++
 		})
-		enot.one(document, "hello", function(e){
+		Enot.one(document, "hello", function(e){
 			e.detail === 123 && i++
 		})
-		enot.emit(document, "hello", 123)
+		Enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 
-		enot.emit(document, "hello", 123)
+		Enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 
-		enot.emit(document, "hello", 123)
+		Enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
 	})
+
+
+	it('objects inheriting Enot', function(){
+		var A = function(){};
+		A.prototype = Object.create(Enot.prototype);
+		var a = new A;
+
+		var i = 0;
+		a.on('a:one', function(){i++});
+		a.emit('a');
+		a.emit('a');
+		assert.equal(i, 1);
+	});
+
+
+	it.skip('Emitter compliance', function(){
+		//TODO: test readme docs
+	});
+
+	it.skip('Chainable target & static methods', function(){
+
+	});
 });
