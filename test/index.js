@@ -1,5 +1,5 @@
 // var Enot = require('../index');
-var assert = require('chai').assert;
+// var assert = require('chai').assert;
 
 describe("Enot", function(){
 	it.skip("parse", function(){
@@ -105,7 +105,7 @@ describe("Enot", function(){
 
 		Enot.emit(document.body, "hello");
 		assert.equal(i, 0);
-
+		console.log('---')
 		Enot.emit(el, "hello", null, true);
 		assert.equal(i, 1);
 

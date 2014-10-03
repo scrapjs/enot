@@ -58,6 +58,7 @@ var EnotPrototype = Enot.prototype;
  * @alias bind
  * @chainable
  */
+EnotPrototype.addEventListener =
 EnotPrototype.on = function(evtRefs, fn){
 	var target = this;
 	//if no target specified
@@ -81,6 +82,7 @@ EnotPrototype.on = function(evtRefs, fn){
  *
  * @chainable
  */
+EnotPrototype.once =
 EnotPrototype.one = function(evtRefs, fn){
 	var target = this;
 
@@ -131,7 +133,7 @@ function _on(target, evtRef, fn) {
 	var newTarget = targets;
 
 	//catch redirect (stringy callback)
-	if (isPlain(fn)) {
+	if (type.isPlain(fn)) {
 		//save redirect fn to cache
 		if (!redirectCbCache.has(target)) redirectCbCache.set(target, {});
 		var redirectSet = redirectCbCache.get(target);
@@ -173,6 +175,9 @@ function _on(target, evtRef, fn) {
  * @alias unbind
  * @chainable
  */
+EnotPrototype.removeEventListener =
+EnotPrototype.removeListener =
+EnotPrototype.removeAllListeners =
 EnotPrototype.off = function(evtRefs, fn){
 	var target = this;
 
@@ -230,7 +235,7 @@ function _off(target, evtRef, fn){
 	//catch redirect (stringy callback)
 	if (fn) {
 		//unbind callback
-		if (isPlain(fn)) {
+		if (type.isPlain(fn)) {
 			fn += '';
 			var redirectSet = redirectCbCache.get(target);
 
@@ -264,6 +269,7 @@ function _off(target, evtRef, fn){
  * @alias dispatchEvent
  * @chainable
  */
+EnotPrototype.dispatchEvent =
 EnotPrototype.emit = function(evtRefs, data, bubbles){
 	var target = this;
 
@@ -751,13 +757,15 @@ var redirectors = {
 
 
 
-/** Old static API aliases */
-//static methods may lack of target due to comprehensive notation (target might be only supposal)
-
-Enot.on = function(a,b,c){EnotPrototype.on.call(a,b,c); return this;};
-Enot.one = Enot.once = function(a,b,c){EnotPrototype.one.call(a,b,c); return this;};
-Enot.off = function(a,b,c){EnotPrototype.off.call(a,b,c); return this;};
-Enot.emit = function(a,b,c,d){EnotPrototype.emit.call(a,b,c,d); return this;};
+/** Static aliases for old API compliance */
+for (var name in EnotPrototype) {
+	if (EnotPrototype[name]) Enot[name] = createStaticBind(name);
+}
+function createStaticBind(methodName){
+	return function(a, b, c, d){
+		return EnotPrototype[methodName].call(a,b,c,d);
+	};
+}
 
 
 /** @module enot */

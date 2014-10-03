@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run build-dist && npm run test",
-    "build-dist": "browserify index.js --standalone enot > dist/enot.js",
+    "build-dist": "browserify index.js --standalone Enot > dist/enot.js",
     "test": "mocha-phantomjs test/index.html"
   },
   "repository": {
