@@ -115,7 +115,8 @@ function _on(target, evtRef, fn) {
 
 		//get modified fn or redirector
 		targetFn = isString(fn) ? getRedirector(fn, target) : fn;
-		targetFn = applyModifiers.call(target, targetFn, evtObj.evt, evtObj.modifiers);
+
+	targetFn = applyModifiers.call(target, targetFn, evtObj.evt, evtObj.modifiers);
 
 	//ignore not bindable sources
 	if (!targets) return target;
@@ -365,6 +366,7 @@ Enot.modifiers = {};
 
 
 /** call callback once */
+//TODO: think up the way to use Emmy.one instead
 Enot.modifiers['once'] =
 Enot.modifiers['one'] = function(evt, fn, emptyArg, sourceFn){
 	var cb = function(e){
@@ -652,7 +654,7 @@ function parseTarget(target, str) {
 
 
 /**
- * Get property defined by dot notation in string
+ * Get property defined by dot notation in string.
  * @param  {Object} holder   Target object where to look property up
  * @param  {string} propName Dot notation, like 'this.a.b.c'
  * @return {[type]}          [description]
@@ -666,6 +668,7 @@ function getProperty(holder, propName){
 	}
 	return result;
 }
+
 
 /**
  * Cache of redirectors
@@ -690,7 +693,7 @@ function applyModifiers(fn, evt, modifiers){
 	var self = this;
 
 	modifiers.sort(function(a,b){
-		//one should go last because it offs passed event
+		//one should go last because it turns off passed event
 		return /^one/.test(a) ? 1 : -1;
 	})
 	.forEach(function(modifier){

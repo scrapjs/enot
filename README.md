@@ -7,8 +7,32 @@
 _`1.59 kb`_ gzipped
 
 
-Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation system.
+Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation inspired by [backbone declarative events](http://backbonejs.org/#View-delegateEvents) and [xtags events modifiers](http://www.x-tags.org/docs#pseudos).
 
+The basic event declaration looks as follows:
+
+`[(selector|target)] event[:modifier][, declaration]`
+
+
+Common examples:
+
+* `click` - call on click
+* `click:defer(100)` - call 100ms after click
+* `click:throttle(200)` - fire not more often than 200ms
+* `click:one` - fire once
+* `window message` - call on window gets message
+* `document unload` - call on user is going to leave
+* `.bad-link click` - elements matching selector click
+* `document click:delegate(.bad-link)` - the same as above but in a delegate way
+* `.element click, document keypress:pass(enter)` - bind two callbacks
+
+<!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
+
+<!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
+
+<!-- `touch` - normalized crossbrowser gesture -->
+
+<!-- `all` - call on any event -->
 
 
 ## Usage
@@ -20,7 +44,7 @@ Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation system.
 
 #### 2. Use
 
-There are 2 possible use-cases for Enot.
+There are two possible ways to use _enot_.
 
 1. Use static event methods:
 
@@ -34,116 +58,63 @@ There are 2 possible use-cases for Enot.
 
 	It might be useful if you want to use events "externally", not touching the initial objects — whether elements, expando objects etc.
 
-2. Use as a [component/emitter](https://github.com/component/emitter) replacement:
+2. As an [emitter](https://github.com/component/emitter):
 
-	Instance:
-	```js
-	var Emitter = require('enot');
+	* Instance:
+		```js
+		var Emitter = require('enot');
 
-	var emitter = new Emitter;
-	emitter.emit('something');
-	```
+		var emitter = new Emitter;
+		emitter.emit('something');
+		```
 
-	Mixin:
-	```js
-	var Emitter = require('enot');
+	* Mixin:
+		```js
+		var Emitter = require('enot');
 
-	var user = {name: 'Toby'};
-	Emitter(user);
-	```
+		var user = {name: 'Toby'};
+		Emitter(user);
 
-	Or inherit:
+		user.emit('hello');
+		```
 
-	```js
-	var Emitter = require('emitter');
+	* Inherit:
+		```js
+		var Emitter = require('emitter');
 
-	var User = function(name){this.name = name};
+		var User = function(name){this.name = name};
 
-	User.prototype = Object.create(Emitter.prototype);
-	//or Emitter(User.prototype);
+		User.prototype = Object.create(Emitter.prototype);
+		//or `Emitter(User.prototype);` to mixin
 
-	var user = function('George');
+		var user = new User('George');
 
-	user.emit('I wanna poo');
-
-
-	```
-
-	This case is a common pattern of EventEmitter, so you can safely replace existing emitter with ENot.
-
-
-## API
-
-
-
-
-
-Binding options:
-```js
-//enable `a` event for `a` method
-enot.on({a: function(){i++}}, 'a');
-
-//bind to the document
-enot.on('document click:delegate(a)', function(){})
-
-//bind to the window (any click event)
-enot.on('click:delegate(a)', function(){})
-
-//redirect events
-enot.on(target, 'click', 'close, hide');
-```
-
-
-##### Examples
-
-`click` - call on click
-
-`click:defer(100)` - call 100ms after click happens
-
-`click:throttle(200)` - fire not more often than 200ms
-
-`click:one` - fire once
-
-<!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
-
-<!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
-
-<!-- `touch` - normalized crossbrowser gesture -->
-
-`window message` - call on window gets message
-
-`document unload` - call on user is going to leave
-
-`.bad-link click` - elements matching selector click
-
-`document click:delegate(.bad-link)` - the same as above but in a better way
-
-`this.parentNode click:delegate(this.childNodes)` - hang click on parent, delegate to children
-
-`this.childNodes click` - catch click on every children
-
-`.element click, document keypress:pass(enter)` - bind two callbacks
-
-<!-- `all` - call on any event -->
+		user.emit('poo');
+		```
 
 
 ## Targets
 
-* `.some-valid-selector > .inner-element`
-* `parent`
+* Any valid CSS selector
 * `document`
 * `window`
 * `body`
 * `root`
-* `this.property` — reference to target properties
+* `this.property` — reference to current instance properties
+
+Example:
+```js
+var b = {parent:document.body};
+enot(b, 'this.parent click:on', callback);
+```
 
 
 ## Modifiers
 
-* `:one()` — the same as jQuery’s `one`.
-* `:delegate(selector)` — the same as jQuery’s `delegate`.
-* `:not(selector)` — the opposite to delegate.
-* `:pass(code)` — filter event by matching `which` value. Useful for keyboard/mouse events. Codes:
+* `:one()`, `:once()` — fire callback once.
+* `:delegate(selector)`, `:on(selector)` — listen for bubbled event on elements mathing selector.
+* `:not(selector)` — the opposite to delegate - ignore bubbled event on elements matching selector.
+* `:pass(code)` — filter event by `code`. Useful for keyboard/mouse events. Codes:
 	* `ENTER: 13`
 	* `ESCAPE: 27`
 	* `TAB: 9`
@@ -162,18 +133,10 @@ enot.on(target, 'click', 'close, hide');
 	* `LEFT_MOUSE: 1`
 	* `RIGHT_MOUSE: 3`
 	* `MIDDLE_MOUSE: `
-* `:defer(100)` — invoke callback `100` ms after.
-* `:throttle(20)` — invoke callbak not more than a time per 20 ms.
+* `:defer(100)`, `:after(100)` — invoke callback 100 ms after.
+* `:throttle(20)` — invoke callbak not more than once per 20 ms.
 
 Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
-
-
-
----
-
-Inspired by _xtags_ events, _backbone_ events, _component/events_ and _CSS selectors_ notations.
-
-Utilizes [emmy event emitter](https://github.com/dfcreative/emmy) internally.
 
 
 ## License
