@@ -6,7 +6,7 @@
 
 Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation inspired by [backbone declarative events](http://backbonejs.org/#View-delegateEvents) and [xtags events modifiers](http://www.x-tags.org/docs#pseudos).
 
-A basic event declaration syntax is as follows:
+Basic event declaration syntax:
 
 `[(selector|target)] event[:modifier][, declaration]`
 
@@ -43,21 +43,22 @@ Common examples:
 
 There are two possible ways to use _enot_.
 
-1. Use static event methods:
+1. Static API
+
+	Might be useful if you want to use events "externally", not touching the initial objects — e. g. HTMLElements, jQuery objects etc.
 
 	```js
 	var enot = require('enot');
+	var target = document.querySelector();
 
 	enot.on(target, 'document click:pass(right_mouse)', callback);
 	enot.off(target, 'document click:pass(right_mouse)', callback);
 	enot.emit(target, 'document click:pass(right_mouse)');
 	```
 
-	It might be useful if you want to use events "externally", not touching the initial objects — whether elements, expando objects etc.
+2. [EventEmitter](https://github.com/component/emitter) interface
 
-2. As an [emitter](https://github.com/component/emitter):
-
-	* Instance:
+	* Create instance:
 		```js
 		var Emitter = require('enot');
 
@@ -92,7 +93,8 @@ There are two possible ways to use _enot_.
 
 ## Targets
 
-* Any valid CSS selector
+As well as any valid CSS selector you can declare one of the following targets:
+
 * `document`
 * `window`
 * `body`
@@ -101,12 +103,13 @@ There are two possible ways to use _enot_.
 
 Example:
 ```js
-var b = {parent:document.body};
-enot(b, 'this.parent click:on', callback);
+enot(myElement, 'this.parent click', callback);
 ```
 
 
 ## Modifiers
+
+You can use the following modifiers for events:
 
 * `:one()`, `:once()` — fire callback once.
 * `:delegate(selector)`, `:on(selector)` — listen for bubbled event on elements mathing selector.
