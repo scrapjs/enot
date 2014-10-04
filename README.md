@@ -4,12 +4,9 @@
 ](https://ci.testling.com/dfcreative/enot)
 
 
-_`1.59 kb`_ gzipped
-
-
 Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation inspired by [backbone declarative events](http://backbonejs.org/#View-delegateEvents) and [xtags events modifiers](http://www.x-tags.org/docs#pseudos).
 
-The basic event declaration looks as follows:
+A basic event declaration syntax is as follows:
 
 `[(selector|target)] event[:modifier][, declaration]`
 
