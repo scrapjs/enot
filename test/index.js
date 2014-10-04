@@ -20,9 +20,9 @@ describe("Enot", function(){
 			Enot.off(document, "hello", cb);
 			i++;
 		};
-		Enot.on(document, "hello", cb);
-		Enot.emit(document, "hello", 123);
-		Enot.emit(document, "hello", 123);
+		Enot.on(document, "hello", cb)
+		.emit(document, "hello", 123)
+		.emit(document, "hello", 123);
 
 		assert.equal(i,1);
 	});

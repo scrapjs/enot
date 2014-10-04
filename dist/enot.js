@@ -767,7 +767,8 @@ for (var name in EnotPrototype) {
 }
 function createStaticBind(methodName){
 	return function(a, b, c, d){
-		return EnotPrototype[methodName].call(a,b,c,d);
+		var res = EnotPrototype[methodName].call(a,b,c,d);
+		return res === a ? Enot : res;
 	};
 }
 
