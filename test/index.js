@@ -1056,7 +1056,7 @@ describe("Enot", function(){
 		assert.equal(i, 0);
 	})
 
-	it('Bind to the specific context', function(){
+	it.skip('Bind to the specific context', function(){
 		var a = {},
 			b = {};
 
@@ -1069,7 +1069,5 @@ describe("Enot", function(){
 		});
 
 		Enot.emit(b, 'x');
-
-
 	})
 });

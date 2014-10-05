@@ -212,9 +212,12 @@ EnotPrototype.off = function(evtRefs, fn){
 		}
 	}
 
-	eachCSV(evtRefs, function(evtRef){
-		_off(target, evtRef, fn);
-	});
+	else {
+		eachCSV(evtRefs, function(evtRef){
+			_off(target, evtRef, fn);
+		});
+	}
+
 
 	return target;
 };
