@@ -1030,4 +1030,46 @@ describe("Enot", function(){
 	it.skip('Chainable target & static methods', function(){
 
 	});
+
+	it('Bind events in bulk', function(){
+		var i = 0;
+
+		var a = {
+			a: function(){i++},
+			b: function(){i--}
+		};
+
+		Enot.on(a, a);
+
+		Enot.emit(a, 'a');
+
+		assert.equal(i, 1);
+
+		Enot.emit(a, 'b');
+
+		assert.equal(i, 0);
+
+		Enot.off(a, a);
+
+		Enot.emit(a, 'a');
+
+		assert.equal(i, 0);
+	})
+
+	it('Bind to the specific context', function(){
+		var a = {},
+			b = {};
+
+		Enot.on.call(a, b, {
+			'x': function(){assert.equal(this, a)}
+		});
+
+		Enot.on(b, {
+			'x': function(){assert.equal(this, b)}
+		});
+
+		Enot.emit(b, 'x');
+
+
+	})
 });
