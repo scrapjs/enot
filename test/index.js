@@ -1070,4 +1070,10 @@ describe("Enot", function(){
 
 		Enot.emit(b, 'x');
 	})
+
+	it.skip('test lists in .one', function(){
+		Enot.one('a, b', function(){
+
+		})
+	})
 });

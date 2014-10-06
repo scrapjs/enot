@@ -61,30 +61,17 @@ var EnotPrototype = Enot.prototype;
 EnotPrototype.addEventListener =
 EnotPrototype.on = function(evtRefs, fn){
 	var target = this;
-
 	//if no target specified
 	if (isString(target)) {
 		fn = evtRefs;
 		evtRefs = target;
 		target = null;
 	}
-
-	//no events passed
 	if (!evtRefs) return target;
 
-	//in bulk events passed
-	if (type.isObject(evtRefs)){
-		for (var evtRef in evtRefs){
-			EnotPrototype.on.call(target, evtRef, evtRefs[evtRef]);
-		}
-	}
-
-	else {
-		eachCSV(evtRefs, function(evtRef){
-			_on(target, evtRef, fn);
-		});
-	}
-
+	eachCSV(evtRefs, function(evtRef){
+		_on(target, evtRef, fn);
+	});
 
 	return target;
 };
@@ -102,8 +89,9 @@ EnotPrototype.one = function(evtRefs, fn){
 	//append ':one' to each event from the references passed
 	var processedRefs = '';
 	eachCSV(evtRefs, function(item){
-		processedRefs += item + ':one';
+		processedRefs += item + ':one, ';
 	});
+	processedRefs = processedRefs.slice(0, -2);
 
 	return EnotPrototype.on.call(target, processedRefs, fn);
 };
@@ -205,19 +193,9 @@ EnotPrototype.off = function(evtRefs, fn){
 	//FIXME: remove all listeners?
 	if (!evtRefs) return target;
 
-	//in bulk events passed
-	if (type.isObject(evtRefs)){
-		for (var evtRef in evtRefs){
-			EnotPrototype.off.call(target, evtRef, evtRefs[evtRef]);
-		}
-	}
-
-	else {
-		eachCSV(evtRefs, function(evtRef){
-			_off(target, evtRef, fn);
-		});
-	}
-
+	eachCSV(evtRefs, function(evtRef){
+		_off(target, evtRef, fn);
+	});
 
 	return target;
 };
@@ -311,7 +289,6 @@ EnotPrototype.emit = function(evtRefs, data, bubbles){
 	}
 
 	if (!evtRefs) return target;
-
 	eachCSV(evtRefs, function(evtRef){
 		var evtObj = parseReference(target, evtRef);
 
