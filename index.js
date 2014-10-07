@@ -67,11 +67,22 @@ EnotPrototype.on = function(evtRefs, fn){
 		evtRefs = target;
 		target = null;
 	}
+
+	//no events passed
 	if (!evtRefs) return target;
 
-	eachCSV(evtRefs, function(evtRef){
-		_on(target, evtRef, fn);
-	});
+	//in bulk events passed
+	if (type.isObject(evtRefs)){
+		for (var evtRef in evtRefs){
+			EnotPrototype.on.call(target, evtRef, evtRefs[evtRef]);
+		}
+	}
+
+	else {
+		eachCSV(evtRefs, function(evtRef){
+			_on(target, evtRef, fn);
+		});
+	}
 
 	return target;
 };
@@ -190,12 +201,21 @@ EnotPrototype.off = function(evtRefs, fn){
 		target = null;
 	}
 
-	//FIXME: remove all listeners?
+	//no events passed
 	if (!evtRefs) return target;
 
-	eachCSV(evtRefs, function(evtRef){
-		_off(target, evtRef, fn);
-	});
+	//in bulk events passed
+	if (type.isObject(evtRefs)){
+		for (var evtRef in evtRefs){
+			EnotPrototype.off.call(target, evtRef, evtRefs[evtRef]);
+		}
+	}
+
+	else {
+		eachCSV(evtRefs, function(evtRef){
+			_off(target, evtRef, fn);
+		});
+	}
 
 	return target;
 };
