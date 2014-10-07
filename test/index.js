@@ -948,11 +948,22 @@ describe("Enot", function(){
 		assert.notEqual(document.location.hash, '#xxx')
 	})
 
-	it.skip("TODO: emit event instances passed", function(){
-		var e = new CustomEvent();
-		Enot.emit({}, e);
+	it.skip("emit event instances passed", function(){
+		//faced this case in MOD with Enot.emit(a,b, event) in redirector
+		//faced this case in draggy when I needed emit(Draggy.element, 'mouseenter', outerMouseEvent);
+		var target = {};
+		var i = 0;
 
-		//TODO: faced this case in MOD with Enot.emit(a,b, event) in redirector
+		Enot.on(target, 'x', function(e){
+			i++
+			assert.equal(e.detail, 123)
+		})
+
+		var e = new CustomEvent('x', {'detail': 123});
+		Enot.emit(target, e);
+
+		assert.equal(i, 1);
+
 	})
 
 	it('TODO: jQuery event separator (.)')
@@ -1092,9 +1103,9 @@ describe("Enot", function(){
 
 	it('keep context of inner references', function(){
 		var i = 0;
-		var target = {z: {f: 1}}
+		var target = {z: {f: 1}};
 		var a = {
-			'@z x': function(){
+			'@z x': function() {
 				assert.equal(this, target)
 				i++
 			}
@@ -1104,5 +1115,15 @@ describe("Enot", function(){
 		Enot.emit(target.z, 'x');
 
 		assert.equal(i, 1);
+	})
+
+	it.skip('forward redirected event params', function(){
+		Enot.on(a, 'x', 'y');
+
+		a.y = function(e){
+			assert.equal(e is an x event)
+		}
+
+		dispatchEvt(a, 'x');
 	})
 });

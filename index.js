@@ -253,13 +253,16 @@ EnotPrototype.emit = function(evtRefs, data, bubbles){
 		evtRefs = target;
 		target = null;
 	}
+
 	//just fire straight event passed
 	if (evtRefs instanceof Event) {
 		Emitter.emit(target, evtRefs, data, bubbles);
 		return target;
 	}
 
+
 	if (!evtRefs) return target;
+
 	eachCSV(evtRefs, function(evtRef){
 		var evtObj = parseReference(target, evtRef);
 
