@@ -49,11 +49,18 @@ There are two possible ways to use _enot_.
 
 	```js
 	var enot = require('enot');
-	var target = document.querySelector();
+	var target = document.querySelector('.my-element');
 
 	enot.on(target, 'document click:pass(right_mouse)', callback);
 	enot.off(target, 'document click:pass(right_mouse)', callback);
 	enot.emit(target, 'document click:pass(right_mouse)');
+
+	//bind callbacks in bulk
+	enot.on(myPlugin, {
+		'window resize, document myPlugin:update': 'update',
+		'update': function(){...},
+		'submit, click:on(.submit-button), keypress:pass(enter)': function(){...}
+	});
 	```
 
 2. [EventEmitter](https://github.com/component/emitter) interface
@@ -102,6 +109,7 @@ As well as any valid CSS selector you can declare one of the following targets:
 * `this.property` — reference to current instance properties
 
 Example:
+
 ```js
 enot(myElement, 'this.parent click', callback);
 ```
