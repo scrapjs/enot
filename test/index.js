@@ -65,14 +65,14 @@ describe("Enot", function(){
 	it("unbind :one callbacks", function(){
 		var a = document.createElement('div');
 		var log = []
-		var fn = function(){log.push(1)}
+		var fn = function(){log.push(1)};
 
-		Enot.on(a, 'a:one', fn)
-		Enot.on(a, 'a:one', fn)
+		Enot.on(a, 'a:one', fn);
+		Enot.on(a, 'a:one', fn);
 		Enot.emit(a, 'a');
 		Enot.emit(a, 'a');
 
-		assert.deepEqual(log, [1])
+		assert.deepEqual(log, [1]);
 
 		log = [];
 		Enot.on(a, 'b:one', fn);
@@ -274,9 +274,13 @@ describe("Enot", function(){
 		var a = document.createElement('div');
 		var b = document.createElement('div');
 		var fn = function(){i++}
+		// console.log('bind a')
 		Enot.on(a, 'a', fn);
+		// console.log('bind b')
 		Enot.on(b, 'a', fn);
+		// console.log('emit a')
 		Enot.emit(a, 'a')
+		// console.log('emit b')
 		Enot.emit(b, 'a')
 
 		assert.equal(i,2)
@@ -519,6 +523,7 @@ describe("Enot", function(){
 		Enot.emit('.aer click');
 		assert.equal(i, 4);
 
+		// console.log('--------- off .aer click')
 		Enot.off('.aer click', inc);
 		Enot.emit('.aer click');
 		assert.equal(i, 4);
@@ -584,13 +589,20 @@ describe("Enot", function(){
 		Enot.emit({1: function(){}}, 1);
 	})
 
-	it('keep context', function(){
+	it('keep context of redirects', function(){
 		var i = 0;
-		var target = {z:{}, inc: function(){i++}};
+		var target = {
+			z:{},
+			inc: function(){
+				assert.equal(this, target);
+				i++;
+			}
+		};
 
 		Enot.on(target, 'inc', target.inc);
-		Enot.on(target, 'this.z click', 'inc');
+		Enot.on(target, '@z click', 'inc');
 
+		// console.log('----emit click')
 		Enot.emit(target.z, 'click');
 		assert.equal(i,1);
 
@@ -1057,6 +1069,7 @@ describe("Enot", function(){
 	})
 
 	it.skip('Bind to the specific context', function(){
+		//DEPRECATED: bind methods manually, if you need to do so
 		var a = {},
 			b = {};
 
@@ -1075,5 +1088,21 @@ describe("Enot", function(){
 		Enot.one('a, b', function(){
 
 		})
+	})
+
+	it('keep context of inner references', function(){
+		var i = 0;
+		var target = {z: {f: 1}}
+		var a = {
+			'@z x': function(){
+				assert.equal(this, target)
+				i++
+			}
+		}
+
+		Enot.on(target, a);
+		Enot.emit(target.z, 'x');
+
+		assert.equal(i, 1);
 	})
 });

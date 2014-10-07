@@ -62,7 +62,6 @@ var EnotPrototype = Enot.prototype;
 EnotPrototype.addEventListener =
 EnotPrototype.on = function(evtRefs, fn){
 	var target = this;
-
 	//if no target specified
 	if (isString(target)) {
 		fn = evtRefs;
@@ -78,14 +77,13 @@ EnotPrototype.on = function(evtRefs, fn){
 		for (var evtRef in evtRefs){
 			EnotPrototype.on.call(target, evtRef, evtRefs[evtRef]);
 		}
+
+		return target;
 	}
 
-	else {
-		eachCSV(evtRefs, function(evtRef){
-			_on(target, evtRef, fn);
-		});
-	}
-
+	eachCSV(evtRefs, function(evtRef){
+		_on(target, evtRef, fn);
+	});
 
 	return target;
 };
@@ -103,8 +101,9 @@ EnotPrototype.one = function(evtRefs, fn){
 	//append ':one' to each event from the references passed
 	var processedRefs = '';
 	eachCSV(evtRefs, function(item){
-		processedRefs += item + ':one';
+		processedRefs += item + ':one, ';
 	});
+	processedRefs = processedRefs.slice(0, -2);
 
 	return EnotPrototype.on.call(target, processedRefs, fn);
 };
@@ -125,12 +124,7 @@ function _on(target, evtRef, fn) {
 
 	var evtObj = parseReference(target, evtRef);
 
-	var targets = evtObj.targets,
-
-		//get modified fn or redirector
-		targetFn = isString(fn) ? getRedirector(fn, target) : fn;
-
-	targetFn = applyModifiers.call(target, targetFn, evtObj.evt, evtObj.modifiers);
+	var targets = evtObj.targets;
 
 	//ignore not bindable sources
 	if (!targets) return target;
@@ -138,7 +132,8 @@ function _on(target, evtRef, fn) {
 	//iterate list of targets
 	if (isArrayLike(targets)) {
 		for (var i = targets.length; i--;){
-			_on(targets[i], evtObj.evt, targetFn);
+			// _on(targets[i], evtObj.evt, fn);
+			Emitter.on(targets[i], evtObj.evt, getModifiedFn(fn, target, evtObj.evt, evtObj.modifiers));
 		}
 
 		return target;
@@ -147,33 +142,7 @@ function _on(target, evtRef, fn) {
 	//target is one indeed
 	var newTarget = targets;
 
-	//catch redirect (stringy callback)
-	if (type.isPlain(fn)) {
-		//save redirect fn to cache
-		if (!redirectCbCache.has(target)) redirectCbCache.set(target, {});
-		var redirectSet = redirectCbCache.get(target);
-
-		//ignore existing binding
-		if (redirectSet[evtRef]) return target;
-
-		redirectSet[evtRef] = targetFn;
-	}
-
-	//if fn has been modified - save modified fn (in order to unbind it properly)
-	else {
-		//bind new event
-		if (!modifiedCbCache.has(fn)) modifiedCbCache.set(fn, {});
-		var modifiedCbs = modifiedCbCache.get(fn);
-
-		//ignore bound event
-		if (modifiedCbs[evtObj.evt] && targetFn !== fn) return target;
-
-		//save modified callback
-		modifiedCbs[evtObj.evt] = targetFn;
-	}
-
-	// console.log('bind', newTarget, evtObj.evt, targetFn)
-	Emitter.on(newTarget, evtObj.evt, targetFn);
+	Emitter.on(newTarget, evtObj.evt, getModifiedFn(fn, target, evtObj.evt, evtObj.modifiers));
 
 	return target;
 }
@@ -203,7 +172,7 @@ EnotPrototype.off = function(evtRefs, fn){
 		target = null;
 	}
 
-	//FIXME: remove all listeners?
+	//no events passed
 	if (!evtRefs) return target;
 
 	//in bulk events passed
@@ -219,7 +188,6 @@ EnotPrototype.off = function(evtRefs, fn){
 		});
 	}
 
-
 	return target;
 };
 
@@ -231,7 +199,7 @@ EnotPrototype.off = function(evtRefs, fn){
  * @param {string} evtRef Event notation
  * @param {Function} fn callback
  */
-function _off(target, evtRef, fn){
+function _off(target, evtRef, fn, keepFn){
 	var evtObj = parseReference(target, evtRef);
 	var targets = evtObj.targets;
 	var targetFn = fn;
@@ -239,9 +207,13 @@ function _off(target, evtRef, fn){
 	if (!targets) return target;
 
 	//iterate list of targets
-	if (targets.length && !isElement(targets)) {
+	if (isArrayLike(targets)) {
 		for (var i = targets.length; i--;){
-			_off(targets[i], evtObj.evt, targetFn);
+			//FIXME: check whether it is possible to use Emitter.off straightforwardly
+			_off(targets[i], evtObj.evt, fn, true);
+		}
+		for (var i = targets.length; i--;){
+			forgetCb(fn, targets[i], evtObj.evt);
 		}
 
 		return target;
@@ -257,32 +229,9 @@ function _off(target, evtRef, fn){
 		}
 	}
 
-	//catch redirect (stringy callback)
-	if (fn) {
-		//unbind callback
-		if (type.isPlain(fn)) {
-			fn += '';
-			var redirectSet = redirectCbCache.get(target);
+	Emitter.off(newTarget, evtObj.evt, getModifiedFn(fn, target, evtObj.evt, evtObj.modifiers));
 
-			if (!redirectSet) return;
-
-			targetFn = redirectSet[evtRef];
-
-			redirectSet[evtRef] = null;
-		}
-
-		//try to clean cached modified callback
-		else if (modifiedCbCache.has(fn)) {
-			var modifiedCbs = modifiedCbCache.get(fn);
-			if (modifiedCbs[evtObj.evt]) {
-				targetFn = modifiedCbs[evtObj.evt];
-				//clear reference
-				modifiedCbs[evtObj.evt] = null;
-			}
-		}
-	}
-
-	Emitter.off(newTarget, evtObj.evt, targetFn);
+	!keepFn && forgetCb(fn, newTarget, evtObj.evt);
 }
 
 
@@ -312,7 +261,6 @@ EnotPrototype.emit = function(evtRefs, data, bubbles){
 	}
 
 	if (!evtRefs) return target;
-
 	eachCSV(evtRefs, function(evtRef){
 		var evtObj = parseReference(target, evtRef);
 
@@ -475,7 +423,6 @@ Enot.modifiers['delegate'] = function(evtName, fn, selector){
  */
 Enot.modifiers['not'] = function(evt, fn, selector){
 	var cb = function(e){
-		// console.log('not cb', e, selector)
 		var target = e.target;
 
 		//traverse each node from target to holder and filter if event happened within banned element
@@ -696,15 +643,6 @@ function getProperty(holder, propName){
 
 
 /**
- * Cache of redirectors
- *
- * @example
- * cache[target][evtRef]
- */
-var redirectCbCache = new WeakMap();
-
-
-/**
  * Apply event modifiers to string.
  * Returns wrapped fn.
  *
@@ -714,8 +652,9 @@ var redirectCbCache = new WeakMap();
  * @return {Function}   Callback with applied modifiers
  */
 function applyModifiers(fn, evt, modifiers){
-	var targetFn = fn;
 	var self = this;
+
+	var targetFn = fn;
 
 	modifiers.sort(function(a,b){
 		//one should go last because it turns off passed event
@@ -732,7 +671,7 @@ function applyModifiers(fn, evt, modifiers){
 		}
 	});
 
-	return targetFn;
+	return function(){return targetFn.apply(self, arguments);};
 }
 
 
@@ -748,20 +687,88 @@ var modifiedCbCache = new WeakMap();
 
 
 /**
+ * Cache of redirectors for contexts
+ *
+ * @example
+ * cache[target][evtRef]
+ */
+var redirectCbCache = new WeakMap();
+
+
+/** return modified fn, save modified fn for fn */
+function getModifiedFn(fn, target, evt, modifiers){
+	var targetFn = fn;
+
+	if (!fn) return fn;
+
+	//catch redirect (stringy callback)
+	if (type.isPlain(targetFn)) {
+		//get modified fn or redirector
+		targetFn = getRedirector(targetFn, target);
+	}
+
+	//get modifiers list for target
+	if (!modifiedCbCache.has(targetFn)) modifiedCbCache.set(targetFn, {});
+	var modifiedCbs = modifiedCbCache.get(targetFn);
+
+	//return existing modified fn
+	if (modifiedCbs[evt]) {
+		return modifiedCbs[evt];
+	}
+
+	//return new modifier
+	targetFn = applyModifiers.call(target, targetFn, evt, modifiers);
+
+	//save modified callback
+	modifiedCbs[evt] = targetFn;
+
+	return targetFn;
+}
+
+
+/** forget callback */
+function forgetCb(fn, target, evt) {
+	if (!fn) return;
+
+	//remove redirector from the set
+	if (type.isPlain(fn)) {
+		var set = redirectCbCache.get(target);
+		if (set) set[fn] = null;
+	}
+
+	//remove modified fn from the set
+	else {
+		var modifiedCbs = modifiedCbCache.get(fn);
+		if (modifiedCbs) modifiedCbs[evt] = null;
+	}
+}
+
+
+/**
  * Return redirection statements handler.
  *
  * @param    {string}   redirectTo   Redirect declaration (other event notation)
  * @return   {function}   Callback which fires redirects
  */
 function getRedirector(redirectTo, ctx){
+	var ctx = ctx || this;
+
+	if (!redirectCbCache.has(ctx)) redirectCbCache.set(ctx, {});
+	var redirectSet = redirectCbCache.get(ctx);
+
+	//return redirector, if exists
+	if (redirectSet[redirectTo]) return redirectSet[redirectTo];
+
 
 	var cb = function(e){
 		eachCSV(redirectTo, function(evt){
 			if (redirectors[evt]) redirectors[evt].call(ctx, e);
-			// console.log('redirect', ctx, evt)
 			Enot.emit(ctx, evt, e.detail, e.bubbles);
 		});
 	};
+
+	//save redirect fn to cache
+	redirectSet[redirectTo] = cb;
 
 	return cb;
 }
