@@ -44,7 +44,7 @@ function Enot(target){
 	return target;
 }
 
-var EnotPrototype = Enot.prototype;
+var EnotPrototype = Enot.prototype = Object.create(Emitter.prototype);
 
 
 
@@ -223,7 +223,7 @@ function _off(target, evtRef, fn){
 	if (dfdCalls[evtObj.evt]) {
 		for (var i = 0; i < dfdCalls[evtObj.evt].length; i++){
 			if (intervalCallbacks[dfdCalls[evtObj.evt][i]] === fn)
-				EnotPrototype.off.call(newTarget, evtObj.evt + evtSeparator + dfdCalls[evtObj.evt][i]);
+				Emitter.off(newTarget, evtObj.evt + evtSeparator + dfdCalls[evtObj.evt][i]);
 		}
 	}
 
@@ -526,8 +526,8 @@ Enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 			var evtName =  evt + evtSeparator + interval;
 
 			//fire once planned evt
-			Enot.emit(self, evtName, {sourceEvent: e});
-			Enot.off(self, evtName);
+			Emitter.emit(self, evtName, {sourceEvent: e});
+			Emitter.off(self, evtName);
 
 			//forget interval
 			var idx = dfdCalls[evt].indexOf(interval);
@@ -536,7 +536,7 @@ Enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 		}, delay);
 
 		//bind :one fire of this event
-		Enot.on(self, evt + evtSeparator + interval, sourceFn);
+		Emitter.on(self, evt + evtSeparator + interval, sourceFn);
 
 		//save planned interval for an evt
 		(dfdCalls[evt] = dfdCalls[evt] || []).push(interval);
@@ -803,30 +803,9 @@ var defaultRedirectors = {
 };
 
 
-/** forget callback
- */
-//FIXME
-function forgetCb(fn, target, evt) {
-	if (!fn) return;
-
-	//remove modified fn from the set
-	else {
-		var modifiedCbs = modifiedCbCache.get(fn);
-		if (modifiedCbs) modifiedCbs[evt] = null;
-	}
-}
-
 
 /** Static aliases for old API compliance */
-for (var name in EnotPrototype) {
-	if (EnotPrototype[name]) Enot[name] = createStaticBind(name);
-}
-function createStaticBind(methodName){
-	return function(a, b, c, d){
-		var res = EnotPrototype[methodName].call(a,b,c,d);
-		return res === a ? Enot : res;
-	};
-}
+Emitter.bindStaticAPI.call(Enot);
 
 
 /** @module enot */
