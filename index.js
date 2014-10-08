@@ -679,7 +679,8 @@ function getModifiedFn(initialTarget, fn, target, evt, modifiers){
 	var modifierFns = getModifiedFns(targetFn, target, evt);
 
 	//save callback
-	modifiedCb = applyModifiers(targetFn, evt, modifiers);
+	var modifiedCb = applyModifiers(targetFn, evt, modifiers);
+
 	//rebind context, if targets differs
 	if (initialTarget !== target) {
 		//FIXME: simplify bind here - it is too weighty
