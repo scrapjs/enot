@@ -20,8 +20,10 @@ describe("Enot", function(){
 			Enot.off(document, "hello", cb);
 			i++;
 		};
-		Enot.on(document, "hello", cb)
-		.emit(document, "hello", 123)
+		Enot.on(document, "hello:one", cb);
+
+		// console.log('---emits')
+		Enot.emit(document, "hello", 123)
 		.emit(document, "hello", 123);
 
 		assert.equal(i,1);
@@ -92,18 +94,23 @@ describe("Enot", function(){
 		document.body.appendChild(el);
 
 		var inc = function(){
+			// console.log('inc');
 			i++;
 		};
+		// console.log('---bind body')
 		Enot.on(document.body, "document hello:delegate(p, div, .some)", inc);
 
 		var sideLink = document.createElement("span");
 		document.body.appendChild(sideLink);
+		// console.log('---bind sidelink')
 		Enot.on(sideLink, "hello", function(){
 			j++;
 		});
 
+		// console.log('---emit body hello')
 		Enot.emit(document.body, "hello");
 		assert.equal(i, 0);
+		// console.log('---emit el hello')
 		Enot.emit(el, "hello", null, true);
 		assert.equal(i, 1);
 
@@ -570,6 +577,7 @@ describe("Enot", function(){
 		}
 		Enot.on(target, 'a', target.a);
 		Enot.on(target,'z', 'a, b');
+		// console.log('---emit z')
 		Enot.emit(target, 'z');
 		assert.deepEqual(log, ['a']);
 
@@ -600,6 +608,7 @@ describe("Enot", function(){
 		};
 
 		Enot.on(target, 'inc', target.inc);
+		// console.log('----on @z')
 		Enot.on(target, '@z click', 'inc');
 
 		// console.log('----emit click')
@@ -702,6 +711,7 @@ describe("Enot", function(){
 		Enot.emit(a, 'click');
 
 		setTimeout(function(){
+			// console.log(i)
 			assert.equal(i, 1);
 			done();
 		}, 110)
@@ -821,20 +831,27 @@ describe("Enot", function(){
 		var i = 0;
 		var a = {
 			y:function(){
+				// console.log('ay')
 				i++
-			}
+			},
+			x:1
 		};
 		var b = {
 			y:function(){
+				// console.log('by')
 				i++
-			}
+			},
+			x:2
 		};
 
+		// console.log('---bind targets')
 		Enot.on(a, 'y', a.y);
 		Enot.on(b, 'y', b.y);
+		// console.log('---bind window')
 		Enot.on(a, 'window x', 'y');
 		Enot.on(b, 'window x', 'y');
 
+		// console.log('---emit window x')
 		Enot.emit('window x');
 		assert.equal(i, 2);
 
@@ -877,6 +894,7 @@ describe("Enot", function(){
 
 		assert.equal(i, 1);
 
+		// console.log('---off')
 		Enot.off(a, "a.b");
 		Enot.emit(a, "a.b");
 		assert.equal(i, 1);
@@ -1121,9 +1139,29 @@ describe("Enot", function(){
 		Enot.on(a, 'x', 'y');
 
 		a.y = function(e){
-			assert.equal(e is an x event)
+			// assert.equal(e is an x event)
 		}
 
 		dispatchEvt(a, 'x');
+	});
+
+	it('a function shared between targets', function(){
+		var a = {};
+		var b = {};
+		var i = 0, j = 0;
+
+		var fn = function(){
+			this === a && i++;
+			this === b && j++;
+		}
+
+		Enot.on(a, 'x', fn);
+		Enot.on(b, 'x', fn);
+
+		Enot.emit(a, 'x');
+		Enot.emit(b, 'x');
+
+		assert.equal(i, 1);
+		assert.equal(j, 1);
 	})
 });
