@@ -21,7 +21,6 @@ var doc = global.document;
 var evtSeparator = '-';
 
 
-
 /* ------------------------------ C O N S T R U C T O R ------------------------------ */
 
 
@@ -61,6 +60,7 @@ var EnotPrototype = Enot.prototype = Object.create(Emitter.prototype);
 EnotPrototype.addEventListener =
 EnotPrototype.on = function(evtRefs, fn){
 	var target = this;
+
 	//if no target specified
 	if (isString(target)) {
 		fn = evtRefs;
