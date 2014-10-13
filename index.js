@@ -461,22 +461,25 @@ Enot.modifiers['throttle'] = function(evt, fn, interval){
 	interval = parseFloat(interval);
 	// console.log('thro', evt, fn, interval)
 	var cb = function(e){
-		// console.log('thro cb')
-		var self = this;
-
-		//FIXME: multiple throttles may interfere on target (key throttles by id)
-		if (throttleCache.get(self)) return DENY_EVT_CODE;
-		else {
-			var result = fn.call(self, e);
-			if (result === DENY_EVT_CODE) return result;
-			throttleCache.set(self, setTimeout(function(){
-				clearInterval(throttleCache.throttleKey);
-				throttleCache.delete(self);
-			}, interval));
-		}
-	}
+		return Enot.throttle.call(this, fn, interval, e);
+	};
 
 	return cb;
+};
+Enot.throttle = function(fn, interval, e){
+	// console.log('thro cb')
+	var self = this;
+
+	//FIXME: multiple throttles may interfere on target (key throttles by id)
+	if (throttleCache.get(self)) return DENY_EVT_CODE;
+	else {
+		var result = fn.call(self, e);
+		if (result === DENY_EVT_CODE) return result;
+		throttleCache.set(self, setTimeout(function(){
+			clearInterval(throttleCache.get(self));
+			throttleCache.delete(self);
+		}, interval));
+	}
 };
 
 
