@@ -476,6 +476,7 @@ Enot.throttle = function(fn, interval, e){
 		var result = fn.call(self, e);
 		if (result === DENY_EVT_CODE) return result;
 		throttleCache.set(self, setTimeout(function(){
+			fn.call(self, e);
 			clearInterval(throttleCache.get(self));
 			throttleCache.delete(self);
 		}, interval));
