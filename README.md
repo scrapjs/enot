@@ -37,7 +37,7 @@ Might be useful if you want to use events "externally", not touching the initial
 ##### b). [EventEmitter](https://github.com/component/emitter)
 
 ```js
-var Enot = require('enot');
+var Emitter = require('enot');
 ```
 
 ###### Create instance:
@@ -50,8 +50,6 @@ emitter.emit('something');
 ###### Mixin:
 
 ```js
-var Emitter = require('enot');
-
 var user = {name: 'Toby'};
 Emitter(user);
 
@@ -61,8 +59,6 @@ user.emit('hello');
 ###### Inherit:
 
 ```js
-var Emitter = require('enot');
-
 var User = function(name){this.name = name};
 
 User.prototype = Object.create(Emitter.prototype);
