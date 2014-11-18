@@ -1,18 +1,6 @@
-// var Enot = require('../index');
+var Enot = require('enot');
 
 describe("Enot", function(){
-	it.skip("parse", function(){
-		var i = 0;
-		var x = {};
-		var fn = function(){i++;};
-		var obj = enot.parse(x, 'document click:one', fn);
-
-		assert.equal(obj.evt, 'click');
-		assert.notEqual(obj.handler, fn);
-		assert.equal(obj.el, document);
-	});
-
-
 	it("able to fire events", function(){
 		var i = 0;
 		var cb = function(e){
@@ -346,16 +334,21 @@ describe("Enot", function(){
 	it(':throttle mod case', function(done){
 		var i = 0;
 		var a = document.createElement('div');
-		Enot.on(a, "click:throttle(20)", function(){
+		// console.time('x')
+		// var initT = +new Date;
+
+		//should be called 10 times less often than dispatched event
+		Enot.on(a, "x:throttle(50)", function(){
 			i++
+			// console.log(new Date - initT);
 			assert.equal(this, a);
 		})
 
 		document.body.appendChild(a);
 
 		var interval = setInterval(function(){
-			dispatchEvt(a, "click")
-		},10)
+			dispatchEvt(a, "x")
+		},5)
 
 		setTimeout(function(){
 			//should be instantly called
@@ -364,10 +357,11 @@ describe("Enot", function(){
 
 		setTimeout(function(){
 			clearInterval(interval);
-			//should be called twice less often than dispatched event
-			assert.closeTo(i, 8, 3);
+			// console.timeEnd('x');
+
+			assert.closeTo(i, 5, 1);
 			done();
-		}, 200)
+		}, 240)
 	});
 
 	it("deep properties access", function(){
@@ -904,7 +898,7 @@ describe("Enot", function(){
 		var i = 0;
 
 		var a = document.createElement('iframe');
-		a.src = 'http://kudago.com';
+		// a.src = 'http://kudago.com';
 		a.style.display = 'none';
 		document.body.appendChild(a);
 
@@ -918,7 +912,7 @@ describe("Enot", function(){
 		assert.equal(i, 2);
 	});
 
-	it(":not on elements which are no more in the DOM", function(){
+	it(":not on elements which are no more in DOM", function(){
 		var a = document.createElement('div');
 		a.className = 'a';
 		a.innerHTML = '<span></span>'
@@ -981,10 +975,9 @@ describe("Enot", function(){
 		Enot.emit(target, e);
 
 		assert.equal(i, 1);
-
 	})
 
-	it('TODO: jQuery event separator (.)')
+	it('jQuery event separator (.)')
 
 	it('Catch :defer redirector (draggy case - it shouldn’t work)', function(done){
 		var a = {
@@ -1029,7 +1022,6 @@ describe("Enot", function(){
 
 		Enot.emit(a, 'x', true, true);
 		assert.equal(i, 1);
-
 	})
 
 	it('one method', function(){
@@ -1069,7 +1061,6 @@ describe("Enot", function(){
 	});
 
 	it.skip('Chainable target & static methods', function(){
-
 	});
 
 	it('Bind events in bulk', function(){
@@ -1164,4 +1155,14 @@ describe("Enot", function(){
 		assert.equal(i, 1);
 		assert.equal(j, 1);
 	})
+
+	it.skip('delegate method', function(){
+		Enot.delegate('.some', fn);
+		Enot.off('.some', fn);
+	});
+
+	it.skip('lists of targets', function(){
+		Enot.on(targets, 'x', fn);
+		Enot.off(targets, fn);
+	});
 });

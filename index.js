@@ -3,7 +3,9 @@ var eachCSV = require('each-csv');
 var Emitter = require('emmy');
 var str = require('mustring');
 var type = require('mutypes');
+// var q = require('query-relative');
 
+//TODO: use lubeq
 
 var isString = type.isString;
 var isElement = type.isElement;
@@ -467,16 +469,17 @@ Enot.modifiers['throttle'] = function(evt, fn, interval){
 	return cb;
 };
 Enot.throttle = function(fn, interval, e){
-	// console.log('thro cb')
 	var self = this;
 
 	//FIXME: multiple throttles may interfere on target (key throttles by id)
 	if (throttleCache.get(self)) return DENY_EVT_CODE;
 	else {
 		var result = fn.call(self, e);
+
+		//if cb falsed, ignore
 		if (result === DENY_EVT_CODE) return result;
+
 		throttleCache.set(self, setTimeout(function(){
-			fn.call(self, e);
 			clearInterval(throttleCache.get(self));
 			throttleCache.delete(self);
 		}, interval));
@@ -579,7 +582,11 @@ function parseReference(target, string) {
 
 	//remainder is a target reference - parse target
 	string = string.slice(0, -eventString.length).trim();
+
+	//emty string means doc
 	result.targets = parseTarget(target, string);
+	// if (!string) result.targets = document;
+	// else result.targets = q(target, string);
 
 	//parse modifiers
 	var eventParams = unprefixize(eventString, 'on').split(':');
