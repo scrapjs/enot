@@ -2,10 +2,7 @@
 
 [![NPM](https://nodei.co/npm/enot.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/enot/)
 
-[![browser support](https://ci.testling.com/dfcreative/enot.png)
-](https://ci.testling.com/dfcreative/enot)
-
-Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation, something in between [backbone declarative events](http://backbonejs.org/#View-delegateEvents) and [xtags events modifiers](http://www.x-tags.org/docs#pseudos).
+Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation, something in between [backbone events](http://backbonejs.org/#View-delegateEvents) and [xtags events](http://www.x-tags.org/docs#pseudos).
 
 
 ## Usage
