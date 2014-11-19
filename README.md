@@ -9,6 +9,8 @@ Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation, somethi
 
 #### 1. Install
 
+If you’re going to use it in browser, please use browserify, component, duo or alike.
+
 `$ npm install enot`
 
 ```js
@@ -17,7 +19,7 @@ var enot = require('enot');
 
 #### 2. Use
 
-##### a). Static API
+##### Static API
 
 ```js
 enot.on(target, 'document click:pass(right_mouse)', callback);
@@ -34,7 +36,7 @@ enot.on(myPlugin, {
 Might be useful if you want to use events "externally", not touching the initial objects — e. g. HTMLElements, jQuery objects etc.
 
 
-##### b). [EventEmitter](https://github.com/component/emitter)
+##### Emitter class
 
 ```js
 var Emitter = require('enot');
@@ -47,7 +49,7 @@ var emitter = new Emitter;
 emitter.emit('something');
 ```
 
-###### Mixin:
+###### Mixin object:
 
 ```js
 var user = {name: 'Toby'};
@@ -56,7 +58,7 @@ Emitter(user);
 user.emit('hello');
 ```
 
-###### Inherit:
+###### Inherit class:
 
 ```js
 var User = function(name){this.name = name};
@@ -74,7 +76,16 @@ user.emit('poo');
 
 Basic event declaration syntax:
 
-`[(selector|target)] event[:modifier][, declaration]`
+```js
+[target] event[:modifier][, <declaration>]
+```
+
+
+| Parameter | Description |
+|----|:---:|:----:|----|
+| `target` | Regular CSS-selector (possibly extended with relative pseudos, see [query-relative](http://github.io/dfcreative/query-relative)), `document`/`window` keyword or target property accessible via `@` prefix, e.g. `@firstChild`. |
+| `event` | Event name |
+| `:modifier` | Event modifier, see [list of modifiers](#modifiers). |
 
 
 Common examples:
@@ -86,30 +97,12 @@ Common examples:
 * `window message` - call on window gets message
 * `document unload` - call on user is going to leave
 * `.bad-link click` - elements matching selector click
-* `document click:delegate(.bad-link)` - the same as above but in a delegate way
+* `:root click:delegate(.bad-link)` - the same as above but in a delegate way
 * `.element click, document keypress:pass(enter)` - bind two callbacks
 <!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
 <!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
 <!-- `touch` - normalized crossbrowser gesture -->
 <!-- `all` - call on any event -->
-
-
-## Targets
-
-
-As well as any valid CSS selector you can declare one of the following targets:
-
-* `document`
-* `window`
-* `body`
-* `root`
-* `this.property` — reference to current instance properties
-
-Example:
-
-```js
-enot(myElement, 'this.parent click', callback);
-```
 
 
 ## Modifiers
@@ -121,7 +114,7 @@ You can use the following modifiers for events:
 * `:not(selector)` — the opposite to delegate - ignore bubbled event on elements matching selector.
 * `:pass(code)` — filter event by `code`. Useful for keyboard/mouse events. Codes:
 	* `ENTER: 13`
-	* `ESCAPE: 27`
+	* `ESCAPE: 27`→
 	* `TAB: 9`
 	* `ALT: 18`
 	* `CTRL: 17`

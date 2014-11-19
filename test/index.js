@@ -239,7 +239,7 @@ describe("Enot", function(){
 		assert.equal(i, 1);
 	})
 
-	it("not shit the bed with window binding", function(){
+	it("don't shit the bed with window binding", function(){
 		Enot.on(document.body, 'window resize', function(){})
 	})
 
@@ -301,7 +301,7 @@ describe("Enot", function(){
 			b: document.body
 		}
 
-		Enot.on(target, '@a x, this.a y, @b z', function(){
+		Enot.on(target, '@a x, @a y, @b z', function(){
 			i++;
 		});
 		Enot.on(document, 'f', function(){
@@ -373,7 +373,7 @@ describe("Enot", function(){
 				}
 			}
 		}
-		Enot.on(a, 'this.b.c c', function(){
+		Enot.on(a, '@b.c c', function(){
 			i++
 		})
 		Enot.emit(a.b.c, 'c');
@@ -381,7 +381,7 @@ describe("Enot", function(){
 		assert.equal(i, 1);
 	})
 
-	// <!-- `this.childNodes click` - catch click on every children -->
+	// <!-- `@childNodes click` - catch click on every children -->
 	it("handling list of targets", function(){
 		var i = 0;
 
@@ -389,11 +389,11 @@ describe("Enot", function(){
 			children: [{}, {}, {}]
 		};
 
-		Enot.on(a, 'this.children x', function(){
+		Enot.on(a, '@children x', function(){
 			i++
 		});
 
-		Enot.emit(a, 'this.children x');
+		Enot.emit(a, '@children x');
 
 		assert.equal(i, 3);
 
@@ -471,7 +471,7 @@ describe("Enot", function(){
 		assert.equal(j, 1);
 	})
 
-	it.skip(":not(this.prop) modifier", function(){
+	it.skip(":not(@prop) modifier", function(){
 		var i = 0, j = 0;
 
 		var a = document.createElement('div');
@@ -609,7 +609,7 @@ describe("Enot", function(){
 		Enot.emit(target.z, 'click');
 		assert.equal(i,1);
 
-		Enot.off(target, 'this.z click', 'inc')
+		Enot.off(target, '@z click', 'inc')
 
 		Enot.emit(target.z, 'click');
 		assert.equal(i,1);
@@ -632,7 +632,7 @@ describe("Enot", function(){
 	})
 
 	it("access undefined properties", function(){
-		Enot.on({}, 'this.x.y', function(){})
+		Enot.on({}, '@x.y', function(){})
 	})
 
 	it("indirect redirect", function(){
@@ -727,10 +727,10 @@ describe("Enot", function(){
 		var b = a.firstChild.cloneNode();
 		document.body.appendChild(b);
 
-		Enot.on(a, 'click:on(.xxx)', function(){
+		Enot.on(a, 'click:delegate(.xxx)', function(){
 			log.push(1)
 		});
-		Enot.on('click:on(.xxx)', function(){
+		Enot.on('click:delegate(.xxx)', function(){
 			log.push(2)
 		})
 		Enot.on(a, '.xxx click', function(){
@@ -780,7 +780,7 @@ describe("Enot", function(){
 		document.body.appendChild(a);
 		document.body.appendChild(b);
 
-		Enot.on(a, 'body .item click', function(){
+		Enot.on(a, ':root .item click', function(){
 			log.push(1)
 		})
 		Enot.on(a, '.item click', function(){
@@ -794,7 +794,7 @@ describe("Enot", function(){
 		assert.deepEqual(log, [1]);
 	})
 
-	it("yas case: @a evt, body evt, evt", function(){
+	it("yas case: @a evt, :root evt, evt", function(){
 		var i = 0;
 
 		var a = document.createElement('div');
@@ -807,7 +807,7 @@ describe("Enot", function(){
 
 		Enot.on(a, 'inc', a.inc);
 		// console.log('----bind three')
-		Enot.on(a, '@a evt, body evt, evt', 'inc');
+		Enot.on(a, '@a evt, :root body evt, evt', 'inc');
 
 		// console.log('---emit inner evt')
 		Enot.emit(a.a, 'evt');

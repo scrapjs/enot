@@ -3,9 +3,8 @@ var eachCSV = require('each-csv');
 var Emitter = require('emmy');
 var str = require('mustring');
 var type = require('mutypes');
-// var q = require('query-relative');
+var q = require('query-relative');
 
-//TODO: use lubeq
 
 var isString = type.isString;
 var isElement = type.isElement;
@@ -16,6 +15,7 @@ var upper = str.upper;
 
 
 var global = (1, eval)('this');
+//doc shorthand & DOM detector
 var doc = global.document;
 
 
@@ -371,10 +371,9 @@ Enot.modifiers['one'] = function(evt, fn, emptyArg, sourceFn){
  * filter keys
  * @alias keypass
  * @alias mousepass
- *
-*/
+ * @alias filter
+ */
 
-Enot.modifiers['filter'] =
 Enot.modifiers['pass'] = function(evt, fn, keys){
 	keys = keys.split(commaSplitRe).map(upper);
 
@@ -397,8 +396,8 @@ Enot.modifiers['pass'] = function(evt, fn, keys){
 /**
  * white-filter target
  * @alias live
+ * @alias on
  */
-Enot.modifiers['on'] =
 Enot.modifiers['delegate'] = function(evtName, fn, selector){
 	// console.log('del', selector)
 	var cb = function(evt){
@@ -490,8 +489,10 @@ Enot.throttle = function(fn, interval, e){
 /**
  * List of postponed calls intervals, keyed by evt name
  * @example
- * {click: 1,
- * track: 2}
+ * {
+ * 	click: 1,
+ *  track: 2
+ * }
  */
 var dfdCalls = {};
 
@@ -518,10 +519,12 @@ var intervalCallbacks = {};
  * @param  {Function} fn    Handler
  * @param  {number|string}   delay Number of ms to wait
  * @param  {Function|string} sourceFn Source (unmodified) callback
+ *
  * @alias async
+ * @alias after
+ *
  * @return {Function}         Modified handler
  */
-Enot.modifiers['after'] =
 Enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 	delay = parseFloat(delay) || 0;
 
@@ -559,7 +562,7 @@ Enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 
 
 
-/* --------------------------  H  E  L  P  E  R  S ----------------------------------- */
+/* -------------------------------  H  E  L  P  E  R  S ------------------------------ */
 
 
 /** @type {RegExp} Use as `.split(commaSplitRe)` */
@@ -583,10 +586,7 @@ function parseReference(target, string) {
 	//remainder is a target reference - parse target
 	string = string.slice(0, -eventString.length).trim();
 
-	//emty string means doc
-	result.targets = parseTarget(target, string);
-	// if (!string) result.targets = document;
-	// else result.targets = q(target, string);
+	result.targets = parseTargets(target, string);
 
 	//parse modifiers
 	var eventParams = unprefixize(eventString, 'on').split(':');
@@ -602,51 +602,36 @@ function parseReference(target, string) {
 }
 
 
-/** @type {string} Reference to a self target members, e. g. `'@a click'` */
-var selfReference = '@';
-
-
 /**
  * Retrieve source element from string
+ *
  * @param  {Element|Object} target A target to relate to
  * @param  {string}         str    Target reference
+ *
  * @return {*}                     Resulting target found
  */
-function parseTarget(target, str) {
-	//make target global, if none
-	if (!target) target = doc;
-
+function parseTargets(target, str) {
 	// console.log('parseTarget `' + str + '`', target)
+
+	//no target mean global target
+	if (!target) target = global;
+
+	//no string mean self evt
 	if (!str){
 		return target;
 	}
 
-	//try to query selector in DOM environment
-	if (/^[.#[]/.test(str)) {
-		if (!isElement(target)) target = doc;
-		return target.querySelectorAll(str);
-	}
-
 	//return self reference
-	else if (/^this\./.test(str)){
-		return getProperty(target, str.slice(5));
-	}
-	else if(str[0] === selfReference){
+	if(str[0] === '@'){
 		return getProperty(target, str.slice(1));
 	}
 
-	else if(str === 'this') return target;
-	else if(str === selfReference) return target;
-
-	else if(/^body|^html/.test(str)) {
-		return doc.querySelectorAll(str);
-	}
-	else if(str === 'root') return doc.documentElement;
 	else if(str === 'window') return global;
+	else if(str === 'document') return doc;
 
-	//return global variable
+	//query relative selector
 	else {
-		return getProperty(global, str);
+		return q(target, str, true);
 	}
 }
 
