@@ -72,15 +72,15 @@ user.emit('poo');
 Enot API consists of common EventEmitter interface methods: `on`, `off`, `once`, `emit`, `delegate`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`
 
 
-### Methods
+#### On
 
-#### `Enot.on(target?, event, callback)`
-#### `Enot.on(target, events)`
+###### `Enot.on(target?, event, callback)`
+###### `Enot.on(target, events)`
 
 Assign event listener to the target or list of targets. Target is optional, so if you omit it, a global listener will be assigned.
 
 | Parameter | Description |
-|----|:---:|:----:|----|
+|----|----|
 | `target` | Any object, including _HTMLElement_, _Array_ etc. If omitted — global event will be registered. Can be list of targets (_NodeList_ or _Array_). |
 | `event` | Event declaration, in simple case — event name. |
 | `callback` | Any _function_ or _string_. If string is used, then event will be emitted. |
@@ -98,31 +98,35 @@ Enot.on(myPlugin, {
 });
 ```
 
-#### `Enot.one`
+#### One, once
 
-Invoked with all the same arguments as `Enot.on`.
+Invoked with all the same arguments as [on](#on).
 
 
-#### `Enot.off(target?, event, callback)`
-#### `Enot.off(target?, event)`
-#### `Enot.off(target)`
+#### Off
+
+###### `Enot.off(target?, event, callback)`
+###### `Enot.off(target?, event)`
+###### `Enot.off(target)`
 
 Unbind callback or all callbacks for the event. If target is omitted - unbind all callbacks for the event. If event is omitted - unbind all callbacks for the target.
 
 | Parameter | Description |
-|----|:---:|:----:|----|
+|----|----|
 | `target` | Any object, including _HTMLElement_, _Array_ etc. If omitted — global event will be unbound. Can be list of targets (_NodeList_ or _Array_). |
 | `event` | Event name. If omitted - all events for the target will be unbound. |
 | `callback` | Any _function_ or _string_ previously bound. If omitted - all events for the target will be unbound. |
 
 
-#### `Enot.emit(target, event, data?, bubbles?)`
+#### Emit
+
+###### `Enot.emit(target, event, data?, bubbles?)`
 
 Fire event on the target. Optionally pass `data` and `bubbles` params. `data` will be accessible as `event.detail` in callback.
 
 
 
-### Event declaration
+## Event declaration
 
 Basic event declaration syntax:
 
@@ -131,7 +135,7 @@ Basic event declaration syntax:
 ```
 
 | Parameter | Description |
-|----|:---:|:----:|----|
+|----|----|
 | `target` | Regular CSS-selector (possibly extended with relative pseudos, see [query-relative](http://github.io/dfcreative/query-relative)), `document`/`window` keyword or target property accessible via `@` prefix, e.g. `@firstChild`. |
 | `event` | Event name |
 | `:modifier` | Event modifier, see [list of modifiers](#modifiers). |
@@ -154,7 +158,7 @@ Basic event declaration syntax:
 <!-- `all` - call on any event -->
 
 
-### Modifiers
+## Modifiers
 
 You can use the following modifiers for events:
 
