@@ -72,12 +72,10 @@ user.emit('poo');
 Enot API consists of common EventEmitter interface methods: `on`, `off`, `once`, `emit`, `delegate`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`
 
 
-#### On
+### On
 
 ###### `Enot.on(target?, event, callback)`
 ###### `Enot.on(target, events)`
-
-Assign event listener to the target or list of targets. Target is optional, so if you omit it, a global listener will be assigned.
 
 | Parameter | Description |
 |----|----|
@@ -98,18 +96,16 @@ Enot.on(myPlugin, {
 });
 ```
 
-#### One, once
+### One, once
 
-Invoked with all the same arguments as [on](#on).
+All the same arguments as [on](#on).
 
 
-#### Off
+### Off
 
 ###### `Enot.off(target?, event, callback)`
 ###### `Enot.off(target?, event)`
 ###### `Enot.off(target)`
-
-Unbind callback or all callbacks for the event. If target is omitted - unbind all callbacks for the event. If event is omitted - unbind all callbacks for the target.
 
 | Parameter | Description |
 |----|----|
@@ -118,7 +114,7 @@ Unbind callback or all callbacks for the event. If target is omitted - unbind al
 | `callback` | Any _function_ or _string_ previously bound. If omitted - all events for the target will be unbound. |
 
 
-#### Emit
+### Emit
 
 ###### `Enot.emit(target, event, data?, bubbles?)`
 
