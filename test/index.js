@@ -26,10 +26,8 @@ p.appendChild(l);
 t.appendChild(i);
 
 
-
-//TODO: structurize these tests
-describe("Enot", function(){
-	it("able to fire events", function(){
+describe('Static API', function(){
+	it("`Enot.on(target, event, cb)`", function(){
 		var i = 0;
 		var cb = function(e){
 			assert.equal(e.detail, 123);
@@ -45,7 +43,52 @@ describe("Enot", function(){
 		assert.equal(i,1);
 	});
 
-	it("turn off callbacks", function(){
+
+	it('`Enot.on(targets, event, cb)`', function(){
+		var targets = [f,s,l];
+		var i = 0;
+
+		function fn(){
+			i++;
+		}
+
+		Enot.on(targets, 'x', fn);
+		Enot.emit(targets, 'x');
+		assert.equal(i, 3);
+
+		Enot.off(targets, 'x', fn);
+		Enot.emit(targets, 'x');
+		assert.equal(i, 3);
+	});
+
+
+	it('`Enot.on(target, events)`', function(){
+		var i = 0;
+
+		var a = {
+			a: function(){i++},
+			b: function(){i--}
+		};
+
+		Enot.on(a, a);
+
+		Enot.emit(a, 'a');
+
+		assert.equal(i, 1);
+
+		Enot.emit(a, 'b');
+
+		assert.equal(i, 0);
+
+		Enot.off(a, a);
+
+		Enot.emit(a, 'a');
+
+		assert.equal(i, 0);
+	});
+
+
+	it("`Enot.off(target, event, cb)`", function(){
 		var i = 0;
 		var fn = function(e){
 			e.detail === 123 && i++;
@@ -58,7 +101,29 @@ describe("Enot", function(){
 		Enot.emit(document, "hello", 123);
 		assert.equal(i, 1);
 	});
+});
 
+
+
+
+describe('Emitter class', function(){
+	it('inherit Enot', function(){
+		var A = function(){};
+		A.prototype = Object.create(Enot.prototype);
+		var a = new A;
+
+		var i = 0;
+		a.on('a:one', function(){i++});
+		a.emit('a');
+		a.emit('a');
+		assert.equal(i, 1);
+	});
+});
+
+
+
+//TODO: structurize these tests
+describe("Regression", function(){
 	it("fire `one` callback once", function(){
 		var i = 0, j = 0;
 		Enot.on(document, "hello:one", function(e){
@@ -78,7 +143,6 @@ describe("Enot", function(){
 
 		//TODO: add multiple once events assertion (to test proper target fns bound in evtModifiers (there’re no closures))
 	});
-
 
 	it("unbind :one callbacks", function(){
 		var a = document.createElement('div');
@@ -210,8 +274,7 @@ describe("Enot", function(){
 		assert.equal(ka, 2)
 	});
 
-
-	it("able to combine modifiers", function(){
+	it("combine modifiers", function(){
 		if (window.mochaPhantomJS) return;
 
 		var i = 0;
@@ -290,7 +353,6 @@ describe("Enot", function(){
 
 		assert.deepEqual(log, ["hello"])
 	});
-
 
 	it("should fire events on different targets", function(){
 		var i = 0;
@@ -1068,50 +1130,12 @@ describe("Enot", function(){
 	})
 
 
-	it('objects inheriting Enot', function(){
-		var A = function(){};
-		A.prototype = Object.create(Enot.prototype);
-		var a = new A;
-
-		var i = 0;
-		a.on('a:one', function(){i++});
-		a.emit('a');
-		a.emit('a');
-		assert.equal(i, 1);
-	});
-
-
 	it.skip('Emitter compliance', function(){
 		//TODO: test readme docs
 	});
 
 	it.skip('Chainable target & static methods', function(){
 	});
-
-	it('Bind events in bulk', function(){
-		var i = 0;
-
-		var a = {
-			a: function(){i++},
-			b: function(){i--}
-		};
-
-		Enot.on(a, a);
-
-		Enot.emit(a, 'a');
-
-		assert.equal(i, 1);
-
-		Enot.emit(a, 'b');
-
-		assert.equal(i, 0);
-
-		Enot.off(a, a);
-
-		Enot.emit(a, 'a');
-
-		assert.equal(i, 0);
-	})
 
 	it.skip('Bind to the specific context', function(){
 		//DEPRECATED: bind methods manually, if you need to do so
@@ -1184,26 +1208,5 @@ describe("Enot", function(){
 	it.skip('delegate method', function(){
 		Enot.delegate('.some x', fn);
 		Enot.off('.some x', fn);
-	});
-});
-
-
-describe('API', function(){
-	it('lists of targets: `Enot.on(targets, event, cb)`', function(){
-		var targets = [f,s,l];
-		var i = 0;
-
-		function fn(){
-			i++;
-		}
-
-		Enot.on(targets, 'x', fn);
-		Enot.emit(targets, 'x');
-		assert.equal(i, 3);
-
-		Enot.off(targets, 'x', fn);
-		Enot.emit(targets, 'x');
-		assert.equal(i, 3);
-
 	});
 });

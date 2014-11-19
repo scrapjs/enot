@@ -96,7 +96,7 @@ Enot.on(myPlugin, {
 });
 ```
 
-### One, once
+### One
 
 All the same arguments as [on](#on).
 
@@ -158,12 +158,12 @@ Basic event declaration syntax:
 
 You can use the following modifiers for events:
 
-* `:one()`, `:once()` — fire callback once.
-* `:delegate(selector)`, `:on(selector)` — listen for bubbled event on elements mathing selector.
+* `:one`, `:once` — fire callback once.
+* `:delegate(selector)` — listen for bubbled event on elements mathing selector.
 * `:not(selector)` — the opposite to delegate - ignore bubbled event on elements matching selector.
 * `:pass(code)` — filter event by `code`. Useful for keyboard/mouse events. Codes:
 	* `ENTER: 13`
-	* `ESCAPE: 27`→
+	* `ESCAPE: 27`
 	* `TAB: 9`
 	* `ALT: 18`
 	* `CTRL: 17`
@@ -180,7 +180,7 @@ You can use the following modifiers for events:
 	* `LEFT_MOUSE: 1`
 	* `RIGHT_MOUSE: 3`
 	* `MIDDLE_MOUSE: `
-* `:defer(100)`, `:after(100)` — invoke callback 100 ms after.
+* `:defer(100)` — invoke callback 100 ms after.
 * `:throttle(20)` — invoke callbak not more than once per 20 ms.
 
 Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
