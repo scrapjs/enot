@@ -689,7 +689,7 @@ function getModifiedFn(initialTarget, fn, target, evt, modifiers){
 
 
 /**
- * Return dict of a modified fns for an fn, keyed by modifiers
+ * Return dict of modified fns for an fn, keyed by modifiers
  */
 function getModifiedFns(targetFn, target, evt){
 	targetFn = getRedirector(targetFn);

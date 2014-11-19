@@ -4,6 +4,7 @@ var eachCSV = require('each-csv');
 var Emitter = require('emmy');
 var str = require('mustring');
 var type = require('mutypes');
+var q = require('query-relative');
 
 
 var isString = type.isString;
@@ -15,12 +16,12 @@ var upper = str.upper;
 
 
 var global = (1, eval)('this');
+//doc shorthand & DOM detector
 var doc = global.document;
 
 
 /** Separator to specify events, e.g. click-1 (means interval=1 planned callback of click) */
 var evtSeparator = '-';
-
 
 
 /* ------------------------------ C O N S T R U C T O R ------------------------------ */
@@ -45,7 +46,7 @@ function Enot(target){
 	return target;
 }
 
-var EnotPrototype = Enot.prototype;
+var EnotPrototype = Enot.prototype = Object.create(Emitter.prototype);
 
 
 
@@ -62,6 +63,7 @@ var EnotPrototype = Enot.prototype;
 EnotPrototype.addEventListener =
 EnotPrototype.on = function(evtRefs, fn){
 	var target = this;
+
 	//if no target specified
 	if (isString(target)) {
 		fn = evtRefs;
@@ -224,7 +226,7 @@ function _off(target, evtRef, fn){
 	if (dfdCalls[evtObj.evt]) {
 		for (var i = 0; i < dfdCalls[evtObj.evt].length; i++){
 			if (intervalCallbacks[dfdCalls[evtObj.evt][i]] === fn)
-				EnotPrototype.off.call(newTarget, evtObj.evt + evtSeparator + dfdCalls[evtObj.evt][i]);
+				Emitter.off(newTarget, evtObj.evt + evtSeparator + dfdCalls[evtObj.evt][i]);
 		}
 	}
 
@@ -370,10 +372,9 @@ Enot.modifiers['one'] = function(evt, fn, emptyArg, sourceFn){
  * filter keys
  * @alias keypass
  * @alias mousepass
- *
-*/
+ * @alias filter
+ */
 
-Enot.modifiers['filter'] =
 Enot.modifiers['pass'] = function(evt, fn, keys){
 	keys = keys.split(commaSplitRe).map(upper);
 
@@ -396,8 +397,8 @@ Enot.modifiers['pass'] = function(evt, fn, keys){
 /**
  * white-filter target
  * @alias live
+ * @alias on
  */
-Enot.modifiers['on'] =
 Enot.modifiers['delegate'] = function(evtName, fn, selector){
 	// console.log('del', selector)
 	var cb = function(evt){
@@ -462,30 +463,37 @@ Enot.modifiers['throttle'] = function(evt, fn, interval){
 	interval = parseFloat(interval);
 	// console.log('thro', evt, fn, interval)
 	var cb = function(e){
-		// console.log('thro cb')
-		var self = this;
-
-		//FIXME: multiple throttles may interfere on target (key throttles by id)
-		if (throttleCache.get(self)) return DENY_EVT_CODE;
-		else {
-			var result = fn.call(self, e);
-			if (result === DENY_EVT_CODE) return result;
-			throttleCache.set(self, setTimeout(function(){
-				clearInterval(throttleCache.throttleKey);
-				throttleCache.delete(self);
-			}, interval));
-		}
-	}
+		return Enot.throttle.call(this, fn, interval, e);
+	};
 
 	return cb;
+};
+Enot.throttle = function(fn, interval, e){
+	var self = this;
+
+	//FIXME: multiple throttles may interfere on target (key throttles by id)
+	if (throttleCache.get(self)) return DENY_EVT_CODE;
+	else {
+		var result = fn.call(self, e);
+
+		//if cb falsed, ignore
+		if (result === DENY_EVT_CODE) return result;
+
+		throttleCache.set(self, setTimeout(function(){
+			clearInterval(throttleCache.get(self));
+			throttleCache.delete(self);
+		}, interval));
+	}
 };
 
 
 /**
  * List of postponed calls intervals, keyed by evt name
  * @example
- * {click: 1,
- * track: 2}
+ * {
+ * 	click: 1,
+ *  track: 2
+ * }
  */
 var dfdCalls = {};
 
@@ -512,10 +520,12 @@ var intervalCallbacks = {};
  * @param  {Function} fn    Handler
  * @param  {number|string}   delay Number of ms to wait
  * @param  {Function|string} sourceFn Source (unmodified) callback
+ *
  * @alias async
+ * @alias after
+ *
  * @return {Function}         Modified handler
  */
-Enot.modifiers['after'] =
 Enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 	delay = parseFloat(delay) || 0;
 
@@ -527,8 +537,8 @@ Enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 			var evtName =  evt + evtSeparator + interval;
 
 			//fire once planned evt
-			Enot.emit(self, evtName, {sourceEvent: e});
-			Enot.off(self, evtName);
+			Emitter.emit(self, evtName, {sourceEvent: e});
+			Emitter.off(self, evtName);
 
 			//forget interval
 			var idx = dfdCalls[evt].indexOf(interval);
@@ -537,7 +547,7 @@ Enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 		}, delay);
 
 		//bind :one fire of this event
-		Enot.on(self, evt + evtSeparator + interval, sourceFn);
+		Emitter.on(self, evt + evtSeparator + interval, sourceFn);
 
 		//save planned interval for an evt
 		(dfdCalls[evt] = dfdCalls[evt] || []).push(interval);
@@ -553,7 +563,7 @@ Enot.modifiers['defer'] = function(evt, fn, delay, sourceFn){
 
 
 
-/* --------------------------  H  E  L  P  E  R  S ----------------------------------- */
+/* -------------------------------  H  E  L  P  E  R  S ------------------------------ */
 
 
 /** @type {RegExp} Use as `.split(commaSplitRe)` */
@@ -576,7 +586,8 @@ function parseReference(target, string) {
 
 	//remainder is a target reference - parse target
 	string = string.slice(0, -eventString.length).trim();
-	result.targets = parseTarget(target, string);
+
+	result.targets = parseTargets(target, string);
 
 	//parse modifiers
 	var eventParams = unprefixize(eventString, 'on').split(':');
@@ -592,51 +603,36 @@ function parseReference(target, string) {
 }
 
 
-/** @type {string} Reference to a self target members, e. g. `'@a click'` */
-var selfReference = '@';
-
-
 /**
  * Retrieve source element from string
+ *
  * @param  {Element|Object} target A target to relate to
  * @param  {string}         str    Target reference
+ *
  * @return {*}                     Resulting target found
  */
-function parseTarget(target, str) {
-	//make target global, if none
-	if (!target) target = doc;
-
+function parseTargets(target, str) {
 	// console.log('parseTarget `' + str + '`', target)
+
+	//no target mean global target
+	if (!target) target = global;
+
+	//no string mean self evt
 	if (!str){
 		return target;
 	}
 
-	//try to query selector in DOM environment
-	if (/^[.#[]/.test(str)) {
-		if (!isElement(target)) target = doc;
-		return target.querySelectorAll(str);
-	}
-
 	//return self reference
-	else if (/^this\./.test(str)){
-		return getProperty(target, str.slice(5));
-	}
-	else if(str[0] === selfReference){
+	if(str[0] === '@'){
 		return getProperty(target, str.slice(1));
 	}
 
-	else if(str === 'this') return target;
-	else if(str === selfReference) return target;
-
-	else if(/^body|^html/.test(str)) {
-		return doc.querySelectorAll(str);
-	}
-	else if(str === 'root') return doc.documentElement;
 	else if(str === 'window') return global;
+	else if(str === 'document') return doc;
 
-	//return global variable
+	//query relative selector
 	else {
-		return getProperty(global, str);
+		return q(target, str, true);
 	}
 }
 
@@ -680,7 +676,8 @@ function getModifiedFn(initialTarget, fn, target, evt, modifiers){
 	var modifierFns = getModifiedFns(targetFn, target, evt);
 
 	//save callback
-	modifiedCb = applyModifiers(targetFn, evt, modifiers);
+	var modifiedCb = applyModifiers(targetFn, evt, modifiers);
+
 	//rebind context, if targets differs
 	if (initialTarget !== target) {
 		//FIXME: simplify bind here - it is too weighty
@@ -693,7 +690,7 @@ function getModifiedFn(initialTarget, fn, target, evt, modifiers){
 
 
 /**
- * Return dict of a modified fns for an fn, keyed by modifiers
+ * Return dict of modified fns for an fn, keyed by modifiers
  */
 function getModifiedFns(targetFn, target, evt){
 	targetFn = getRedirector(targetFn);
@@ -803,35 +800,14 @@ var defaultRedirectors = {
 };
 
 
-/** forget callback
- */
-//FIXME
-function forgetCb(fn, target, evt) {
-	if (!fn) return;
-
-	//remove modified fn from the set
-	else {
-		var modifiedCbs = modifiedCbCache.get(fn);
-		if (modifiedCbs) modifiedCbs[evt] = null;
-	}
-}
-
 
 /** Static aliases for old API compliance */
-for (var name in EnotPrototype) {
-	if (EnotPrototype[name]) Enot[name] = createStaticBind(name);
-}
-function createStaticBind(methodName){
-	return function(a, b, c, d){
-		var res = EnotPrototype[methodName].call(a,b,c,d);
-		return res === a ? Enot : res;
-	};
-}
+Emitter.bindStaticAPI.call(Enot);
 
 
 /** @module enot */
 module.exports = Enot;
-},{"each-csv":2,"emmy":3,"matches-selector":5,"mustring":6,"mutypes":7}],2:[function(require,module,exports){
+},{"each-csv":2,"emmy":3,"matches-selector":5,"mustring":6,"mutypes":7,"query-relative":8}],2:[function(require,module,exports){
 module.exports = eachCSV;
 
 /** match every comma-separated element ignoring 1-level parenthesis, e.g. `1,2(3,4),5` */
@@ -922,7 +898,6 @@ EmmyPrototype.on =
 EmmyPrototype.addEventListener = function(evt, fn){
 	var target = this;
 
-
 	//walk by list of instances
 	if (fn instanceof Array){
 		for (var i = fn.length; i--;){
@@ -936,7 +911,7 @@ EmmyPrototype.addEventListener = function(evt, fn){
 
 	//use target event system, if possible
 	//avoid self-recursions from the outside
-	if (onMethod) {
+	if (onMethod && onMethod !== EmmyPrototype.on) {
 		//if it’s frozen - ignore call
 		if (icicle.freeze(target, onFlag + evt)){
 			onMethod.call(target, evt, fn);
@@ -980,7 +955,7 @@ EmmyPrototype.one = function(evt, fn){
 		for (var i = fn.length; i--;){
 			EmmyPrototype.one.call(target, evt, fn[i]);
 		}
-		return;
+		return target;
 	}
 
 	//target events
@@ -988,12 +963,15 @@ EmmyPrototype.one = function(evt, fn){
 
 	//use target event system, if possible
 	//avoid self-recursions from the outside
-	if (oneMethod) {
-		if (icicle.freeze(target, oneFlag)){
+	if (oneMethod && oneMethod !== EmmyPrototype.one) {
+		if (icicle.freeze(target, oneFlag + evt)){
 			//use target event system, if possible
 			oneMethod.call(target, evt, fn);
 			saveCallback(target, evt, fn);
-			icicle.unfreeze(target, oneFlag);
+			icicle.unfreeze(target, oneFlag + evt);
+		}
+
+		else {
 			return target;
 		}
 	}
@@ -1054,7 +1032,7 @@ EmmyPrototype.removeEventListener = function (evt, fn){
 
 	//use target event system, if possible
 	//avoid self-recursion from the outside
-	if (offMethod) {
+	if (offMethod && offMethod !== EmmyPrototype.off) {
 		if (icicle.freeze(target, offFlag + evt)){
 			offMethod.call(target, evt, fn);
 			icicle.unfreeze(target, offFlag + evt);
@@ -1127,7 +1105,7 @@ EmmyPrototype.dispatchEvent = function(eventName, data, bubbles){
 
 
 	//use locks to avoid self-recursion on objects wrapping this method (e. g. mod instances)
-	if (emitMethod) {
+	if (emitMethod && emitMethod !== EmmyPrototype.emit) {
 		if (icicle.freeze(target, emitFlag + eventName)) {
 			//use target event system, if possible
 			emitMethod.call(target, evt, data, bubbles);
@@ -1188,14 +1166,22 @@ EmmyPrototype.hasListeners = function(evt){
 
 
 /** Static aliases for old API compliance */
-for (var name in EmmyPrototype) {
-	if (EmmyPrototype[name]) Emmy[name] = createStaticBind(name);
-}
-function createStaticBind(methodName){
-	return function(a, b, c, d){
-		return EmmyPrototype[methodName].call(a,b,c,d);
-	};
-}
+Emmy.bindStaticAPI = function(){
+	var self = this, proto = self.prototype;
+
+	for (var name in proto) {
+		if (proto[name]) self[name] = createStaticBind(name);
+	}
+
+	function createStaticBind(methodName){
+		return function(a, b, c, d){
+			var res = proto[methodName].call(a,b,c,d);
+			return res === a ? self : res;
+		};
+	}
+};
+Emmy.bindStaticAPI();
+
 
 /** @module muevents */
 module.exports = Emmy;
@@ -1441,5 +1427,211 @@ function isElement(target){
 function isPrivateName(n){
 	return n[0] === '_' && n.length > 1;
 }
+},{}],8:[function(require,module,exports){
+var doc = document, root = doc.documentElement;
+
+
+var _q = require('tiny-element');
+var matches = require('matches-selector');
+
+
+//TODO: detect inner parenthesis, like :closest(:not(abc))
+
+
+module.exports = function(targets, str, multiple){
+	var res = q(targets,str);
+	return !multiple && isList(res) ? res[0] : res;
+};
+
+
+/**
+ * Query selector including initial pseudos, return list
+ *
+ * @param {string} str A query string
+ * @param {Element}? target A query context element
+ *
+ * @return {[type]} [description]
+ */
+function q(targets, str) {
+	//no target means global target
+	if (typeof targets === 'string') {
+		str = targets;
+		targets = doc;
+	}
+
+	//if targets is undefined, perform usual global query
+	if (!targets) targets = this;
+
+	//treat empty string as a target itself
+	if (!str){
+		// console.groupEnd();
+		return targets;
+	}
+
+	//filter window etc non-queryable objects
+	if (targets === window) targets === doc;
+	else if (!(targets instanceof Node) && !isList(targets)) {
+		// console.groupEnd();
+		return targets;
+	}
+
+
+	var m, result;
+	// console.group(targets, str, isList(targets))
+
+	//detect whether query includes special pseudos
+	if (m = /:(parent|closest|next|prev|root)(?:\(([^\)]*)\))?/.exec(str)) {
+		var pseudo = m[1], idx = m.index, param = m[2], token = m[0];
+
+		//1. pre-query
+		if (idx) {
+			targets = queryList(targets, str.slice(0, idx), true);
+		}
+
+		//2. query
+		result = transformSet(targets, pseudos[pseudo], param);
+		if (!result) {
+			// console.groupEnd();
+			return null;
+		}
+		if (isList(result) && !result.length) return result;
+
+		//2.1 if rest str starts with >, add scoping
+		var strRest = str.slice(idx + token.length).trim();
+		if (strRest[0] === '>') {
+			if (scopeAvail) {
+				strRest = ':scope ' + strRest;
+			}
+			//fake selector via fake id on selected element
+			else {
+				var id = genId();
+				transformSet(result, function(el, id){ el.setAttribute('data-__qr', id); }, id);
+
+				strRest = '[data-__qr' + id + ']' + strRest;
+			}
+		}
+
+		//3. Post-query or die
+		result = q(result, strRest);
+	}
+
+	//make default query
+	else {
+		result = queryList(targets, str);
+	}
+
+	// console.groupEnd();
+	return result;
+}
+
+/** Query elements from a list of targets, return list of queried items */
+function queryList (targets, query) {
+	if (isList(targets)) {
+		return transformSet(targets, function(item, query){
+			return _q.call(item, query, true);
+		}, query);
+	}
+	//q single
+	else return _q.call(targets, query, true);
+}
+
+
+/** Apply transformaion function on each element from a list, return resulting set */
+function transformSet(list, fn, arg) {
+	var res = [];
+	if (!isList(list)) list = [list];
+	for (var i = list.length, el, chunk; i--;) {
+		el = list[i];
+		if (el) {
+			chunk = fn(el, arg);
+			if (chunk) res = [].concat(chunk, res);
+		}
+	}
+	return res;
+}
+
+
+//detect :scope
+var scopeAvail = true;
+try {
+	doc.querySelector(':scope');
+}
+//scope isn’t supported
+catch (e){
+	scopeAvail = false;
+}
+
+/** generate unique id for selector */
+var counter = Date.now() % 1e9;
+function genId(e, q){
+	return (Math.random() * 1e9 >>> 0) + (counter++);
+}
+
+
+/** Custom :pseudos */
+var pseudos = q.pseudos = {
+	/** Get parent, if any */
+	parent: function(e, q){
+		//root el is considered the topmost
+		if (e === doc) return root;
+		var res = e.parentNode;
+		return res === doc ? e : res;
+	},
+
+	/**
+	* Get closest parent matching selector (or self)
+	*/
+	closest: function(e, q){
+		//root el is considered the topmost
+		if (e === doc) return root;
+		if (!q || matches(e, q)) return e;
+		while ((e = e.parentNode) !== doc) {
+			if (!q || matches(e, q)) return e;
+		}
+	},
+
+	/**
+	 * Find the prev sibling matching selector
+	 */
+	prev: function(e, q){
+		while (e = e.previousSibling) {
+			if (e.nodeType !== 1) continue;
+			if (!q || matches(e, q)) return e;
+		}
+	},
+
+	/**
+	 * Get the next sibling matching selector
+	 */
+	next: function(e, q){
+		while (e = e.nextSibling) {
+			if (e.nodeType !== 1) continue;
+			if (!q || matches(e, q)) return e;
+		}
+	},
+
+	/**
+	 * Get root for any request
+	 */
+	root: function(){
+		return root;
+	}
+};
+
+
+/** simple list checker */
+function isList(a){
+	return a instanceof Array || a instanceof NodeList;
+}
+},{"matches-selector":5,"tiny-element":9}],9:[function(require,module,exports){
+var slice = [].slice;
+
+module.exports = function (selector, multiple) {
+  var ctx = this === window ? document : this;
+
+  return (typeof selector == 'string')
+    ? (multiple) ? slice.call(ctx.querySelectorAll(selector), 0) : ctx.querySelector(selector)
+    : (selector instanceof Node || selector === window || !selector.length) ? (multiple ? [selector] : selector) : slice.call(selector, 0);
+};
 },{}]},{},[1])(1)
 });

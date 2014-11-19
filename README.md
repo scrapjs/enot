@@ -7,7 +7,7 @@ Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation, somethi
 
 ## Usage
 
-#### 1. Install
+### 1. Install
 
 If you’re going to use it in browser, please use browserify, component, duo or alike.
 
@@ -17,26 +17,21 @@ If you’re going to use it in browser, please use browserify, component, duo or
 var enot = require('enot');
 ```
 
-#### 2. Use
+### 2. Use
 
-##### Static API
+#### Static API
 
 ```js
 enot.on(target, 'document click:pass(right_mouse)', callback);
+enot.one(target, 'document click:pass(right_mouse)', callback);
 enot.off(target, 'document click:pass(right_mouse)', callback);
 enot.emit(target, 'document click:pass(right_mouse)');
-
-enot.on(myPlugin, {
-	'window resize, document myPlugin:update': 'update',
-	'update': function(){...},
-	'submit, click:on(.submit-button), keypress:pass(enter)': function(){...}
-});
 ```
 
 Might be useful if you want to use events "externally", not touching the initial objects — e. g. HTMLElements, jQuery objects etc.
 
 
-##### Emitter class
+#### Emitter class
 
 ```js
 var Emitter = require('enot');
@@ -72,14 +67,68 @@ user.emit('poo');
 ```
 
 
-## Event declaration
+## API
+
+Enot API consists of common EventEmitter interface methods: `on`, `off`, `once`, `emit`, `delegate`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`
+
+
+### Methods
+
+#### `Enot.on(target?, event, callback)`
+#### `Enot.on(target, events)`
+
+Assign event listener to the target or list of targets. Target is optional, so if you omit it, a global listener will be assigned.
+
+| Parameter | Description |
+|----|:---:|:----:|----|
+| `target` | Any object, including _HTMLElement_, _Array_ etc. If omitted — global event will be registered. Can be list of targets (_NodeList_ or _Array_). |
+| `event` | Event declaration, in simple case — event name. |
+| `callback` | Any _function_ or _string_. If string is used, then event will be emitted. |
+| `events` | Object with event declarations as keys and callbacks as values. |
+
+```js
+//simple event
+Enot.on(document.querySelectorAll('.buy-button'), 'click', function(){...});
+
+//events object
+Enot.on(myPlugin, {
+	'window resize, document myPlugin:update': 'update',
+	'update': function(){...},
+	'submit, click:on(.submit-button), keypress:pass(enter)': function(){...}
+});
+```
+
+#### `Enot.one`
+
+Invoked with all the same arguments as `Enot.on`.
+
+
+#### `Enot.off(target?, event, callback)`
+#### `Enot.off(target?, event)`
+#### `Enot.off(target)`
+
+Unbind callback or all callbacks for the event. If target is omitted - unbind all callbacks for the event. If event is omitted - unbind all callbacks for the target.
+
+| Parameter | Description |
+|----|:---:|:----:|----|
+| `target` | Any object, including _HTMLElement_, _Array_ etc. If omitted — global event will be unbound. Can be list of targets (_NodeList_ or _Array_). |
+| `event` | Event name. If omitted - all events for the target will be unbound. |
+| `callback` | Any _function_ or _string_ previously bound. If omitted - all events for the target will be unbound. |
+
+
+#### `Enot.emit(target, event, data?, bubbles?)`
+
+Fire event on the target. Optionally pass `data` and `bubbles` params. `data` will be accessible as `event.detail` in callback.
+
+
+
+### Event declaration
 
 Basic event declaration syntax:
 
 ```js
 [target] event[:modifier][, <declaration>]
 ```
-
 
 | Parameter | Description |
 |----|:---:|:----:|----|
@@ -88,7 +137,7 @@ Basic event declaration syntax:
 | `:modifier` | Event modifier, see [list of modifiers](#modifiers). |
 
 
-Common examples:
+#### Common examples:
 
 * `click` - call on click
 * `click:defer(100)` - call 100ms after click
@@ -105,7 +154,7 @@ Common examples:
 <!-- `all` - call on any event -->
 
 
-## Modifiers
+### Modifiers
 
 You can use the following modifiers for events:
 
