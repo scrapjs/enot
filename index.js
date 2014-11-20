@@ -1,10 +1,20 @@
-var matches = require('matches-selector');
+var global = (1, eval)('this');
+//doc shorthand & DOM detector
+var doc = global.document;
+
+
 var eachCSV = require('each-csv');
 var Emitter = require('emmy');
 var str = require('mustring');
 var type = require('mutypes');
-var q = require('query-relative');
 
+if (doc) {
+	var matches = require('matches-selector');
+	var q = require('query-relative');
+} else {
+	var matches = noop;
+	var q = noop;
+}
 
 var isString = type.isString;
 var isElement = type.isElement;
@@ -14,9 +24,6 @@ var unprefixize = str.unprefixize;
 var upper = str.upper;
 
 
-var global = (1, eval)('this');
-//doc shorthand & DOM detector
-var doc = global.document;
 
 
 /** Separator to specify events, e.g. click-1 (means interval=1 planned callback of click) */
@@ -795,9 +802,10 @@ var defaultRedirectors = {
 	stopImmediatePropagation: function (e) {
 		e.stopImmediatePropagation && e.stopImmediatePropagation();
 	},
-	noop: function(){}
+	noop: noop
 };
 
+function noop(){};
 
 
 /** Static aliases for old API compliance */
