@@ -4,8 +4,7 @@
   "description": "Event NOTation system",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build-dist && npm run test",
-    "build-dist": "browserify index.js --standalone Enot > dist/enot.js",
+    "build": "browserify index.js --standalone Enot > dist/enot.js",
     "test": "mocha-phantomjs test/index.html"
   },
   "repository": {
@@ -37,7 +36,7 @@
   "dependencies": {
     "matches-selector": "~1.x",
     "each-csv": "*",
-    "mutypes": "*",
+    "mutype": "*",
     "mustring": "*",
     "emmy": "*",
     "query-relative": "~1.x"

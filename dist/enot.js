@@ -7,7 +7,7 @@ var doc = global.document;
 var eachCSV = require('each-csv');
 var Emitter = require('emmy');
 var str = require('mustring');
-var type = require('mutypes');
+var type = require('mutype');
 
 if (doc) {
 	var matches = require('matches-selector');
@@ -815,7 +815,7 @@ Emitter.bindStaticAPI.call(Enot);
 
 /** @module enot */
 module.exports = Enot;
-},{"each-csv":2,"emmy":3,"matches-selector":5,"mustring":6,"mutypes":7,"query-relative":8}],2:[function(require,module,exports){
+},{"each-csv":2,"emmy":3,"matches-selector":5,"mustring":6,"mutype":7,"query-relative":8}],2:[function(require,module,exports){
 module.exports = eachCSV;
 
 /** match every comma-separated element ignoring 1-level parenthesis, e.g. `1,2(3,4),5` */
@@ -1353,16 +1353,17 @@ module.exports = {
 	isFn: isFn,
 	isString: isString,
 	isNumber: isNumber,
-	isBool: isBool,
+	isBoolean: isBool,
 	isPlain: isPlain,
 	isArray: isArray,
 	isArrayLike: isArrayLike,
 	isElement: isElement,
-	isPrivateName: isPrivateName
+	isPrivateName: isPrivateName,
+	isRegExp: isRegExp
 };
 
 var win = typeof window === 'undefined' ? this : window;
-var doc = typeof document === 'undefined' ? this : document;
+var doc = typeof document === 'undefined' ? null : document;
 
 //speedy impl,ementation of `in`
 //NOTE: `!target[propName]` 2-3 orders faster than `!(propName in target)`
@@ -1434,6 +1435,10 @@ function isElement(target){
 
 function isPrivateName(n){
 	return n[0] === '_' && n.length > 1;
+}
+
+function isRegExp(target){
+	return target instanceof RegExp;
 }
 },{}],8:[function(require,module,exports){
 var doc = document, root = doc.documentElement;

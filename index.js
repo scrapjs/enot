@@ -6,7 +6,7 @@ var doc = global.document;
 var eachCSV = require('each-csv');
 var Emitter = require('emmy');
 var str = require('mustring');
-var type = require('mutypes');
+var type = require('mutype');
 
 if (doc) {
 	var matches = require('matches-selector');
