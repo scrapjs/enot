@@ -34,12 +34,13 @@
     "icicle": "~0.x"
   },
   "dependencies": {
-    "matches-selector": "~1.x",
+    "matches-selector": ">=1.x",
     "each-csv": "*",
     "mutype": "*",
     "mustring": "*",
     "emmy": "*",
-    "query-relative": "~1.x"
+    "query-relative": ">=1.x",
+    "muparse": ">=0.0.9"
   },
   "testling": {
     "files": "test/index.js",

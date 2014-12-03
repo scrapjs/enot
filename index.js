@@ -1,12 +1,7 @@
 var global = (1, eval)('this');
+
 //doc shorthand & DOM detector
 var doc = global.document;
-
-
-var eachCSV = require('each-csv');
-var Emitter = require('emmy');
-var str = require('mustring');
-var type = require('mutype');
 
 if (doc) {
 	var matches = require('matches-selector');
@@ -16,13 +11,18 @@ if (doc) {
 	var q = noop;
 }
 
+var eachCSV = require('each-csv');
+var Emitter = require('emmy');
+var str = require('mustring');
+var type = require('mutype');
+
+
 var isString = type.isString;
 var isElement = type.isElement;
 var isArrayLike = type.isArrayLike;
 var has = type.has;
-var unprefixize = str.unprefixize;
+var unprefix = str.unprefix;
 var upper = str.upper;
-
 
 
 
@@ -596,7 +596,7 @@ function parseReference(target, string) {
 	result.targets = parseTargets(target, string);
 
 	//parse modifiers
-	var eventParams = unprefixize(eventString, 'on').split(':');
+	var eventParams = unprefix(eventString, 'on').split(':');
 
 	//get event name
 	result.evt = eventParams.shift();

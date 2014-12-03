@@ -1,4 +1,4 @@
-var Enot = require('enot');
+var Enot = typeof Enot !== 'undefined' ? Enot : require('enot');
 
 //create testing tree
 var c = document.createElement('div');
@@ -123,7 +123,19 @@ describe('Emitter class', function(){
 
 
 //TODO: structurize these tests
+//TODO: separate functionality tests and corner-cases
 describe("Regression", function(){
+	//TODO: get rid of redirect events, you can always do it manually.
+	it.skip('Redirect source event properly in redirects (keep event info)', function(){
+		var re;
+		Enot.on(document, 'x', 'y');
+		Enot.on(document, 'y', function(re){
+			assert.equal(re, e)
+		});
+
+		Enot.emit(document, new Event('x'));
+	});
+
 	it("fire `one` callback once", function(){
 		var i = 0, j = 0;
 		Enot.on(document, "hello:one", function(e){
@@ -540,7 +552,7 @@ describe("Regression", function(){
 		d.className = 'd';
 		c.appendChild(d);
 
-		Enot.on('document click:not(.a)', function(){
+		Enot.on(':root click:not(.a)', function(){
 			i++
 		});
 		Enot.on('.b click:not(.c)', function(){

@@ -1,13 +1,8 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Enot=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var global = (1, eval)('this');
+
 //doc shorthand & DOM detector
 var doc = global.document;
-
-
-var eachCSV = require('each-csv');
-var Emitter = require('emmy');
-var str = require('mustring');
-var type = require('mutype');
 
 if (doc) {
 	var matches = require('matches-selector');
@@ -17,13 +12,18 @@ if (doc) {
 	var q = noop;
 }
 
+var eachCSV = require('each-csv');
+var Emitter = require('emmy');
+var str = require('mustring');
+var type = require('mutype');
+
+
 var isString = type.isString;
 var isElement = type.isElement;
 var isArrayLike = type.isArrayLike;
 var has = type.has;
-var unprefixize = str.unprefixize;
+var unprefix = str.unprefix;
 var upper = str.upper;
-
 
 
 
@@ -597,7 +597,7 @@ function parseReference(target, string) {
 	result.targets = parseTargets(target, string);
 
 	//parse modifiers
-	var eventParams = unprefixize(eventString, 'on').split(':');
+	var eventParams = unprefix(eventString, 'on').split(':');
 
 	//get event name
 	result.evt = eventParams.shift();
@@ -815,7 +815,7 @@ Emitter.bindStaticAPI.call(Enot);
 
 /** @module enot */
 module.exports = Enot;
-},{"each-csv":2,"emmy":3,"matches-selector":5,"mustring":6,"mutype":7,"query-relative":8}],2:[function(require,module,exports){
+},{"each-csv":2,"emmy":3,"matches-selector":5,"mustring":9,"mutype":14,"query-relative":27}],2:[function(require,module,exports){
 module.exports = eachCSV;
 
 /** match every comma-separated element ignoring 1-level parenthesis, e.g. `1,2(3,4),5` */
@@ -1296,78 +1296,55 @@ function match(el, selector) {
   return false;
 }
 },{}],6:[function(require,module,exports){
-module.exports = {
-	camel:camel,
-	dashed:dashed,
-	upper:upper,
-	lower:lower,
-	capfirst:capfirst,
-	unprefixize:unprefixize
-};
-
 //camel-case → CamelCase
-function camel(str){
+module.exports = function(str){
 	return str && str.replace(/-[a-z]/g, function(match, position){
-		return upper(match[1])
+		return require('./upper')(match[1])
 	})
 }
-
-//CamelCase → camel-case
-function dashed(str){
-	return str && str.replace(/[A-Z]/g, function(match, position){
-		return (position ? '-' : '') + lower(match)
-	})
-}
-
-//uppercaser
-function upper(str){
-	return str.toUpperCase();
-}
-
-//lowercasify
-function lower(str){
-	return str.toLowerCase();
-}
-
+},{"./upper":12}],7:[function(require,module,exports){
 //aaa → Aaa
-function capfirst(str){
+module.exports = function(str){
 	str+='';
 	if (!str) return str;
 	return upper(str[0]) + str.slice(1);
-}
-
-// onEvt → envt
-function unprefixize(str, pf){
-	return (str.slice(0,pf.length) === pf) ? lower(str.slice(pf.length)) : str;
-}
-},{}],7:[function(require,module,exports){
-/**
-* Trivial types checkers.
-* Because there’re no common lib for that ( lodash_ is a fatguy)
-*/
-//TODO: make main use as `is.array(target)`
-
-module.exports = {
-	has: has,
-	isObject: isObject,
-	isFn: isFn,
-	isString: isString,
-	isNumber: isNumber,
-	isBoolean: isBool,
-	isPlain: isPlain,
-	isArray: isArray,
-	isArrayLike: isArrayLike,
-	isElement: isElement,
-	isPrivateName: isPrivateName,
-	isRegExp: isRegExp
 };
+},{}],8:[function(require,module,exports){
+//CamelCase → camel-case
+module.exports = function(str){
+	return str && str.replace(/[A-Z]/g, function(match, position){
+		return (position ? '-' : '') + require('./lower')(match)
+	})
+}
+},{"./lower":10}],9:[function(require,module,exports){
+module.exports = {
+	camel:require('./camel'),
+	dashed:require('./dashed'),
+	upper:require('./upper'),
+	lower:require('./lower'),
+	capfirst:require('./capfirst'),
+	unprefix:require('./unprefix')
+};
+},{"./camel":6,"./capfirst":7,"./dashed":8,"./lower":10,"./unprefix":11,"./upper":12}],10:[function(require,module,exports){
+//lowercasify
+module.exports = function(str){
+	return str.toLowerCase();
+}
+},{}],11:[function(require,module,exports){
+// onEvt → envt
+module.exports = function(str, pf){
+	return (str.slice(0,pf.length) === pf) ? require('./lower')(str.slice(pf.length)) : str;
+}
+},{"./lower":10}],12:[function(require,module,exports){
+//uppercaser
+module.exports = function(str){
+	return str.toUpperCase();
+}
 
-var win = typeof window === 'undefined' ? this : window;
-var doc = typeof document === 'undefined' ? null : document;
-
+},{}],13:[function(require,module,exports){
 //speedy impl,ementation of `in`
 //NOTE: `!target[propName]` 2-3 orders faster than `!(propName in target)`
-function has(a, b){
+module.exports = function(a, b){
 	if (!a) return false;
 	//NOTE: this causes getter fire
 	if (a[b]) return true;
@@ -1375,8 +1352,76 @@ function has(a, b){
 	// return a.hasOwnProperty(b);
 }
 
+},{}],14:[function(require,module,exports){
+/**
+* Trivial types checkers.
+* Because there’re no common lib for that ( lodash_ is a fatguy)
+*/
+//TODO: make main use as `is.array(target)`
+//TODO: separate by libs, included per-file
+
+module.exports = {
+	has: require('./has'),
+	isObject: require('./is-object'),
+	isFn: require('./is-fn'),
+	isString: require('./is-string'),
+	isNumber: require('./is-number'),
+	isBoolean: require('./is-bool'),
+	isPlain: require('./is-plain'),
+	isArray: require('./is-array'),
+	isArrayLike: require('./is-array-like'),
+	isElement: require('./is-element'),
+	isPrivateName: require('./is-private-name'),
+	isRegExp: require('./is-regex'),
+	isEmpty: require('./is-empty')
+};
+
+},{"./has":13,"./is-array":16,"./is-array-like":15,"./is-bool":17,"./is-element":18,"./is-empty":19,"./is-fn":20,"./is-number":21,"./is-object":22,"./is-plain":23,"./is-private-name":24,"./is-regex":25,"./is-string":26}],15:[function(require,module,exports){
+var isString = require('./is-string');
+var isArray = require('./is-array');
+var isFn = require('./is-fn');
+
+//FIXME: add tests from http://jsfiddle.net/ku9LS/1/
+module.exports = function (a){
+	return isArray(a) || (a && !isString(a) && !a.nodeType && (typeof window != 'undefined' ? a != window : true) && !isFn(a) && typeof a.length === 'number');
+}
+},{"./is-array":16,"./is-fn":20,"./is-string":26}],16:[function(require,module,exports){
+module.exports = function(a){
+	return a instanceof Array;
+}
+},{}],17:[function(require,module,exports){
+module.exports = function(a){
+	return typeof a === 'boolean' || a instanceof Boolean;
+}
+},{}],18:[function(require,module,exports){
+module.exports = function(target){
+	return typeof document !== 'undefined' && target instanceof HTMLElement;
+}
+},{}],19:[function(require,module,exports){
+module.exports = function(a){
+	if (!a) return true;
+	for (var k in a) {
+		return false;
+	}
+	return true;
+}
+},{}],20:[function(require,module,exports){
+module.exports = function(a){
+	return !!(a && a.apply);
+}
+},{}],21:[function(require,module,exports){
+module.exports = function(a){
+	return typeof a === 'number' || a instanceof Number;
+}
+},{}],22:[function(require,module,exports){
+var isPlain = require('./is-plain');
+var isArray = require('./is-array');
+var isElement = require('./is-element');
+var isFn = require('./is-fn');
+var has = require('./has');
+
 //isPlainObject
-function isObject(a){
+module.exports = function(a){
 	var Ctor, result;
 
 	if (isPlain(a) || isArray(a) || isElement(a) || isFn(a)) return false;
@@ -1384,7 +1429,7 @@ function isObject(a){
 	// avoid non `Object` objects, `arguments` objects, and DOM elements
 	if (
 		//FIXME: this condition causes weird behaviour if a includes specific valueOf or toSting
-		// !(a && ('' + a) === '[object Object]') ||
+		!(a && ('' + a) === '[object Object]') ||
 		(!has(a, 'constructor') && (Ctor = a.constructor, isFn(Ctor) && !(Ctor instanceof Ctor))) ||
 		!(typeof a === 'object')
 		) {
@@ -1400,47 +1445,28 @@ function isObject(a){
 	return typeof result == 'undefined' || has(a, result);
 }
 
-function isFn(a){
-	return !!(a && a.apply);
-}
+},{"./has":13,"./is-array":16,"./is-element":18,"./is-fn":20,"./is-plain":23}],23:[function(require,module,exports){
+var isString = require('./is-string'),
+	isNumber = require('./is-number'),
+	isBool = require('./is-bool');
 
-function isString(a){
-	return typeof a === 'string' || a instanceof String;
-}
-
-function isNumber(a){
-	return typeof a === 'number' || a instanceof Number;
-}
-
-function isBool(a){
-	return typeof a === 'boolean' || a instanceof Boolean;
-}
-
-function isPlain(a){
+module.exports = function isPlain(a){
 	return !a || isString(a) || isNumber(a) || isBool(a);
-}
-
-function isArray(a){
-	return a instanceof Array;
-}
-
-//FIXME: add tests from http://jsfiddle.net/ku9LS/1/
-function isArrayLike(a){
-	return isArray(a) || (a && !isString(a) && !a.nodeType && a != win && !isFn(a) && typeof a.length === 'number');
-}
-
-function isElement(target){
-	return doc && target instanceof HTMLElement;
-}
-
-function isPrivateName(n){
+};
+},{"./is-bool":17,"./is-number":21,"./is-string":26}],24:[function(require,module,exports){
+module.exports = function(n){
 	return n[0] === '_' && n.length > 1;
 }
 
-function isRegExp(target){
+},{}],25:[function(require,module,exports){
+module.exports = function(target){
 	return target instanceof RegExp;
 }
-},{}],8:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
+module.exports = function(a){
+	return typeof a === 'string' || a instanceof String;
+}
+},{}],27:[function(require,module,exports){
 var doc = document, root = doc.documentElement;
 
 
@@ -1450,10 +1476,20 @@ var matches = require('matches-selector');
 
 //TODO: detect inner parenthesis, like :closest(:not(abc))
 
-
+/**
+ * @module query-relative
+ */
 module.exports = function(targets, str, multiple){
+	//no target means global target
+	if (typeof targets === 'string') {
+		multiple = str;
+		str = targets;
+		targets = doc;
+	}
+
 	var res = q(targets,str);
-	return !multiple && isList(res) ? res[0] : res;
+
+	return !multiple && isList(res) ? res[0] : unique(res);
 };
 
 
@@ -1466,14 +1502,9 @@ module.exports = function(targets, str, multiple){
  * @return {[type]} [description]
  */
 function q(targets, str) {
-	//no target means global target
-	if (typeof targets === 'string') {
-		str = targets;
-		targets = doc;
-	}
-
 	//if targets is undefined, perform usual global query
 	if (!targets) targets = this;
+
 
 	//treat empty string as a target itself
 	if (!str){
@@ -1503,6 +1534,7 @@ function q(targets, str) {
 
 		//2. query
 		result = transformSet(targets, pseudos[pseudo], param);
+
 		if (!result) {
 			// console.groupEnd();
 			return null;
@@ -1557,7 +1589,9 @@ function transformSet(list, fn, arg) {
 		el = list[i];
 		if (el) {
 			chunk = fn(el, arg);
-			if (chunk) res = [].concat(chunk, res);
+			if (chunk) {
+				res = [].concat(chunk, res);
+			}
 		}
 	}
 	return res;
@@ -1582,7 +1616,7 @@ function genId(e, q){
 
 
 /** Custom :pseudos */
-var pseudos = q.pseudos = {
+var pseudos = {
 	/** Get parent, if any */
 	parent: function(e, q){
 		//root el is considered the topmost
@@ -1597,9 +1631,9 @@ var pseudos = q.pseudos = {
 	closest: function(e, q){
 		//root el is considered the topmost
 		if (e === doc) return root;
-		if (!q || matches(e, q)) return e;
+		if (!q || (q instanceof Node ? e == q : matches(e, q))) return e;
 		while ((e = e.parentNode) !== doc) {
-			if (!q || matches(e, q)) return e;
+			if (!q || (q instanceof Node ? e == q : matches(e, q))) return e;
 		}
 	},
 
@@ -1609,7 +1643,7 @@ var pseudos = q.pseudos = {
 	prev: function(e, q){
 		while (e = e.previousSibling) {
 			if (e.nodeType !== 1) continue;
-			if (!q || matches(e, q)) return e;
+			if (!q || (q instanceof Node ? e == q : matches(e, q))) return e;
 		}
 	},
 
@@ -1619,7 +1653,7 @@ var pseudos = q.pseudos = {
 	next: function(e, q){
 		while (e = e.nextSibling) {
 			if (e.nodeType !== 1) continue;
-			if (!q || matches(e, q)) return e;
+			if (!q || (q instanceof Node ? e == q : matches(e, q))) return e;
 		}
 	},
 
@@ -1636,7 +1670,30 @@ var pseudos = q.pseudos = {
 function isList(a){
 	return a instanceof Array || a instanceof NodeList;
 }
-},{"matches-selector":5,"tiny-element":9}],9:[function(require,module,exports){
+
+
+/**
+ * uniquify an array
+ * http://jszen.com/best-way-to-get-unique-values-of-an-array-in-javascript.7.html
+ */
+function unique(arr){
+	if (!(arr instanceof Array)) return arr;
+
+	var n = [];
+	for(var i = 0; i < arr.length; i++)
+	{
+		if (n.indexOf(arr[i]) == -1) n.push(arr[i]);
+	}
+	return n;
+}
+
+
+//export pseudos
+exports.closest = pseudos.closest;
+exports.parent = pseudos.parent;
+exports.next = pseudos.next;
+exports.prev = pseudos.prev;
+},{"matches-selector":5,"tiny-element":28}],28:[function(require,module,exports){
 var slice = [].slice;
 
 module.exports = function (selector, multiple) {
