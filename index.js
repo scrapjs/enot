@@ -13,7 +13,6 @@ if (doc) {
 
 var eachCSV = require('each-csv');
 var Emitter = require('emmy');
-var str = require('mustring');
 var type = require('mutype');
 
 
@@ -21,8 +20,8 @@ var isString = type.isString;
 var isElement = type.isElement;
 var isArrayLike = type.isArrayLike;
 var has = type.has;
-var unprefix = str.unprefix;
-var upper = str.upper;
+var unprefix = require('mustring/unprefix');
+var upper = require('mustring/upper');
 
 
 
@@ -45,14 +44,14 @@ function Enot(target){
 	if (!target) return target;
 
 	//mixin any object passed
-	for (var meth in EnotPrototype){
-		target[meth] = EnotPrototype[meth];
+	for (var meth in EnotProto){
+		target[meth] = EnotProto[meth];
 	}
 
 	return target;
 }
 
-var EnotPrototype = Enot.prototype = Object.create(Emitter.prototype);
+var EnotProto = Enot.prototype = Object.create(Emitter.prototype);
 
 
 
@@ -66,8 +65,8 @@ var EnotPrototype = Enot.prototype = Object.create(Emitter.prototype);
  * @alias bind
  * @chainable
  */
-EnotPrototype.addEventListener =
-EnotPrototype.on = function(evtRefs, fn){
+EnotProto.addEventListener =
+EnotProto.on = function(evtRefs, fn){
 	var target = this;
 
 	//if no target specified
@@ -83,7 +82,7 @@ EnotPrototype.on = function(evtRefs, fn){
 	//in bulk events passed
 	if (type.isObject(evtRefs)){
 		for (var evtRef in evtRefs){
-			EnotPrototype.on.call(target, evtRef, evtRefs[evtRef]);
+			EnotProto.on.call(target, evtRef, evtRefs[evtRef]);
 		}
 
 		return target;
@@ -102,8 +101,8 @@ EnotPrototype.on = function(evtRefs, fn){
  *
  * @chainable
  */
-EnotPrototype.once =
-EnotPrototype.one = function(evtRefs, fn){
+EnotProto.once =
+EnotProto.one = function(evtRefs, fn){
 	var target = this;
 
 	//append ':one' to each event from the references passed
@@ -113,7 +112,7 @@ EnotPrototype.one = function(evtRefs, fn){
 	});
 	processedRefs = processedRefs.slice(0, -2);
 
-	return EnotPrototype.on.call(target, processedRefs, fn);
+	return EnotProto.on.call(target, processedRefs, fn);
 };
 
 
@@ -167,10 +166,10 @@ function _on(target, evtRef, fn) {
  * @alias unbind
  * @chainable
  */
-EnotPrototype.removeEventListener =
-EnotPrototype.removeListener =
-EnotPrototype.removeAllListeners =
-EnotPrototype.off = function(evtRefs, fn){
+EnotProto.removeEventListener =
+EnotProto.removeListener =
+EnotProto.removeAllListeners =
+EnotProto.off = function(evtRefs, fn){
 	var target = this;
 
 	//if no target specified
@@ -188,7 +187,7 @@ EnotPrototype.off = function(evtRefs, fn){
 	//in bulk events passed
 	else if (type.isObject(evtRefs)){
 		for (var evtRef in evtRefs){
-			EnotPrototype.off.call(target, evtRef, evtRefs[evtRef]);
+			EnotProto.off.call(target, evtRef, evtRefs[evtRef]);
 		}
 	}
 
@@ -260,8 +259,8 @@ function _off(target, evtRef, fn){
  * @alias dispatchEvent
  * @chainable
  */
-EnotPrototype.dispatchEvent =
-EnotPrototype.emit = function(evtRefs, data, bubbles){
+EnotProto.dispatchEvent =
+EnotProto.emit = function(evtRefs, data, bubbles){
 	var target = this;
 
 	//if no target specified

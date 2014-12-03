@@ -14,7 +14,6 @@ if (doc) {
 
 var eachCSV = require('each-csv');
 var Emitter = require('emmy');
-var str = require('mustring');
 var type = require('mutype');
 
 
@@ -22,8 +21,8 @@ var isString = type.isString;
 var isElement = type.isElement;
 var isArrayLike = type.isArrayLike;
 var has = type.has;
-var unprefix = str.unprefix;
-var upper = str.upper;
+var unprefix = require('mustring/unprefix');
+var upper = require('mustring/upper');
 
 
 
@@ -46,14 +45,14 @@ function Enot(target){
 	if (!target) return target;
 
 	//mixin any object passed
-	for (var meth in EnotPrototype){
-		target[meth] = EnotPrototype[meth];
+	for (var meth in EnotProto){
+		target[meth] = EnotProto[meth];
 	}
 
 	return target;
 }
 
-var EnotPrototype = Enot.prototype = Object.create(Emitter.prototype);
+var EnotProto = Enot.prototype = Object.create(Emitter.prototype);
 
 
 
@@ -67,8 +66,8 @@ var EnotPrototype = Enot.prototype = Object.create(Emitter.prototype);
  * @alias bind
  * @chainable
  */
-EnotPrototype.addEventListener =
-EnotPrototype.on = function(evtRefs, fn){
+EnotProto.addEventListener =
+EnotProto.on = function(evtRefs, fn){
 	var target = this;
 
 	//if no target specified
@@ -84,7 +83,7 @@ EnotPrototype.on = function(evtRefs, fn){
 	//in bulk events passed
 	if (type.isObject(evtRefs)){
 		for (var evtRef in evtRefs){
-			EnotPrototype.on.call(target, evtRef, evtRefs[evtRef]);
+			EnotProto.on.call(target, evtRef, evtRefs[evtRef]);
 		}
 
 		return target;
@@ -103,8 +102,8 @@ EnotPrototype.on = function(evtRefs, fn){
  *
  * @chainable
  */
-EnotPrototype.once =
-EnotPrototype.one = function(evtRefs, fn){
+EnotProto.once =
+EnotProto.one = function(evtRefs, fn){
 	var target = this;
 
 	//append ':one' to each event from the references passed
@@ -114,7 +113,7 @@ EnotPrototype.one = function(evtRefs, fn){
 	});
 	processedRefs = processedRefs.slice(0, -2);
 
-	return EnotPrototype.on.call(target, processedRefs, fn);
+	return EnotProto.on.call(target, processedRefs, fn);
 };
 
 
@@ -168,10 +167,10 @@ function _on(target, evtRef, fn) {
  * @alias unbind
  * @chainable
  */
-EnotPrototype.removeEventListener =
-EnotPrototype.removeListener =
-EnotPrototype.removeAllListeners =
-EnotPrototype.off = function(evtRefs, fn){
+EnotProto.removeEventListener =
+EnotProto.removeListener =
+EnotProto.removeAllListeners =
+EnotProto.off = function(evtRefs, fn){
 	var target = this;
 
 	//if no target specified
@@ -189,7 +188,7 @@ EnotPrototype.off = function(evtRefs, fn){
 	//in bulk events passed
 	else if (type.isObject(evtRefs)){
 		for (var evtRef in evtRefs){
-			EnotPrototype.off.call(target, evtRef, evtRefs[evtRef]);
+			EnotProto.off.call(target, evtRef, evtRefs[evtRef]);
 		}
 	}
 
@@ -261,8 +260,8 @@ function _off(target, evtRef, fn){
  * @alias dispatchEvent
  * @chainable
  */
-EnotPrototype.dispatchEvent =
-EnotPrototype.emit = function(evtRefs, data, bubbles){
+EnotProto.dispatchEvent =
+EnotProto.emit = function(evtRefs, data, bubbles){
 	var target = this;
 
 	//if no target specified
@@ -815,7 +814,7 @@ Emitter.bindStaticAPI.call(Enot);
 
 /** @module enot */
 module.exports = Enot;
-},{"each-csv":2,"emmy":3,"matches-selector":5,"mustring":9,"mutype":14,"query-relative":27}],2:[function(require,module,exports){
+},{"each-csv":2,"emmy":3,"matches-selector":5,"mustring/unprefix":7,"mustring/upper":8,"mutype":10,"query-relative":23}],2:[function(require,module,exports){
 module.exports = eachCSV;
 
 /** match every comma-separated element ignoring 1-level parenthesis, e.g. `1,2(3,4),5` */
@@ -1296,52 +1295,22 @@ function match(el, selector) {
   return false;
 }
 },{}],6:[function(require,module,exports){
-//camel-case → CamelCase
-module.exports = function(str){
-	return str && str.replace(/-[a-z]/g, function(match, position){
-		return require('./upper')(match[1])
-	})
-}
-},{"./upper":12}],7:[function(require,module,exports){
-//aaa → Aaa
-module.exports = function(str){
-	str+='';
-	if (!str) return str;
-	return upper(str[0]) + str.slice(1);
-};
-},{}],8:[function(require,module,exports){
-//CamelCase → camel-case
-module.exports = function(str){
-	return str && str.replace(/[A-Z]/g, function(match, position){
-		return (position ? '-' : '') + require('./lower')(match)
-	})
-}
-},{"./lower":10}],9:[function(require,module,exports){
-module.exports = {
-	camel:require('./camel'),
-	dashed:require('./dashed'),
-	upper:require('./upper'),
-	lower:require('./lower'),
-	capfirst:require('./capfirst'),
-	unprefix:require('./unprefix')
-};
-},{"./camel":6,"./capfirst":7,"./dashed":8,"./lower":10,"./unprefix":11,"./upper":12}],10:[function(require,module,exports){
 //lowercasify
 module.exports = function(str){
 	return str.toLowerCase();
 }
-},{}],11:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 // onEvt → envt
 module.exports = function(str, pf){
 	return (str.slice(0,pf.length) === pf) ? require('./lower')(str.slice(pf.length)) : str;
 }
-},{"./lower":10}],12:[function(require,module,exports){
+},{"./lower":6}],8:[function(require,module,exports){
 //uppercaser
 module.exports = function(str){
 	return str.toUpperCase();
 }
 
-},{}],13:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 //speedy impl,ementation of `in`
 //NOTE: `!target[propName]` 2-3 orders faster than `!(propName in target)`
 module.exports = function(a, b){
@@ -1352,7 +1321,7 @@ module.exports = function(a, b){
 	// return a.hasOwnProperty(b);
 }
 
-},{}],14:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /**
 * Trivial types checkers.
 * Because there’re no common lib for that ( lodash_ is a fatguy)
@@ -1376,7 +1345,7 @@ module.exports = {
 	isEmpty: require('./is-empty')
 };
 
-},{"./has":13,"./is-array":16,"./is-array-like":15,"./is-bool":17,"./is-element":18,"./is-empty":19,"./is-fn":20,"./is-number":21,"./is-object":22,"./is-plain":23,"./is-private-name":24,"./is-regex":25,"./is-string":26}],15:[function(require,module,exports){
+},{"./has":9,"./is-array":12,"./is-array-like":11,"./is-bool":13,"./is-element":14,"./is-empty":15,"./is-fn":16,"./is-number":17,"./is-object":18,"./is-plain":19,"./is-private-name":20,"./is-regex":21,"./is-string":22}],11:[function(require,module,exports){
 var isString = require('./is-string');
 var isArray = require('./is-array');
 var isFn = require('./is-fn');
@@ -1385,19 +1354,19 @@ var isFn = require('./is-fn');
 module.exports = function (a){
 	return isArray(a) || (a && !isString(a) && !a.nodeType && (typeof window != 'undefined' ? a != window : true) && !isFn(a) && typeof a.length === 'number');
 }
-},{"./is-array":16,"./is-fn":20,"./is-string":26}],16:[function(require,module,exports){
+},{"./is-array":12,"./is-fn":16,"./is-string":22}],12:[function(require,module,exports){
 module.exports = function(a){
 	return a instanceof Array;
 }
-},{}],17:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = function(a){
 	return typeof a === 'boolean' || a instanceof Boolean;
 }
-},{}],18:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = function(target){
 	return typeof document !== 'undefined' && target instanceof HTMLElement;
 }
-},{}],19:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = function(a){
 	if (!a) return true;
 	for (var k in a) {
@@ -1405,15 +1374,15 @@ module.exports = function(a){
 	}
 	return true;
 }
-},{}],20:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = function(a){
 	return !!(a && a.apply);
 }
-},{}],21:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = function(a){
 	return typeof a === 'number' || a instanceof Number;
 }
-},{}],22:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var isPlain = require('./is-plain');
 var isArray = require('./is-array');
 var isElement = require('./is-element');
@@ -1445,7 +1414,7 @@ module.exports = function(a){
 	return typeof result == 'undefined' || has(a, result);
 }
 
-},{"./has":13,"./is-array":16,"./is-element":18,"./is-fn":20,"./is-plain":23}],23:[function(require,module,exports){
+},{"./has":9,"./is-array":12,"./is-element":14,"./is-fn":16,"./is-plain":19}],19:[function(require,module,exports){
 var isString = require('./is-string'),
 	isNumber = require('./is-number'),
 	isBool = require('./is-bool');
@@ -1453,20 +1422,20 @@ var isString = require('./is-string'),
 module.exports = function isPlain(a){
 	return !a || isString(a) || isNumber(a) || isBool(a);
 };
-},{"./is-bool":17,"./is-number":21,"./is-string":26}],24:[function(require,module,exports){
+},{"./is-bool":13,"./is-number":17,"./is-string":22}],20:[function(require,module,exports){
 module.exports = function(n){
 	return n[0] === '_' && n.length > 1;
 }
 
-},{}],25:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = function(target){
 	return target instanceof RegExp;
 }
-},{}],26:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = function(a){
 	return typeof a === 'string' || a instanceof String;
 }
-},{}],27:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 var doc = document, root = doc.documentElement;
 
 
@@ -1693,7 +1662,7 @@ exports.closest = pseudos.closest;
 exports.parent = pseudos.parent;
 exports.next = pseudos.next;
 exports.prev = pseudos.prev;
-},{"matches-selector":5,"tiny-element":28}],28:[function(require,module,exports){
+},{"matches-selector":5,"tiny-element":24}],24:[function(require,module,exports){
 var slice = [].slice;
 
 module.exports = function (selector, multiple) {
