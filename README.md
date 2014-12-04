@@ -2,12 +2,8 @@
 
 Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation, something in between [backbone events](http://backbonejs.org/#View-delegateEvents) and [xtags events](http://www.x-tags.org/docs#pseudos). Useful in complicated components development.
 
-[![NPM](https://nodei.co/npm/enot.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/enot/)
 
-
-## Usage
-
-### 1. Install
+# Install
 
 If you’re going to use it in browser, please use browserify, component, duo or alike.
 
@@ -17,9 +13,9 @@ If you’re going to use it in browser, please use browserify, component, duo or
 var enot = require('enot');
 ```
 
-### 2. Use
+# Use
 
-#### Static API
+### As wrapper (static methods)
 
 ```js
 enot.on(target, 'document click:pass(right_mouse)', callback);
@@ -31,20 +27,20 @@ enot.emit(target, 'document click:pass(right_mouse)');
 Might be useful if you want to use events "externally", not touching the initial objects — e. g. HTMLElements, jQuery objects etc.
 
 
-#### Emitter class
+### As Emitter class
 
 ```js
 var Emitter = require('enot');
 ```
 
-###### Create instance:
+##### Create instance:
 
 ```js
 var emitter = new Emitter;
 emitter.emit('something');
 ```
 
-###### Mixin object:
+##### Mixin object:
 
 ```js
 var user = {name: 'Toby'};
@@ -67,7 +63,7 @@ user.emit('poo');
 ```
 
 
-## API
+# API
 
 Enot API consists of common EventEmitter interface methods: `on`, `off`, `once`, `emit`, `delegate`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`
 
@@ -189,3 +185,6 @@ Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
 ## License
 
 MIT
+
+
+[![NPM](https://nodei.co/npm/enot.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/enot/)
