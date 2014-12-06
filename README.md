@@ -1,6 +1,14 @@
-# Enot [![Build Status](https://travis-ci.org/dfcreative/enot.svg?branch=master)](https://travis-ci.org/dfcreative/enot) ![Deps](https://david-dm.org/dfcreative/enot.svg)
+<h1>
+	<img src="https://cdn.rawgit.com/dfcreative/enot/design/logo.png" height="140"/><br/>
 
-Enot is an EventEmitter with extended <em>e</em>vents <em>not</em>ation, something in between [backbone events](http://backbonejs.org/#View-delegateEvents) and [xtags events](http://www.x-tags.org/docs#pseudos). Useful in complicated components development.
+	Enot
+
+	<a href="https://travis-ci.org/dfcreative/enot"><img src="https://travis-ci.org/dfcreative/enot.svg?branch=master"/></a>
+	<img src="https://david-dm.org/dfcreative/enot.svg"/>
+	<a href="http://unlicense.org/UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
+</h1>
+
+Enot is an EventEmitter with human <em>e</em>vents <em>not</em>ation.
 
 
 # Install
@@ -182,9 +190,9 @@ You can use the following modifiers for events:
 Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
 
 
-## License
+# Afterword
 
-MIT
+Enot is inspired [backbone events](http://backbonejs.org/#View-delegateEvents) and [xtags events](http://www.x-tags.org/docs#pseudos).
 
 
 [![NPM](https://nodei.co/npm/enot.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/enot/)
