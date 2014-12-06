@@ -8,7 +8,7 @@
 	<a href="http://unlicense.org/UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
 </h1>
 
-Enot is an EventEmitter with human <em>e</em>vents <em>not</em>ation.
+Enot is EventEmitter with humanized <em>e</em>vents <em>not</em>ation, something in between [backbone events](http://backbonejs.org/#View-delegateEvents) and [xtags events](http://www.x-tags.org/docs#pseudos).
 
 
 # Install
@@ -188,11 +188,6 @@ You can use the following modifiers for events:
 * `:throttle(20)` — invoke callbak not more than once per 20 ms.
 
 Modifiers can be combined, e.g. `click:delegate(.inner-tag):pass(right_mouse)`
-
-
-# Afterword
-
-Enot is inspired [backbone events](http://backbonejs.org/#View-delegateEvents) and [xtags events](http://www.x-tags.org/docs#pseudos).
 
 
 [![NPM](https://nodei.co/npm/enot.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/enot/)
