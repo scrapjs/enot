@@ -1,5 +1,7 @@
 var WeakMap = typeof WeakMap !== 'undefined' ? WeakMap : require('polymer-weakmap/weakmap');
 var Enot = typeof Enot !== 'undefined' ? Enot : require('..');
+var assert = typeof chai !== 'undefined' ? chai.assert : require('chai').assert;
+
 
 
 //create testing tree
@@ -241,7 +243,7 @@ describe("Regression", function(){
 	});
 
 	it("filter keypress:pass modifier", function(){
-		if (window.mochaPhantomJS) return;
+		if (/phantomjs/i.test(navigator.userAgent)) return;
 
 		var k = 0, a = 0, ka=0;
 		var el = document.createElement("div");
@@ -274,22 +276,22 @@ describe("Regression", function(){
 		assert.equal(ka, 1)
 
 		// s2
-		var evt = createKeyEvt("keydown", 83)
+		var evt = createKeyEvt("keydown", 83);
 		Enot.emit(el, evt);
 		assert.equal(a, 3)
 		assert.equal(k, 2)
 		assert.equal(ka, 1)
 
 		//enter
-		var evt = createKeyEvt("keydown", 13)
+		var evt = createKeyEvt("keydown", 13);
 		Enot.emit(el, evt);
-		assert.equal(a, 4)
-		assert.equal(k, 3)
-		assert.equal(ka, 2)
+		assert.equal(a, 4);
+		assert.equal(k, 3);
+		assert.equal(ka, 2);
 	});
 
 	it("combine modifiers", function(){
-		if (window.mochaPhantomJS) return;
+		if (/phantomjs/i.test(navigator.userAgent)) return;
 
 		var i = 0;
 
@@ -1190,3 +1192,86 @@ describe("Regression", function(){
 		Enot.off('.some x', fn);
 	});
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//helpers
+function dispatchEvt(el, eventName, data, bubbles){
+	var event;
+	if (el instanceof HTMLElement || el === window || el === document) {
+		if (!(eventName instanceof Event)) {
+			event =  document.createEvent("CustomEvent");
+			event.initCustomEvent(eventName, bubbles, null, data)
+		} else {
+			event = eventName;
+		}
+		// var event = new CustomEvent(eventName, { detail: data, bubbles: bubbles })
+		el.dispatchEvent(event);
+	} else {
+		if (el.fire) el.fire(eventName);
+		else if (el.trigger) el.trigger(eventName);
+		else if (el.emit) el.emit(eventName);
+	}
+}
+
+function createKeyEvt(name, code){
+	var evt = document.createEvent("KeyboardEvent");
+	try{
+		Object.defineProperty(evt, 'keyCode', {
+			get : function() {
+				return this.keyCodeVal;
+			}
+		});
+		Object.defineProperty(evt, 'which', {
+			get : function() {
+				return this.keyCodeVal;
+			}
+		});
+	} catch (e) {
+	}
+
+	evt.keyCode = this.keyCodeVal;
+	evt.which = this.keyCodeVal;
+
+	if (evt.initKeyboardEvent) {
+		evt.initKeyboardEvent("keydown", true, true, document.defaultView, false, false, false, false, code, code);
+	} else {
+		evt.initKeyEvent("keydown", true, true, document.defaultView, false, false, false, false, code, code);
+	}
+
+	evt.keyCodeVal = code;
+
+	return evt;
+}
+
+function createMouseEvt(name, btn){
+	var evt = document.createEvent("MouseEvent")
+	evt.initMouseEvent(
+		name, true,true,window,
+		1, 0,0,0,0,
+		false,false,false,false,
+		btn, null
+	)
+	evt.which = btn;
+	return evt
+}
