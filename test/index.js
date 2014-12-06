@@ -1,4 +1,6 @@
-var Enot = typeof Enot !== 'undefined' ? Enot : require('enot');
+var WeakMap = typeof WeakMap !== 'undefined' ? WeakMap : require('polymer-weakmap/weakmap');
+var Enot = typeof Enot !== 'undefined' ? Enot : require('..');
+
 
 //create testing tree
 var c = document.createElement('div');
@@ -658,7 +660,8 @@ describe("Regression", function(){
 		assert.equal(i, 0);
 	});
 
-	it("handle redirect events", function(){
+	//deprecated - you can always redirect yourself by an fn.
+	it.skip("handle redirect events", function(){
 		var log = [];
 
 		var target = {
@@ -691,7 +694,8 @@ describe("Regression", function(){
 		Enot.emit({1: function(){}}, 1);
 	});
 
-	it('keep context of redirects', function(){
+	//deprecated
+	it.skip('keep context of redirects', function(){
 		var i = 0;
 		var target = {
 			z:{},
@@ -735,21 +739,6 @@ describe("Regression", function(){
 		Enot.on({}, '@x.y', function(){})
 	});
 
-	it("indirect redirect", function(){
-		var i = 0;
-
-		var a = {inc: function(){i++}, click: undefined}
-
-		//set fake inc
-		Enot.on({}, 'click', 'inc')
-
-		Enot.on(a, 'inc', a.inc);
-		Enot.on(a, 'click', 'inc');
-
-		Enot.emit(a, 'click');
-
-		assert.equal(i, 1);
-	});
 
 	it("multiple off", function(){
 		var i = 0;
@@ -758,7 +747,7 @@ describe("Regression", function(){
 		}
 
 		Enot.on(a, 'x', a.x);
-		Enot.on(a, 'y', 'x');
+		Enot.on(a, 'y', function(){a.x()});
 		Enot.emit(a, 'x');
 		Enot.emit(a, 'y');
 
@@ -769,9 +758,6 @@ describe("Regression", function(){
 		Enot.emit(a, 'x');
 		Enot.emit(a, 'y');
 		assert.equal(i, 2);
-	});
-
-	it.skip("redirect to complex notations", function(){
 	});
 
 	it(":defer(@delay)");
@@ -791,24 +777,6 @@ describe("Regression", function(){
 			done();
 		}, 110);
 	});
-
-	it('redirect :othermodifier', function(done){
-		var i = 0;
-		var a = {x:function(){
-			i++
-		}};
-
-		Enot.on(a, 'x', a.x);
-		Enot.on(a, 'click:defer(100)', 'x');
-
-		Enot.emit(a, 'click');
-
-		setTimeout(function(){
-			// console.log(i)
-			assert.equal(i, 1);
-			done();
-		}, 110)
-	})
 
 	it('keep target objects untouched (jQuery intrusion)', function(){
 		var a = {};
@@ -920,7 +888,7 @@ describe("Regression", function(){
 		assert.equal(i, 3);
 	})
 
-	it("keep context on external redirected events", function(){
+	it.skip("keep context on external redirected events", function(){
 		var i = 0;
 		var a = {
 			y:function(){
@@ -952,7 +920,7 @@ describe("Regression", function(){
 		assert.equal(i, 4);
 	})
 
-	it("prevent planned :async call via off", function(done){
+	it("prevent planned :defer call via off", function(done){
 		var i = 0, a = {};
 
 		var inc = function(){
@@ -1125,10 +1093,10 @@ describe("Regression", function(){
 
 	it('one method', function(){
 		var i = 0;
-		Enot.one(document, "hello", function(e){
+		Enot.once(document, "hello", function(e){
 			e.detail === 123 && i++
 		})
-		Enot.one(document, "hello", function(e){
+		Enot.once(document, "hello", function(e){
 			e.detail === 123 && i++
 		})
 		Enot.emit(document, "hello", 123)

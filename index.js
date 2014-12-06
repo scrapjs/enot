@@ -12,24 +12,29 @@ if (doc) {
 }
 
 var eachCSV = require('each-csv');
+
+//FIXME: require per-methods
 var Emitter = require('emmy');
-var type = require('mutype');
 
-
-var isString = type.isString;
-var isElement = type.isElement;
-var isArrayLike = type.isArrayLike;
-var has = type.has;
+var isEvent = require('mutype/is-event');
+var isString = require('mutype/is-string');
+var isElement = require('mutype/is-element');
+var isArrayLike = require('mutype/is-array-like');
+var isObject = require('mutype/is-object');
+var isPlain = require('mutype/is-plain');
+var has = require('mutype/has');
 var unprefix = require('mustring/unprefix');
 var upper = require('mustring/upper');
+var slice = require('sliced');
 
+
+//TODO: get rid of redirections
+//TODO: add events classes
 
 
 /** Separator to specify events, e.g. click-1 (means interval=1 planned callback of click) */
 var evtSeparator = '-';
 
-
-/* ------------------------------ C O N S T R U C T O R ------------------------------ */
 
 
 /**
@@ -55,9 +60,6 @@ var EnotProto = Enot.prototype = Object.create(Emitter.prototype);
 
 
 
-/* -----------------------------------  O  N  ---------------------------------------- */
-
-
 /**
  * Listed reference binder (comma-separated references)
  *
@@ -80,7 +82,7 @@ EnotProto.on = function(evtRefs, fn){
 	if (!evtRefs) return target;
 
 	//in bulk events passed
-	if (type.isObject(evtRefs)){
+	if (isObject(evtRefs)){
 		for (var evtRef in evtRefs){
 			EnotProto.on.call(target, evtRef, evtRefs[evtRef]);
 		}
@@ -185,7 +187,7 @@ EnotProto.off = function(evtRefs, fn){
 	}
 
 	//in bulk events passed
-	else if (type.isObject(evtRefs)){
+	else if (isObject(evtRefs)){
 		for (var evtRef in evtRefs){
 			EnotProto.off.call(target, evtRef, evtRefs[evtRef]);
 		}
@@ -767,7 +769,7 @@ var redirectSet = {};
  */
 function getRedirector(redirectTo){
 	//return non-plain redirector
-	if (!type.isPlain(redirectTo)) return redirectTo;
+	if (!isPlain(redirectTo)) return redirectTo;
 
 	//return redirector, if exists
 	if (redirectSet[redirectTo]) return redirectSet[redirectTo];
@@ -775,9 +777,16 @@ function getRedirector(redirectTo){
 	//create redirector
 	var cb = function(e){
 		var self = this;
+		var dataArgs = slice(arguments, 1);
 		eachCSV(redirectTo, function(evt){
 			if (defaultRedirectors[evt]) defaultRedirectors[evt].call(self, e);
-			Enot.emit(self, evt, e.detail, e.bubbles);
+			if (isEvent(e)) {
+				//FIXME: pass an initial event
+				Enot.emit(self, evt, e.detail , e.bubbles);
+			}
+			else {
+				Enot.emit.apply(self, [evt].concat(dataArgs));
+			}
 		});
 	};
 
@@ -807,8 +816,23 @@ var defaultRedirectors = {
 function noop(){};
 
 
-/** Static aliases for old API compliance */
-Emitter.bindStaticAPI.call(Enot);
+/** Static aliases */
+Enot['on'] = function(a,b,c){
+	EnotProto.on.call(a,b,c);
+	return Enot;
+};
+Enot['once'] = function(a,b,c){
+	EnotProto.once.call(a,b,c);
+	return Enot;
+};
+Enot['off'] = function(a,b,c){
+	EnotProto.off.call(a,b,c);
+	return Enot;
+};
+Enot['emit'] = function(a,b,c,d){
+	EnotProto.emit.call(a,b,c,d);
+	return Enot;
+};
 
 
 /** @module enot */

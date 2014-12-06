@@ -8,7 +8,6 @@
 
 * Kinds of callback modifiers:
 	* `Function` - no modifier
-	* `'a, b, c'` - stringy list of events to fire instead
 	* `undefined` - use target method instead
 	* `:name` - event modifiers
 
@@ -21,3 +20,8 @@
 		1. Store modified handler to modifiedCbCache = `fn: modifiedFn`
 		2. Store bound modified handler to targetCbCache = `target: {modifiedFn: moundModifiedFn}`;
 		- nested weak map
+
+* Do not use redirects:
+	* They seriously complicate handlers handling
+	* They’re easily implemented as function(e){a(e); b(e); c(e);}
+	* It’s not a js way to declare redirects
