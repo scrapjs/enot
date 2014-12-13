@@ -23,5 +23,17 @@
 
 * Do not use redirects:
 	* They seriously complicate handlers handling
-	* They’re easily implemented as function(e){a(e); b(e); c(e);}
-	* It’s not a js way to declare redirects
+	* It’s not a js way to declare things/callbacks
+	* ✔ They’re easily implemented as function(e){a(e); b(e); c(e);}
+
+* Do not use self-referenced props:
+	* It seriously complicates parsing
+	* It is unable to be compressed
+	* ✔ It should beimplemented in 'before/after/changed' state.
+
+* It should not have .once implementation - use Emmy's `one` instead. It’s weird to pass pseudos or any other params to .once.
+	* .once('click:pass()') ? Use .on('click:once:pass')
+
+* Avoid CSV's - you can always pass list or object with separate items.
+	* 'click:a, click:b' → ['click:a', 'click:b']
+	* 'a, b': {...} → 'a: {...}, b: {...}'

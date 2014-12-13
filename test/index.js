@@ -31,14 +31,14 @@ t.appendChild(i);
 
 
 describe('Static API', function(){
-	it("`Enot.on(target, event, cb)`", function(){
+	it.only("Basic on/emit/off", function(){
 		var i = 0;
 		var cb = function(e){
 			assert.equal(e.detail, 123);
 			Enot.off(document, "hello", cb);
 			i++;
 		};
-		Enot.on(document, "hello:one", cb);
+		Enot.on(document, "hello:once", cb);
 
 		// console.log('---emits')
 		Enot.emit(document, "hello", 123)
@@ -117,7 +117,7 @@ describe('Emitter class', function(){
 		var a = new A;
 
 		var i = 0;
-		a.on('a:one', function(){i++});
+		a.on('a:once', function(){i++});
 		a.emit('a');
 		a.emit('a');
 		assert.equal(i, 1);
@@ -142,10 +142,10 @@ describe("Regression", function(){
 
 	it("fire `one` callback once", function(){
 		var i = 0, j = 0;
-		Enot.on(document, "hello:one", function(e){
+		Enot.on(document, "hello:once", function(e){
 			e.detail === 123 && i++
 		})
-		Enot.on(document, "hello:one", function(e){
+		Enot.on(document, "hello:once", function(e){
 			e.detail === 123 && i++
 		})
 		Enot.emit(document, "hello", 123)
@@ -160,22 +160,22 @@ describe("Regression", function(){
 		//TODO: add multiple once events assertion (to test proper target fns bound in evtModifiers (there’re no closures))
 	});
 
-	it("unbind :one callbacks", function(){
+	it("unbind :once callbacks", function(){
 		var a = document.createElement('div');
 		var log = []
 		var fn = function(){log.push(1)};
 
-		Enot.on(a, 'a:one', fn);
-		Enot.on(a, 'a:one', fn);
+		Enot.on(a, 'a:once', fn);
+		Enot.on(a, 'a:once', fn);
 		Enot.emit(a, 'a');
 		Enot.emit(a, 'a');
 
 		assert.deepEqual(log, [1]);
 
 		log = [];
-		Enot.on(a, 'b:one', fn);
-		Enot.off(a, 'b:one', fn);
-		Enot.on(a, 'b:one', fn);
+		Enot.on(a, 'b:once', fn);
+		Enot.off(a, 'b:once', fn);
+		Enot.on(a, 'b:once', fn);
 		Enot.emit(a, 'b');
 		Enot.emit(a, 'b');
 
@@ -303,7 +303,7 @@ describe("Regression", function(){
 		document.body.appendChild(el)
 		document.body.appendChild(el2)
 
-		Enot.on(document.body, "hello:one:delegate(.item)", function(e){
+		Enot.on(document.body, "hello:once:delegate(.item)", function(e){
 			e.detail === 123 && i++
 		})
 		Enot.emit(document.body, "hello", 123, true)
@@ -762,8 +762,6 @@ describe("Regression", function(){
 		assert.equal(i, 2);
 	});
 
-	it(":defer(@delay)");
-
 	it(":defer, :defer(), :defer(N)", function(done){
 		var a = document.createElement('div');
 		var i = 0;
@@ -818,16 +816,16 @@ describe("Regression", function(){
 	})
 
 
-	it("multiple :one callbacks", function(){
+	it("multiple :once callbacks", function(){
 		var a = {}, log = [];
 
-		Enot.on(a, 'init:one', function(){
+		Enot.on(a, 'init:once', function(){
 			log.push(1)
 		})
-		Enot.on(a, 'init:one', function(){
+		Enot.on(a, 'init:once', function(){
 			log.push(2)
 		})
-		Enot.on(a, 'init:one', function(){
+		Enot.on(a, 'init:once', function(){
 			log.push(3)
 		})
 
@@ -1135,8 +1133,8 @@ describe("Regression", function(){
 		Enot.emit(b, 'x');
 	})
 
-	it.skip('test lists in .one', function(){
-		Enot.one('a, b', function(){
+	it.skip('test lists in .once', function(){
+		Enot.once('a, b', function(){
 
 		})
 	})
