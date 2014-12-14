@@ -2,8 +2,9 @@
 	Enot
 
 	<a href="https://travis-ci.org/dfcreative/enot"><img src="https://travis-ci.org/dfcreative/enot.svg?branch=master"/></a>
+	<a href="https://codeclimate.com/github/dfcreative/emmy"><img src="https://codeclimate.com/github/dfcreative/emmy/badges/gpa.svg"/></a>
 	<img src="https://david-dm.org/dfcreative/enot.svg"/>
-	<a href="http://unlicense.org/UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
+	<a href="UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
 </h1>
 
 Enot is [emitter](http://github.com/dfcreative/emmy) extension with humanized <em>e</em>vents <em>not</em>ation. It is like [xtags events](http://www.x-tags.org/docs#pseudos) standalone with additional [pseudos](#pseudos).
