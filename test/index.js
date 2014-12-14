@@ -31,14 +31,14 @@ t.appendChild(i);
 
 
 describe('Static API', function(){
-	it.only("Basic on/emit/off", function(){
+	it("Basic on/emit/off", function(){
 		var i = 0;
 		var cb = function(e){
 			assert.equal(e.detail, 123);
 			Enot.off(document, "hello", cb);
 			i++;
 		};
-		Enot.on(document, "hello:once", cb);
+		Enot.on(document, "hello", cb);
 
 		// console.log('---emits')
 		Enot.emit(document, "hello", 123)
@@ -48,7 +48,7 @@ describe('Static API', function(){
 	});
 
 
-	it('`Enot.on(targets, event, cb)`', function(){
+	it('List of targets', function(){
 		var targets = [f,s,l];
 		var i = 0;
 
@@ -56,17 +56,19 @@ describe('Static API', function(){
 			i++;
 		}
 
-		Enot.on(targets, 'x', fn);
-		Enot.emit(targets, 'x');
+		Enot.on(targets, 'x', fn)
+			.emit(targets, 'x');
+
 		assert.equal(i, 3);
 
-		Enot.off(targets, 'x', fn);
-		Enot.emit(targets, 'x');
+		Enot.off(targets, 'x', fn)
+			.emit(targets, 'x');
+
 		assert.equal(i, 3);
 	});
 
 
-	it('`Enot.on(target, events)`', function(){
+	it('Batch references', function(){
 		var i = 0;
 
 		var a = {
@@ -92,7 +94,7 @@ describe('Static API', function(){
 	});
 
 
-	it("`Enot.off(target, event, cb)`", function(){
+	it("Pass details", function(){
 		var i = 0;
 		var fn = function(e){
 			e.detail === 123 && i++;

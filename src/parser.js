@@ -20,10 +20,14 @@ module.exports = function(target, evtRef, fn){
 	var targets = getTargets(target, parts[0]);
 	var fn = getCallback(target, parts[1], fn);
 
-	return [
+	var res = [
 		targets,
-		parts[1].split(':')[0],
+		parts[1].split(':')[0]
 	];
+
+	if (fn) res.push(fn);
+
+	return res;
 };
 
 

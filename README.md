@@ -6,9 +6,7 @@
 	<a href="http://unlicense.org/UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
 </h1>
 
-Enot is emitter with humanized <em>e</em>vents <em>not</em>ation. It is like [xtags events](http://www.x-tags.org/docs#pseudos) standalone, extended with additional [pseudos](#pseudos).
-
-It works both in browsers and _io_.
+Enot is [emitter](http://github.com/dfcreative/emmy) extension with humanized <em>e</em>vents <em>not</em>ation. It is like [xtags events](http://www.x-tags.org/docs#pseudos) standalone with additional [pseudos](#pseudos).
 
 <img src="https://cdn.rawgit.com/dfcreative/enot/design/logo.png" height="140"/>
 
