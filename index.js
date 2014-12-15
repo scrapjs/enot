@@ -9,6 +9,7 @@ var Emitter = require('emmy');
 var isFn = require('mutype/is-fn');
 var isObject = require('mutype/is-object');
 var eachCSV = require('each-csv');
+var isString = require('mutype/is-string');
 
 
 var _on = Emitter.on, _off= Emitter.off, _emit = Emitter.emit;
@@ -81,7 +82,6 @@ var on = Enot['on'] = function(){
 		if (!(cbSet = cbCache.get(fn))) cbCache.set(fn, cbSet = {});
 		cbList = cbSet[evt] || (cbSet[evt] = []);
 		cbList.push(modFn);
-
 		_on(targets, evt, modFn);
 	}, arguments);
 
@@ -91,25 +91,35 @@ var off = Enot['off'] = function(){
 	invoke(function(target, ref, fn){
 		var parts = getParts(ref);
 		var evt = parts[1].split(':')[0];
+		var targets = getTargets(target, parts[0]);
 
 		var cbSet = cbCache.get(fn);
 		if (!cbSet) return;
 
 		//get all listeners for the specific fn & evt
 		var cbList = cbSet[evt];
-		_off(target, evt, cbList);
+		_off(targets, evt, cbList);
 	}, arguments);
 
 	return Enot;
 };
 var emit = Enot['emit'] = function(){
-	invoke(function(target, ref, fn){
-		var parts = getParts(ref);
-		var evt = parts[1].split(':')[0];
-		var targets = getTargets(target, parts[0]);
-		fn = getCallback(target, parts[1], fn);
+	invoke(function(target, ref){
+		var evt;
+		if (isString(ref)) {
+			var parts = getParts(ref);
+			evt = parts[1].split(':')[0];
+			target = getTargets(target, parts[0]);
+		}
 
-		_emit(target, evt, fn);
+		//no-string reference pass as is
+		else {
+			evt = ref;
+			target = getTargets(target);
+		}
+
+		_emit.apply(target, [target, evt].concat(slice(arguments, 2)));
+
 	}, arguments);
 
 	return Enot;
@@ -140,22 +150,23 @@ function invoke(fn, args){
 		for (var evtRefs in refs){
 			eachCSV(evtRefs, function(evtRef){
 				fn.apply(this, [target, evtRef].concat(refs[evtRef]));
-			});
+			})
 		}
 
 		return;
 	}
 
-	//TODO: move to emmy
-	//just fire straight event passed
-	// else if (isEvent(args[0])) {
-	// 	_emit(target, evtRefs, data, bubbles);
-	// 	return;
-	// }
+	//string refs
+	if (isString(refs)) {
+		eachCSV(refs, function(evtRef){
+			fn.apply(target, [target, evtRef].concat(args));
+		});
 
-	eachCSV(refs, function(evtRef){
-		fn.apply(target, [target, evtRef].concat(args));
-	});
+		return;
+	}
+
+	//non-string refs
+	fn.apply(target, [target, refs].concat(args));
 }
 
 

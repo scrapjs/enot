@@ -9,25 +9,24 @@ var pseudos = {};
 
 pseudos.on =
 pseudos.delegate =
-require('emmy/delegate');
+require('emmy/delegate').wrap;
 
 pseudos.pass =
 pseudos.keypass =
-require('emmy/keypass');
+require('emmy/keypass').wrap;
 
 pseudos.one =
 pseudos.once =
-require('emmy/once');
+require('emmy/once').wrap;
 
 pseudos.throttle =
-require('emmy/throttle');
+require('emmy/throttle').wrap;
 
 pseudos.later =
-require('emmy/later');
+require('emmy/later').wrap;
 
 
 pseudos.order = [
-
 	'one', 'once'
 ];
 
