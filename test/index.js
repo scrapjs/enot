@@ -297,7 +297,8 @@ describe("Pseudos", function(){
 
 		Enot.on(document.body, "hello:once:delegate(.item)", function(e){
 			e.detail === 123 && i++
-		})
+		});
+
 		Enot.emit(document.body, "hello", 123, true)
 		assert.equal(i, 0)
 		Enot.emit(el, "hello", 123, true)

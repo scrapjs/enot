@@ -99,6 +99,9 @@ var off = Enot['off'] = function(){
 		//get all listeners for the specific fn & evt
 		var cbList = cbSet[evt];
 		_off(targets, evt, cbList);
+
+		//clean cb reference
+		cbSet[evt] = null;
 	}, arguments);
 
 	return Enot;
