@@ -15,21 +15,11 @@ var paren = require('parenthesis');
  *
  * @return {Array} Arguments to pass to emitter on/off/emit: target, event, function
  */
-module.exports = function(target, evtRef, fn){
-	var parts = getParts(evtRef);
-	var targets = getTargets(target, parts[0]);
-	var fn = getCallback(target, parts[1], fn);
-
-	var res = [
-		targets,
-		parts[1].split(':')[0]
-	];
-
-	if (fn) res.push(fn);
-
-	return res;
+module.exports = {
+	getTargets: getTargets,
+	getParts: getParts,
+	getCallback: getCallback
 };
-
 
 /**
  * Detect event/target parts in event reference.
@@ -97,6 +87,7 @@ function getTargets(target, str) {
 		return q(target, str, true);
 	}
 }
+
 
 
 /**

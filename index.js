@@ -4,7 +4,7 @@
 
 
 var slice = require('sliced');
-var parseRef = require('./src/parser');
+var parser = require('./src/parser');
 var Emitter = require('emmy');
 var isFn = require('mutype/is-fn');
 var isObject = require('mutype/is-object');
@@ -12,6 +12,7 @@ var eachCSV = require('each-csv');
 
 
 var _on = Emitter.on, _off= Emitter.off, _emit = Emitter.emit;
+var getTargets = parser.getTargets, getParts = parser.getParts, getCallback = parser.getCallback;
 
 
 /**
@@ -55,26 +56,68 @@ proto['emit'] = function(){
 };
 
 
+/**
+ * Storage of modified fns for orig fns, per-event
+ *
+ * e.g.
+ * fn: {evt: [cb1, cb2, ...]}
+ */
+var cbCache = new WeakMap;
 
 /**
  * Static wrapper API
  */
 var on = Enot['on'] = function(){
-	invoke(_on, arguments);
+	invoke(function(target, ref, fn){
+		var parts = getParts(ref);
+		var evt = parts[1].split(':')[0];
+		var targets = getTargets(target, parts[0]);
+
+		//get fn wrapper with pseudos applied
+		var modFn = getCallback(target, parts[1], fn);
+
+		//save modified fn to the callback cache to unbind
+		var cbSet, cbList;
+		if (!(cbSet = cbCache.get(fn))) cbCache.set(fn, cbSet = {});
+		cbList = cbSet[evt] || (cbSet[evt] = []);
+		cbList.push(modFn);
+
+		_on(targets, evt, modFn);
+	}, arguments);
+
 	return Enot;
 };
 var off = Enot['off'] = function(){
-	invoke(_off, arguments);
+	invoke(function(target, ref, fn){
+		var parts = getParts(ref);
+		var evt = parts[1].split(':')[0];
+
+		var cbSet = cbCache.get(fn);
+		if (!cbSet) return;
+
+		//get all listeners for the specific fn & evt
+		var cbList = cbSet[evt];
+		_off(target, evt, cbList);
+	}, arguments);
+
 	return Enot;
 };
 var emit = Enot['emit'] = function(){
-	invoke(_emit, arguments);
+	invoke(function(target, ref, fn){
+		var parts = getParts(ref);
+		var evt = parts[1].split(':')[0];
+		var targets = getTargets(target, parts[0]);
+		fn = getCallback(target, parts[1], fn);
+
+		_emit(target, evt, fn);
+	}, arguments);
+
 	return Enot;
 };
 
 
 /** Redirect, parse event notations and call target method */
-function invoke(method, args){
+function invoke(fn, args){
 	var target = args[0], refs = args[1];
 
 	//if no target specified - use mediator
@@ -89,16 +132,18 @@ function invoke(method, args){
 	}
 
 	//ignore absent evtRefs
-	if (!refs) return true;
+	if (!refs) return;
 
 
 	//batch refs
 	if (isObject(refs)) {
-		for (var evtRef in refs){
-			invoke(method, [target, evtRef, refs[evtRef]]);
+		for (var evtRefs in refs){
+			eachCSV(evtRefs, function(evtRef){
+				fn.apply(this, [target, evtRef].concat(refs[evtRef]));
+			});
 		}
 
-		return true;
+		return;
 	}
 
 	//TODO: move to emmy
@@ -108,13 +153,9 @@ function invoke(method, args){
 	// 	return;
 	// }
 
-
-	//bind each comma-separated event reference\
 	eachCSV(refs, function(evtRef){
-		method.apply(target, parseRef(target, evtRef, args[0]));
+		fn.apply(target, [target, evtRef].concat(args));
 	});
-
-	return true;
 }
 
 

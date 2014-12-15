@@ -127,28 +127,14 @@ describe('Emitter class', function(){
 });
 
 
-
-//TODO: structurize these tests
-//TODO: separate functionality tests and corner-cases
-describe("Regression", function(){
-	//TODO: get rid of redirect events, you can always do it manually.
-	it.skip('Redirect source event properly in redirects (keep event info)', function(){
-		var re;
-		Enot.on(document, 'x', 'y');
-		Enot.on(document, 'y', function(re){
-			assert.equal(re, e)
-		});
-
-		Enot.emit(document, new Event('x'));
-	});
-
-	it("fire `one` callback once", function(){
+describe("Pseudos", function(){
+	it("`:once` pseudo", function(){
 		var i = 0, j = 0;
 		Enot.on(document, "hello:once", function(e){
-			e.detail === 123 && i++
+			e.detail === 123 && i++;
 		})
 		Enot.on(document, "hello:once", function(e){
-			e.detail === 123 && i++
+			e.detail === 123 && i++;
 		})
 		Enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
@@ -158,31 +144,36 @@ describe("Regression", function(){
 
 		Enot.emit(document, "hello", 123)
 		assert.equal(i, 2)
-
-		//TODO: add multiple once events assertion (to test proper target fns bound in evtModifiers (there’re no closures))
 	});
+
 
 	it("unbind :once callbacks", function(){
 		var a = document.createElement('div');
-		var log = []
+		var log = [];
 		var fn = function(){log.push(1)};
 
 		Enot.on(a, 'a:once', fn);
-		Enot.on(a, 'a:once', fn);
+		Enot.off(a, 'a', fn);
 		Enot.emit(a, 'a');
 		Enot.emit(a, 'a');
 
-		assert.deepEqual(log, [1]);
+		assert.deepEqual(log, []);
 
 		log = [];
 		Enot.on(a, 'b:once', fn);
 		Enot.off(a, 'b:once', fn);
-		Enot.on(a, 'b:once', fn);
 		Enot.emit(a, 'b');
 		Enot.emit(a, 'b');
 
-		assert.deepEqual(log, [1]);
+		assert.deepEqual(log, []);
 	});
+});
+
+
+//TODO: structurize these tests
+//TODO: separate functionality tests and corner-cases
+describe("Regression", function(){
+
 
 	it("handle :delegate modifier", function(){
 		if (window.mochaPhantomJS) return;
