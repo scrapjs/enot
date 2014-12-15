@@ -292,23 +292,28 @@ describe("Pseudos", function(){
 
 		var el2 = document.createElement("div");
 
-		document.body.appendChild(el)
-		document.body.appendChild(el2)
+		document.body.appendChild(el);
+		document.body.appendChild(el2);
 
-		Enot.on(document.body, "hello:once:delegate(.item)", function(e){
+		Enot.on(document.body, "hello:delegate(.item):once", function(e){
 			e.detail === 123 && i++
 		});
 
-		Enot.emit(document.body, "hello", 123, true)
-		assert.equal(i, 0)
-		Enot.emit(el, "hello", 123, true)
-		assert.equal(i, 1)
-		Enot.emit(el2, "hello", 123, true)
-		assert.equal(i, 1)
-		Enot.emit(el, "hello", 123, true)
-		assert.equal(i, 1)
-		Enot.emit(el, "hello", 123, true)
-		assert.equal(i, 1)
+		console.log('---emit body')
+		Enot.emit(document.body, "hello", 123, true);
+		assert.equal(i, 0);
+		console.log('---emit el')
+		Enot.emit(el, "hello", 123, true);
+		assert.equal(i, 1);
+		console.log('---emit el2')
+		Enot.emit(el2, "hello", 123, true);
+		assert.equal(i, 1);
+		console.log('---emit el')
+		Enot.emit(el, "hello", 123, true);
+		assert.equal(i, 1);
+		console.log('---emit el2')
+		Enot.emit(el, "hello", 123, true);
+		assert.equal(i, 1);
 
 		// once again
 		var i = 0;

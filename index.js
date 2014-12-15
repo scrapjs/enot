@@ -4,16 +4,17 @@
 
 
 var slice = require('sliced');
-var parser = require('./src/parser');
 var Emitter = require('emmy');
 var isFn = require('mutype/is-fn');
 var isObject = require('mutype/is-object');
 var eachCSV = require('each-csv');
 var isString = require('mutype/is-string');
+var unprefix = require('mustring/unprefix');
+var q = require('query-relative');
+var paren = require('parenthesis');
 
 
 var _on = Emitter.on, _off= Emitter.off, _emit = Emitter.emit;
-var getTargets = parser.getTargets, getParts = parser.getParts, getCallback = parser.getCallback;
 
 
 /**
@@ -82,6 +83,7 @@ var on = Enot['on'] = function(){
 		if (!(cbSet = cbCache.get(fn))) cbCache.set(fn, cbSet = {});
 		cbList = cbSet[evt] || (cbSet[evt] = []);
 		cbList.push(modFn);
+
 		_on(targets, evt, modFn);
 	}, arguments);
 
@@ -171,6 +173,169 @@ function invoke(fn, args){
 	//non-string refs
 	fn.apply(target, [target, refs].concat(args));
 }
+
+
+
+
+
+
+
+/**
+ * Detect event/target parts in event reference.
+ * Event reference (basic event notation) looks:
+ * '[target] event'
+ * Event goes last.
+ *
+ * Exact order, in theory, could be detected
+ * because list of exact tags is known
+ * as well as dashed-notation for custom elements
+ * so the order could be guessed
+ * but it complicates parsing
+ * and it is illogical (Subject → Verb scheme is natural).
+ *
+ * @example
+ * 'a b' → ['a', 'b']
+ * 'document click': ['document', 'click']
+ *
+ *
+ * @param  {string}   str   Event notation
+ *
+ * @return {Array}  Result of parsing: ['<target part>', '<event part>']
+ */
+function getParts(str){
+	var result = ['',''];
+
+	//get event name - the last token
+	var eventString = str.match(/[\w\.\:\$\-]+(?:\:[\w\.\:\-\$]+(?:\(.+\))?)*$/)[0];
+
+	//remainder is a target reference - parse target
+	result[0] = str.slice(0, -eventString.length).trim();
+
+	//parse event
+	result[1] = unprefix(eventString, 'on');
+
+	return result;
+}
+
+
+/**
+ * Get target el by a query string
+ *
+ * @param  {Element|Object} target A target(s) to relate
+ * @param  {string}         str    Target reference
+ *
+ * @return {*}                     Resulting target found
+ */
+function getTargets(target, str) {
+	// console.log('parseTarget `' + str + '`', target)
+
+	//no target means global target (mediator)
+	if (!target) target = document;
+
+	//no string means self evt
+	if (!str){
+		return target;
+	}
+
+	//some reserved words
+	if(str === 'window') return window;
+	else if(str === 'document') return document;
+
+	//query relative selector
+	else {
+		return q(target, str, true);
+	}
+}
+
+
+/**
+ * Get callback for the event string
+ * basically wrap passed event
+ *
+ * @example
+ * 'click:once:on(.element)' - apply `once` wrapper, `on` wrapper
+ *
+ * @param {function} fn An initial function to wrap
+ * @param {string} str A string containing event part
+ *
+ * @return {function} Constructed callback for the event string
+ */
+function getCallback(target, evtStr, fn){
+	if (!fn) return;
+
+	var targetFn = fn;
+
+	//escape all parentheses
+	var parens = paren.parse(evtStr);
+
+	//get pseudos list & evt
+	var pseudoList = parens[0].split(':');
+	var evt = pseudoList.shift();
+
+	//wrap each modifier
+	pseudoList
+	//:once should go last
+	.sort(function(a, b){
+		if (a === 'once' || a === 'one') return -1;
+		if (b === 'once' || b === 'one') return 1;
+		return 0;
+	})
+	.forEach(function(pseudo){
+		//get pseudo name/ref parts from parenthesis token
+		var parts = pseudo.split('\\');
+
+		var pseudoName = parts[0];
+		var pseudoParams = parens[parts[1]];
+
+		//for :once method pass special `off` as param
+		if (!pseudoParams) pseudoParams = function(target, evt, cb){
+			off(target, evt, cb);
+			off(target, evt, fn);
+		};
+
+		if (pseudos[pseudoName]) {
+			targetFn = pseudos[pseudoName](target, evt, targetFn, pseudoParams);
+		}
+	});
+
+	return targetFn;
+}
+
+
+
+/**
+ * Dics of pseudos.
+ * Includes all xtags ones: delegate, pass.
+ *
+ * @module  enot/pseudos
+ */
+
+var pseudos = {};
+
+pseudos.on =
+pseudos.delegate =
+require('emmy/delegate').wrap;
+
+pseudos.pass =
+pseudos.keypass =
+require('emmy/keypass').wrap;
+
+pseudos.one =
+pseudos.once =
+require('emmy/once').wrap;
+
+pseudos.throttle =
+require('emmy/throttle').wrap;
+
+pseudos.later =
+require('emmy/later').wrap;
+
+
+pseudos.order = [
+	'one', 'once'
+];
+
+
 
 
 module.exports = Enot;
