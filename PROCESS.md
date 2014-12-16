@@ -37,3 +37,6 @@
 * Avoid CSV's - you can always pass list or object with separate items.
 	* 'click:a, click:b' → ['click:a', 'click:b']
 	* 'a, b': {...} → 'a: {...}, b: {...}'
+
+* :not(.a) is different scenario than :on(:not(.a)).
+	* First ignores calls from `.a` element, second catches calls on from any element not `.a`, inc. from `.a` and in-between.

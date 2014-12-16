@@ -71,6 +71,8 @@ var cbCache = new WeakMap;
  */
 var on = Enot['on'] = function(){
 	invoke(function(target, ref, fn){
+		if (!fn) return;
+
 		var parts = getParts(ref);
 		var evt = parts[1].split(':')[0];
 		var targets = getTargets(target, parts[0]);
@@ -90,20 +92,25 @@ var on = Enot['on'] = function(){
 	return Enot;
 };
 var off = Enot['off'] = function(){
-	invoke(function(target, ref, fn){
+	invoke(function (target, ref, fn) {
 		var parts = getParts(ref);
 		var evt = parts[1].split(':')[0];
 		var targets = getTargets(target, parts[0]);
 
-		var cbSet = cbCache.get(fn);
-		if (!cbSet) return;
+		if (fn) {
+			var cbSet = cbCache.get(fn);
+			if (!cbSet) return;
 
-		//get all listeners for the specific fn & evt
-		var cbList = cbSet[evt];
-		_off(targets, evt, cbList);
+			//get all listeners for the specific fn & evt
+			var cbList = cbSet[evt];
+			_off(targets, evt, cbList);
 
-		//clean cb reference
-		cbSet[evt] = null;
+			//clean cb reference
+			cbSet[evt] = null;
+		}
+		else {
+			_off(targets, evt);
+		}
 	}, arguments);
 
 	return Enot;
@@ -137,7 +144,9 @@ function invoke(fn, args){
 
 	//if no target specified - use mediator
 	//refs can be both object/string, so first check an fn
-	if (isFn(refs)) {
+	// emit('document click'), emit(document, 'click')
+	// on(document, {sett}), on('document sett')
+	if (isFn(refs) || isString(target)) {
 		target = null;
 		refs = args[0];
 		args = slice(args, 1);
@@ -146,7 +155,7 @@ function invoke(fn, args){
 		args = slice(args, 2);
 	}
 
-	//ignore absent evtRefs
+	//ignore absent evtRefs/fn
 	if (!refs) return;
 
 
@@ -155,7 +164,7 @@ function invoke(fn, args){
 		for (var evtRefs in refs){
 			eachCSV(evtRefs, function(evtRef){
 				fn.apply(this, [target, evtRef].concat(refs[evtRef]));
-			})
+			});
 		}
 
 		return;
@@ -173,7 +182,6 @@ function invoke(fn, args){
 	//non-string refs
 	fn.apply(target, [target, refs].concat(args));
 }
-
 
 
 
@@ -285,7 +293,7 @@ function getCallback(target, evtStr, fn){
 		var parts = pseudo.split('\\');
 
 		var pseudoName = parts[0];
-		var pseudoParams = parens[parts[1]];
+		var pseudoParams = paren.stringify(parens[parts[1]], parens);
 
 		//for :once method pass special `off` as param
 		if (!pseudoParams) pseudoParams = function(target, evt, cb){

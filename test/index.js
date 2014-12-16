@@ -299,19 +299,19 @@ describe("Pseudos", function(){
 			e.detail === 123 && i++
 		});
 
-		console.log('---emit body')
+		// console.log('---emit body')
 		Enot.emit(document.body, "hello", 123, true);
 		assert.equal(i, 0);
-		console.log('---emit el')
+		// console.log('---emit el')
 		Enot.emit(el, "hello", 123, true);
 		assert.equal(i, 1);
-		console.log('---emit el2')
+		// console.log('---emit el2')
 		Enot.emit(el2, "hello", 123, true);
 		assert.equal(i, 1);
-		console.log('---emit el')
+		// console.log('---emit el')
 		Enot.emit(el, "hello", 123, true);
 		assert.equal(i, 1);
-		console.log('---emit el2')
+		// console.log('---emit el2')
 		Enot.emit(el, "hello", 123, true);
 		assert.equal(i, 1);
 
@@ -333,6 +333,80 @@ describe("Pseudos", function(){
 		assert.equal(i, 1)
 		Enot.emit(el, createKeyEvt("keydown", 27), 123, true)
 		assert.equal(i, 2)
+	});
+
+	it(":not(selector)", function(){
+		var i = 0, j = 0;
+
+		var a = document.createElement('div');
+		a.className = 'a';
+
+		document.body.appendChild(a);
+
+		var b = document.createElement('div');
+		b.className = 'b';
+		a.appendChild(b);
+		var c = document.createElement('div');
+		c.className = 'c';
+		b.appendChild(c);
+		var d = document.createElement('span');
+		d.className = 'd';
+		c.appendChild(d);
+
+		Enot.on(':root click:not(.a)', function(){
+			i++
+		});
+		Enot.on('.b click:not(.c)', function(){
+			j++
+		})
+		// console.log('--------emit body click');
+		Enot.emit('body click', null, true);
+		assert.equal(i, 1);
+
+		// console.log('--------emit a click');
+		Enot.emit(a, 'click', null, true);
+		Enot.emit(b, 'click', null, true);
+		Enot.emit(c, 'click', null, true);
+		Enot.emit(d, 'click', null, true);
+		assert.equal(i, 1);
+		assert.equal(j, 1);
+	});
+
+	it(":not on elements which are no more in DOM", function(){
+		var a = document.createElement('div');
+		a.className = 'a';
+		a.innerHTML = '<span></span>'
+		document.body.appendChild(a);
+
+		var i = 0;
+
+
+		Enot.on(a, 'click', function(){
+			this.innerHTML = '<span></span>'
+		})
+		Enot.on('document click:not(.a)', function(e){
+			i++
+		});
+		// console.log('----emit click', a.firstChild)
+		Enot.emit(a.firstChild, 'click', true, true);
+
+		assert.equal(i, 0);
+	})
+
+	it(":later, :later(), :later(N)", function(done){
+		var a = document.createElement('div');
+		var i = 0;
+
+		Enot.on(a, 'dsd:later(100)', function(){
+			i++;
+		});
+		Enot.emit(a, 'dsd');
+		assert.equal(i, 0);
+
+		setTimeout(function(){
+			assert.equal(i, 1);
+			done();
+		}, 110);
 	});
 });
 
@@ -403,24 +477,24 @@ describe("Regression", function(){
 		assert.equal(i, 1);
 	});
 
-	it("recognize & fire listed declarations", function(){
+	it("listed declarations", function(){
 		var i = 0,
 			target = {
-			a: {},
-			b: document.body
-		}
+				a: {},
+				b: document.body
+			}
 
-		Enot.on(target, '@a x, @a y, @b z', function(){
+		Enot.on(target, 'x, y, z', function(){
 			i++;
 		});
-		Enot.on(document, 'f', function(){
+		Enot.on(document, 'f,z', function(){
 			i++
 		})
 
-		Enot.emit(target.a, 'x,y');
+		Enot.emit(target, 'x,y');
 		assert.equal(i, 2);
 
-		Enot.emit(document.body, 'z,document f');
+		Enot.emit(document.body, 'z,document f', null, true);
 		assert.equal(i,4);
 	});
 
@@ -473,40 +547,6 @@ describe("Regression", function(){
 		}, 240)
 	});
 
-	it("deep properties access", function(){
-		var i = 0;
-		var a = {
-			b:{
-				c: {
-
-				}
-			}
-		}
-		Enot.on(a, '@b.c c', function(){
-			i++
-		})
-		Enot.emit(a.b.c, 'c');
-
-		assert.equal(i, 1);
-	});
-
-	// <!-- `@childNodes click` - catch click on every children -->
-	it("handling list of targets", function(){
-		var i = 0;
-
-		var a = {
-			children: [{}, {}, {}]
-		};
-
-		Enot.on(a, '@children x', function(){
-			i++
-		});
-
-		Enot.emit(a, '@children x');
-
-		assert.equal(i, 3);
-	});
-
 	// <!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
 	it("key modifiers");
 
@@ -516,8 +556,11 @@ describe("Regression", function(){
 	// <!-- `touch` - normalized crossbrowser gesture -->
 	it("normalized touch");
 
+	//normalized crossbrowser animend
+	it("animend");
+
 	// <!-- `all` - call on any event -->
-	it("all events");
+	it("any event");
 
 	it("absent target", function(){
 		var i = 0;
@@ -526,6 +569,7 @@ describe("Regression", function(){
 			i++
 		};
 		Enot.on("document click", inc);
+		// console.log('---emit')
 		Enot.emit("document click");
 		Enot.emit(document, "click");
 
@@ -539,60 +583,6 @@ describe("Regression", function(){
 		Enot.emit("document click");
 		Enot.emit(document, "click");
 		assert.equal(i, 3);
-	});
-
-	it(":not(selector) modifier", function(){
-		var i = 0, j = 0;
-
-		var a = document.createElement('div');
-		a.className = 'a';
-
-		document.body.appendChild(a);
-
-		var b = document.createElement('div');
-		b.className = 'b';
-		a.appendChild(b);
-		var c = document.createElement('div');
-		c.className = 'c';
-		b.appendChild(c);
-		var d = document.createElement('span');
-		d.className = 'd';
-		c.appendChild(d);
-
-		Enot.on(':root click:not(.a)', function(){
-			i++
-		});
-		Enot.on('.b click:not(.c)', function(){
-			j++
-		})
-		// console.log('--------emit body click');
-		Enot.emit('body click', null, true);
-		assert.equal(i, 1);
-
-		// console.log('--------emit a click');
-		Enot.emit(a, 'click', null, true);
-		Enot.emit(b, 'click', null, true);
-		Enot.emit(c, 'click', null, true);
-		Enot.emit(d, 'click', null, true);
-		assert.equal(i, 1);
-		assert.equal(j, 1);
-	});
-
-	it.skip(":not(@prop) modifier", function(){
-		var i = 0, j = 0;
-
-		var a = document.createElement('div');
-		document.body.appendChild(a);
-
-		Enot.on(a, 'click:not(this)', function(){
-			i++
-		});
-
-		Enot.emit('body click');
-		assert.equal(i, 1);
-
-		Enot.emit(a, 'click');
-		assert.equal(i, 1);
 	});
 
 	it(":delegate() currentTarget & target", function(){
@@ -646,6 +636,7 @@ describe("Regression", function(){
 
 	it("ignore empty callback", function(){
 		var i = 0;
+
 		var target = {
 			a: function(){
 				i++
@@ -665,66 +656,7 @@ describe("Regression", function(){
 		assert.equal(i, 0);
 	});
 
-	//deprecated - you can always redirect yourself by an fn.
-	it.skip("handle redirect events", function(){
-		var log = [];
-
-		var target = {
-			a: function(e){
-				log.push('a')
-			},
-			b: function(e){
-				log.push('b')
-			}
-		}
-		Enot.on(target, 'a', target.a);
-		Enot.on(target,'z', 'a, b');
-		// console.log('---emit z')
-		Enot.emit(target, 'z');
-		assert.deepEqual(log, ['a']);
-
-		Enot.off(target, 'a', target.a);
-		Enot.on(target, 'b', target.b);
-		Enot.emit(target, 'z');
-		assert.deepEqual(log, ['a', 'b']);
-
-		Enot.off(target,'z', 'a, b');
-		Enot.emit(target, 'z');
-		assert.deepEqual(log, ['a', 'b']);
-	});
-
-	it('bind numeric values', function(){
-		Enot.on({1: function(){}}, 1, 1);
-		Enot.off({1: function(){}}, 1, 1);
-		Enot.emit({1: function(){}}, 1);
-	});
-
-	//deprecated
-	it.skip('keep context of redirects', function(){
-		var i = 0;
-		var target = {
-			z:{},
-			inc: function(){
-				assert.equal(this, target);
-				i++;
-			}
-		};
-
-		Enot.on(target, 'inc', target.inc);
-		// console.log('----on @z')
-		Enot.on(target, '@z click', 'inc');
-
-		// console.log('----emit click')
-		Enot.emit(target.z, 'click');
-		assert.equal(i,1);
-
-		Enot.off(target, '@z click', 'inc')
-
-		Enot.emit(target.z, 'click');
-		assert.equal(i,1);
-	});
-
-	it("target order in notation agnostic");
+	it("target order notation agnostic");
 
 	it("no target means viewport === any event of this type", function(){
 		var i = 0;
@@ -739,11 +671,6 @@ describe("Regression", function(){
 		Enot.emit('a');
 		assert.equal(i, 1);
 	});
-
-	it("access undefined properties", function(){
-		Enot.on({}, '@x.y', function(){})
-	});
-
 
 	it("multiple off", function(){
 		var i = 0;
@@ -763,22 +690,6 @@ describe("Regression", function(){
 		Enot.emit(a, 'x');
 		Enot.emit(a, 'y');
 		assert.equal(i, 2);
-	});
-
-	it(":defer, :defer(), :defer(N)", function(done){
-		var a = document.createElement('div');
-		var i = 0;
-
-		Enot.on(a, 'dsd:defer(100)', function(){
-			i++;
-		});
-		Enot.emit(a, 'dsd');
-		assert.equal(i, 0);
-
-		setTimeout(function(){
-			assert.equal(i, 1);
-			done();
-		}, 110);
 	});
 
 	it('keep target objects untouched (jQuery intrusion)', function(){
@@ -864,66 +775,7 @@ describe("Regression", function(){
 		assert.deepEqual(log, [1]);
 	})
 
-	it("yas case: @a evt, :root evt, evt", function(){
-		var i = 0;
-
-		var a = document.createElement('div');
-		a.className = 'a'
-		a.a = document.createElement('div');
-		a.a.className = 'inner-a'
-		a.inc = function(){i++};
-		document.body.appendChild(a);
-
-
-		Enot.on(a, 'inc', a.inc);
-		// console.log('----bind three')
-		Enot.on(a, '@a evt, :root body evt, evt', 'inc');
-
-		// console.log('---emit inner evt')
-		Enot.emit(a.a, 'evt');
-		assert.equal(i, 1);
-		// console.log('---emit body evt')
-		Enot.emit(document.body, 'evt');
-		assert.equal(i, 2);
-
-		Enot.emit(a, 'evt');
-
-		assert.equal(i, 3);
-	})
-
-	it.skip("keep context on external redirected events", function(){
-		var i = 0;
-		var a = {
-			y:function(){
-				// console.log('ay')
-				i++
-			},
-			x:1
-		};
-		var b = {
-			y:function(){
-				// console.log('by')
-				i++
-			},
-			x:2
-		};
-
-		// console.log('---bind targets')
-		Enot.on(a, 'y', a.y);
-		Enot.on(b, 'y', b.y);
-		// console.log('---bind window')
-		Enot.on(a, 'window x', 'y');
-		Enot.on(b, 'window x', 'y');
-
-		// console.log('---emit window x')
-		Enot.emit('window x');
-		assert.equal(i, 2);
-
-		Enot.emit(window, 'x');
-		assert.equal(i, 4);
-	})
-
-	it("prevent planned :defer call via off", function(done){
+	it("prevent planned :later emit call via off", function(done){
 		var i = 0, a = {};
 
 		var inc = function(){
@@ -931,8 +783,8 @@ describe("Regression", function(){
 		}
 		Enot.on(a, 'x', inc);
 
-		Enot.emit(a, 'x:defer(50)');
-		Enot.emit(a, 'x:defer(100)');
+		Enot.emit(a, 'x:later(50)');
+		Enot.emit(a, 'x:later(100)');
 
 		setTimeout(function(){
 			assert.equal(i, 1);
@@ -982,54 +834,6 @@ describe("Regression", function(){
 		assert.equal(i, 2);
 	});
 
-	it(":not on elements which are no more in DOM", function(){
-		var a = document.createElement('div');
-		a.className = 'a';
-		a.innerHTML = '<span></span>'
-		document.body.appendChild(a);
-
-		var i = 0;
-
-
-		Enot.on(a, 'click', function(){
-			this.innerHTML = '<span></span>'
-		})
-		Enot.on('document click:not(.a)', function(e){
-			i++
-		});
-		// console.log('----emit click', a.firstChild)
-		Enot.emit(a.firstChild, 'click', true, true);
-
-		assert.equal(i, 0);
-	})
-
-	it("stopPropagation shortcut", function(){
-		var i = 0;
-		var a = document.createElement('div');
-		document.body.appendChild(a);
-
-		Enot.on(document.body, 'click', function(){
-			i++;
-		})
-		Enot.emit(a, 'click', true, true);
-		assert.equal(i, 1);
-
-		Enot.on(a, 'click', 'stopPropagation');
-		Enot.emit(a, 'click', true, true);
-		assert.equal(i, 1);
-	})
-
-	it("preventDefault shortcut", function(){
-		var i = 0;
-		var a = document.createElement('a');
-		document.body.appendChild(a);
-		a.href="#xxx";
-		Enot.on(a, 'click', 'preventDefault');
-		document.location.hash = '';
-		Enot.emit(a, 'click', true, true);
-		assert.notEqual(document.location.hash, '#xxx')
-	})
-
 	it.skip("emit event instances passed", function(){
 		//faced this case in MOD with Enot.emit(a,b, event) in redirector
 		//faced this case in draggy when I needed emit(Draggy.element, 'mouseenter', outerMouseEvent);
@@ -1048,51 +852,6 @@ describe("Regression", function(){
 	})
 
 	it('jQuery event separator (.)')
-
-	it('Catch :defer redirector (draggy case - it shouldn’t work)', function(done){
-		var a = {
-			track: function(){}
-		};
-		var i = 0;
-		Enot.on(a,'track', a.track);
-		Enot.emit(a, 'track:defer');
-		Enot.off(a,'track', a.track)
-		//make track change after emit
-		a.track = function(){
-			i++
-		}
-		Enot.on(a,'track',a.track)
-		setTimeout(function(){
-			assert.equal(i, 1);
-			done();
-		})
-	})
-
-	it('stringy modifiers', function(){
-		var a = document.createElement('div');
-		var b = document.createElement('div');
-		a.className = 'special';
-
-		document.body.appendChild(a);
-		document.body.appendChild(b);
-
-		var i = 0;
-
-		var x = {
-			inc: function(){
-				i++
-			}
-		}
-
-		Enot.on(x, 'inc', x.inc)
-		Enot.on(x, 'document x:not(.special)', 'inc');
-
-		Enot.emit(b, 'x', true, true);
-		assert.equal(i, 1);
-
-		Enot.emit(a, 'x', true, true);
-		assert.equal(i, 1);
-	})
 
 	it('one method', function(){
 		var i = 0;
@@ -1140,22 +899,6 @@ describe("Regression", function(){
 		Enot.once('a, b', function(){
 
 		})
-	})
-
-	it('keep context of inner references', function(){
-		var i = 0;
-		var target = {z: {f: 1}};
-		var a = {
-			'@z x': function() {
-				assert.equal(this, target)
-				i++
-			}
-		}
-
-		Enot.on(target, a);
-		Enot.emit(target.z, 'x');
-
-		assert.equal(i, 1);
 	})
 
 	it.skip('forward redirected event params', function(){

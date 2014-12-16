@@ -7,14 +7,14 @@
 	<a href="UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
 </h1>
 
-Enot is [emitter](http://github.com/dfcreative/emmy) extension with humanized <em>e</em>vents <em>not</em>ation. It is like [xtags events](http://www.x-tags.org/docs#pseudos) standalone with additional [pseudos](#pseudos).
+Enot is [emitter](http://github.com/dfcreative/emmy) extension with humanized **e**vents **not**ation. It is [xtags events](http://www.x-tags.org/docs#pseudos) standalone with additional [pseudos](#pseudos).
 
 <img src="https://cdn.rawgit.com/dfcreative/enot/design/logo.png" height="140"/>
 
 
 # Install
 
-To use in browser use browserify or carefully [browserified for you build](enot.js).
+To use in browser use browserify or [build](enot.js) (_3kb gzipped_).
 
 `$ npm install enot`
 
@@ -138,16 +138,18 @@ Basic event declaration syntax:
 
 # Pseudos
 
-You can use the following modifiers for events:
+Use the following pseudos for events as `click:<pseudo>`.
 
-* `:once`, (jquery `:one`) — fire callback once.
-* `:on(selector)`, (xtags `:delegate(selector)`) — listen for bubbled event on elements mathing selector.
-* `:not(selector)` — the opposite to `delegate`—ignore bubbled event on elements matching selector.
-* `:pass(code|keyname)`, (xtags `:keypass(keyname)`) — filter event by `code`. Useful for keyboard/mouse events. Full list of codes can be found in [key-name](https://github.com/dfcreative/key-name).
-* `:delay(100)` — invoke callback 100 ms after.
-* `:throttle(20)` — invoke callbak not more than once per 20 ms.
+Pseudo | Alias | Description
+---|---|---
+`:once` | `:one` | fire callback once.
+`:on(selector)` | (xtags `:delegate(selector)`) | listen for bubbled event on elements mathing selector.
+`:not(selector)` | | the opposite to `delegate`—ignore bubbled event on elements matching selector.
+`:pass(codes/keynames)` | `:keypass(codes/keynames)` | filter event by `code`. Useful for keyboard/mouse events. Full list of codes can be found in [key-name](https://github.com/dfcreative/key-name). Use as `:keypass(enter, 25, 26)`.
+`:later(100)` | | invoke callback 100 ms after.
+`:throttle(20)` | | invoke callbak not more than once per 20 ms.
 
-Modifiers can be combined, e.g. `click:once:on(.inner-tag):pass(right_mouse):delay(50)`.
+Modifiers can be combined, e.g. `click:once:on(.inner-tag):not(.ignore):pass(rightmouse):delay(50)`.
 
 
 
