@@ -5,16 +5,20 @@
 
 var slice = require('sliced');
 var Emitter = require('emmy');
+var eachCSV = require('each-csv');
 var isFn = require('mutype/is-fn');
 var isObject = require('mutype/is-object');
-var eachCSV = require('each-csv');
 var isString = require('mutype/is-string');
+var isArrayLike = require('mutype/is-array-like');
 var unprefix = require('mustring/unprefix');
 var q = require('query-relative');
 var paren = require('parenthesis');
 
 
 var _on = Emitter.on, _off= Emitter.off, _emit = Emitter.emit;
+
+
+//TODO: query multiple targets in on/off/emit - now callback is got improperly
 
 
 /**
@@ -66,6 +70,7 @@ proto['emit'] = function(){
  */
 var cbCache = new WeakMap;
 
+
 /**
  * Static wrapper API
  */
@@ -78,7 +83,7 @@ var on = Enot['on'] = function(){
 		var targets = getTargets(target, parts[0]);
 
 		//get fn wrapper with pseudos applied
-		var modFn = getCallback(target, parts[1], fn);
+		var modFn = getCallback(targets, parts[1], fn);
 
 		//save modified fn to the callback cache to unbind
 		var cbSet, cbList;
@@ -97,20 +102,16 @@ var off = Enot['off'] = function(){
 		var evt = parts[1].split(':')[0];
 		var targets = getTargets(target, parts[0]);
 
+		_off(targets, evt);
+
+		//clean cb reference
 		if (fn) {
 			var cbSet = cbCache.get(fn);
 			if (!cbSet) return;
 
-			//get all listeners for the specific fn & evt
-			var cbList = cbSet[evt];
-			_off(targets, evt, cbList);
-
-			//clean cb reference
 			cbSet[evt] = null;
 		}
-		else {
-			_off(targets, evt);
-		}
+
 	}, arguments);
 
 	return Enot;
@@ -149,15 +150,26 @@ function invoke(fn, args){
 	if (isFn(refs) || isString(target)) {
 		target = null;
 		refs = args[0];
-		args = slice(args, 1);
+		args = slice(args, 0);
 	}
 	else {
-		args = slice(args, 2);
+		args = slice(args, 1);
 	}
 
 	//ignore absent evtRefs/fn
 	if (!refs) return;
 
+
+	//redirect list of targets
+	if (isArrayLike(target)) {
+		for (var i = target.length; i--;){
+			invoke(fn, [target[i]].concat(args));
+		}
+		return;
+	}
+
+	//shorten args, exclude refs
+	args = slice(args, 1);
 
 	//batch refs
 	if (isObject(refs)) {
@@ -178,7 +190,6 @@ function invoke(fn, args){
 
 		return;
 	}
-
 	//non-string refs
 	fn.apply(target, [target, refs].concat(args));
 }
@@ -323,6 +334,9 @@ var pseudos = {};
 pseudos.on =
 pseudos.delegate =
 require('emmy/delegate').wrap;
+
+pseudos.not =
+require('emmy/not').wrap;
 
 pseudos.pass =
 pseudos.keypass =

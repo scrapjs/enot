@@ -35,6 +35,7 @@ describe('Static API', function(){
 		var i = 0;
 		var cb = function(e){
 			assert.equal(e.detail, 123);
+			console.log('off')
 			Enot.off(document, "hello", cb);
 			i++;
 		};
@@ -56,8 +57,10 @@ describe('Static API', function(){
 			i++;
 		}
 
+		// console.log('---on')
 		Enot.on(targets, 'x', fn)
-			.emit(targets, 'x');
+		// console.log('---emit')
+		Enot.emit(targets, 'x');
 
 		assert.equal(i, 3);
 
@@ -111,7 +114,6 @@ describe('Static API', function(){
 
 
 
-
 describe('Emitter class', function(){
 	it('inherit Enot', function(){
 		var A = function(){};
@@ -127,6 +129,7 @@ describe('Emitter class', function(){
 });
 
 
+
 describe("Pseudos", function(){
 	it("`:once` pseudo", function(){
 		var i = 0, j = 0;
@@ -136,14 +139,14 @@ describe("Pseudos", function(){
 		Enot.on(document, "hello:once", function(e){
 			e.detail === 123 && i++;
 		})
-		Enot.emit(document, "hello", 123)
-		assert.equal(i, 2)
+		Enot.emit(document, "hello", 123);
+		assert.equal(i, 2);
 
-		Enot.emit(document, "hello", 123)
-		assert.equal(i, 2)
+		Enot.emit(document, "hello", 123);
+		assert.equal(i, 2);
 
-		Enot.emit(document, "hello", 123)
-		assert.equal(i, 2)
+		Enot.emit(document, "hello", 123);
+		assert.equal(i, 2);
 	});
 
 
@@ -206,7 +209,6 @@ describe("Pseudos", function(){
 
 		// Enot.off(document.body, "document hello:delegate(div)", inc);
 	});
-
 
 
 	it("click:pass pseudo", function(){
@@ -353,20 +355,26 @@ describe("Pseudos", function(){
 		d.className = 'd';
 		c.appendChild(d);
 
+		console.log('--------on :root click');
 		Enot.on(':root click:not(.a)', function(){
 			i++
 		});
+		console.log('--------on .b click');
 		Enot.on('.b click:not(.c)', function(){
 			j++
 		})
-		// console.log('--------emit body click');
+
+		console.log('--------emit body click');
 		Enot.emit('body click', null, true);
 		assert.equal(i, 1);
 
-		// console.log('--------emit a click');
+		console.log('--------emit a click');
 		Enot.emit(a, 'click', null, true);
+		console.log('--------emit b click');
 		Enot.emit(b, 'click', null, true);
+		console.log('--------emit c click');
 		Enot.emit(c, 'click', null, true);
+		console.log('--------emit d click');
 		Enot.emit(d, 'click', null, true);
 		assert.equal(i, 1);
 		assert.equal(j, 1);
