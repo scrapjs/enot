@@ -3,6 +3,23 @@ var Enot = typeof Enot !== 'undefined' ? Enot : require('..');
 var assert = typeof chai !== 'undefined' ? chai.assert : require('chai').assert;
 
 
+//polyfill
+if (!Node.prototype.contains) {
+  Node.prototype.contains = function contains(node) {
+    if (!(0 in arguments)) {
+      throw new TypeError('1 argument is required');
+    }
+
+    do {
+      if (this === node) {
+        return true;
+      }
+    } while (node = node && node.parentNode);
+
+    return false;
+  };
+}
+
 
 //create testing tree
 var c = document.createElement('div');
@@ -35,7 +52,7 @@ describe('Static API', function(){
 		var i = 0;
 		var cb = function(e){
 			assert.equal(e.detail, 123);
-			console.log('off')
+			// console.log('off')
 			Enot.off(document, "hello", cb);
 			i++;
 		};
@@ -64,6 +81,7 @@ describe('Static API', function(){
 
 		assert.equal(i, 3);
 
+		// console.log('---off')
 		Enot.off(targets, 'x', fn)
 			.emit(targets, 'x');
 
@@ -135,16 +153,19 @@ describe("Pseudos", function(){
 		var i = 0, j = 0;
 		Enot.on(document, "hello:once", function(e){
 			e.detail === 123 && i++;
-		})
+		});
 		Enot.on(document, "hello:once", function(e){
 			e.detail === 123 && i++;
-		})
+		});
+		// console.log('--emit')
 		Enot.emit(document, "hello", 123);
 		assert.equal(i, 2);
 
+		// console.log('--emit2')
 		Enot.emit(document, "hello", 123);
 		assert.equal(i, 2);
 
+		// console.log('--emit3')
 		Enot.emit(document, "hello", 123);
 		assert.equal(i, 2);
 	});
@@ -302,7 +323,7 @@ describe("Pseudos", function(){
 		});
 
 		// console.log('---emit body')
-		Enot.emit(document.body, "hello", 123, true);
+		Enot.emit(document, "hello", 123, true);
 		assert.equal(i, 0);
 		// console.log('---emit el')
 		Enot.emit(el, "hello", 123, true);
@@ -355,26 +376,26 @@ describe("Pseudos", function(){
 		d.className = 'd';
 		c.appendChild(d);
 
-		console.log('--------on :root click');
+		// console.log('--------on :root click');
 		Enot.on(':root click:not(.a)', function(){
 			i++
 		});
-		console.log('--------on .b click');
+		// console.log('--------on .b click');
 		Enot.on('.b click:not(.c)', function(){
 			j++
 		})
 
-		console.log('--------emit body click');
+		// console.log('--------emit body click');
 		Enot.emit('body click', null, true);
 		assert.equal(i, 1);
 
-		console.log('--------emit a click');
+		// console.log('--------emit a click');
 		Enot.emit(a, 'click', null, true);
-		console.log('--------emit b click');
+		// console.log('--------emit b click');
 		Enot.emit(b, 'click', null, true);
-		console.log('--------emit c click');
+		// console.log('--------emit c click');
 		Enot.emit(c, 'click', null, true);
-		console.log('--------emit d click');
+		// console.log('--------emit d click');
 		Enot.emit(d, 'click', null, true);
 		assert.equal(i, 1);
 		assert.equal(j, 1);
@@ -383,16 +404,20 @@ describe("Pseudos", function(){
 	it(":not on elements which are no more in DOM", function(){
 		var a = document.createElement('div');
 		a.className = 'a';
-		a.innerHTML = '<span></span>'
+		a.innerHTML = '<span class="x"></span>'
 		document.body.appendChild(a);
 
 		var i = 0;
 
 
 		Enot.on(a, 'click', function(){
+			// console.log('---a click', this)
 			this.innerHTML = '<span></span>'
 		})
+
+		//look how element caused the event has been removed from DOM in the first callback, but doc is still triggered by it
 		Enot.on('document click:not(.a)', function(e){
+			// console.log('---document click', this, a.innerHTML)
 			i++
 		});
 		// console.log('----emit click', a.firstChild)
@@ -783,29 +808,6 @@ describe("Regression", function(){
 		assert.deepEqual(log, [1]);
 	})
 
-	it("prevent planned :later emit call via off", function(done){
-		var i = 0, a = {};
-
-		var inc = function(){
-			i++
-		}
-		Enot.on(a, 'x', inc);
-
-		Enot.emit(a, 'x:later(50)');
-		Enot.emit(a, 'x:later(100)');
-
-		setTimeout(function(){
-			assert.equal(i, 1);
-
-			Enot.off(a, 'x', inc);
-		}, 55)
-
-		setTimeout(function(){
-			assert.equal(i, 1);
-			done();
-		}, 110);
-	});
-
 	it("bind dotted notations", function(){
 		var a = {
 			inc: function(){
@@ -880,44 +882,11 @@ describe("Regression", function(){
 	})
 
 
-	it.skip('Emitter compliance', function(){
-		//TODO: test readme docs
-	});
-
-	it.skip('Chainable target & static methods', function(){
-	});
-
-	it.skip('Bind to the specific context', function(){
-		//DEPRECATED: bind methods manually, if you need to do so
-		var a = {},
-			b = {};
-
-		Enot.on.call(a, b, {
-			'x': function(){assert.equal(this, a)}
-		});
-
-		Enot.on(b, {
-			'x': function(){assert.equal(this, b)}
-		});
-
-		Enot.emit(b, 'x');
-	})
-
 	it.skip('test lists in .once', function(){
 		Enot.once('a, b', function(){
 
 		})
 	})
-
-	it.skip('forward redirected event params', function(){
-		Enot.on(a, 'x', 'y');
-
-		a.y = function(e){
-			// assert.equal(e is an x event)
-		}
-
-		dispatchEvt(a, 'x');
-	});
 
 	it('a function shared between targets', function(){
 		var a = {};

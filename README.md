@@ -7,7 +7,7 @@
 	<a href="UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
 </h1>
 
-Enot is [emitter](http://github.com/dfcreative/emmy) extension with humanized **e**vents **not**ation. It is [xtags events](http://www.x-tags.org/docs#pseudos) standalone with additional [pseudos](#pseudos).
+Enot is handy events binder with humanized **e**vents **not**ation. It is like [xtags events](http://www.x-tags.org/docs#pseudos) standalone with additional [pseudos](#pseudos).
 
 <img src="https://cdn.rawgit.com/dfcreative/enot/design/logo.png" height="140"/>
 
@@ -32,10 +32,10 @@ TODO
 ### Wrap objects
 
 ```js
-enot.on(target, 'document click:pass(rightmouse)', callback);
-enot.one(target, 'document click:pass(rightmouse)', callback);
-enot.off(target, 'document click:pass(rightmouse)', callback);
-enot.emit(target, 'document click:pass(rightmouse)');
+enot.on('document click:pass(rightmouse)', callback);
+enot.one('document click:pass(rightmouse)', callback);
+enot.off('document click:pass(rightmouse)', callback);
+enot.emit('document click:pass(rightmouse)');
 ```
 
 Might be useful if you want to use events "externally", not touching the initial objects — e. g. HTMLElements, jQuery objects etc.

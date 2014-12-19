@@ -40,6 +40,12 @@ function Enot(target){
 }
 
 
+/** Adopt static methods */
+for (var meth in Emitter){
+	Enot[meth] = Emitter[meth];
+}
+
+
 
 /**
  * Prototype should be instanceof Emitter
@@ -80,10 +86,9 @@ var on = Enot['on'] = function(){
 
 		var parts = getParts(ref);
 		var evt = parts[1].split(':')[0];
-		var targets = getTargets(target, parts[0]);
 
 		//get fn wrapper with pseudos applied
-		var modFn = getCallback(targets, parts[1], fn);
+		var modFn = getCallback(target, parts[1], fn);
 
 		//save modified fn to the callback cache to unbind
 		var cbSet, cbList;
@@ -91,7 +96,7 @@ var on = Enot['on'] = function(){
 		cbList = cbSet[evt] || (cbSet[evt] = []);
 		cbList.push(modFn);
 
-		_on(targets, evt, modFn);
+		_on(target, evt, modFn);
 	}, arguments);
 
 	return Enot;
@@ -100,16 +105,24 @@ var off = Enot['off'] = function(){
 	invoke(function (target, ref, fn) {
 		var parts = getParts(ref);
 		var evt = parts[1].split(':')[0];
-		var targets = getTargets(target, parts[0]);
-
-		_off(targets, evt);
 
 		//clean cb reference
 		if (fn) {
 			var cbSet = cbCache.get(fn);
 			if (!cbSet) return;
 
-			cbSet[evt] = null;
+			var cbList = cbSet[evt];
+
+			if (!cbList) return;
+
+			for (var i = cbList.length; i--;){
+				_off(target, evt, cbList[i]);
+
+				//FIXME: remove reference to avoid leaks
+				// cbList.splice(i,1);
+			}
+		} else {
+			_off(target, evt, fn);
 		}
 
 	}, arguments);
@@ -118,20 +131,10 @@ var off = Enot['off'] = function(){
 };
 var emit = Enot['emit'] = function(){
 	invoke(function(target, ref){
-		var evt;
-		if (isString(ref)) {
-			var parts = getParts(ref);
-			evt = parts[1].split(':')[0];
-			target = getTargets(target, parts[0]);
+		if (isString(ref)){
+			ref = ref.split(':')[0];
 		}
-
-		//no-string reference pass as is
-		else {
-			evt = ref;
-			target = getTargets(target);
-		}
-
-		_emit.apply(target, [target, evt].concat(slice(arguments, 2)));
+		_emit.apply(target, [target, ref].concat(slice(arguments, 2)));
 
 	}, arguments);
 
@@ -160,14 +163,6 @@ function invoke(fn, args){
 	if (!refs) return;
 
 
-	//redirect list of targets
-	if (isArrayLike(target)) {
-		for (var i = target.length; i--;){
-			invoke(fn, [target[i]].concat(args));
-		}
-		return;
-	}
-
 	//shorten args, exclude refs
 	args = slice(args, 1);
 
@@ -175,26 +170,33 @@ function invoke(fn, args){
 	if (isObject(refs)) {
 		for (var evtRefs in refs){
 			eachCSV(evtRefs, function(evtRef){
-				fn.apply(this, [target, evtRef].concat(refs[evtRef]));
+				invoke(fn, [target, evtRef].concat(refs[evtRef]));
 			});
 		}
 
 		return;
 	}
 
+
 	//string refs
 	if (isString(refs)) {
 		eachCSV(refs, function(evtRef){
-			fn.apply(target, [target, evtRef].concat(args));
+			//get targets to apply
+			var parts = getParts(evtRef);
+			var targets = getTargets(target, parts[0]);
+
+			//iterate over each target
+			for (var i = 0, l = targets.length; i < l; i++){
+				fn.apply(targets[i], [targets[i], evtRef].concat(args));
+			}
 		});
 
 		return;
 	}
+
 	//non-string refs
 	fn.apply(target, [target, refs].concat(args));
 }
-
-
 
 
 
@@ -238,27 +240,28 @@ function getParts(str){
 
 
 /**
- * Get target el by a query string
+ * Get targets by a query string.
+ * Ensures result is array.
  *
  * @param  {Element|Object} target A target(s) to relate
  * @param  {string}         str    Target reference
  *
- * @return {*}                     Resulting target found
+ * @return {Array}                 Resulting targets found
  */
 function getTargets(target, str) {
 	// console.log('parseTarget `' + str + '`', target)
 
 	//no target means global target (mediator)
-	if (!target) target = document;
+	if (!target) target = [document];
 
 	//no string means self evt
 	if (!str){
-		return target;
+		return isArrayLike(target) ? target : [target];
 	}
 
 	//some reserved words
-	if(str === 'window') return window;
-	else if(str === 'document') return document;
+	if(str === 'window') return [window];
+	else if(str === 'document') return [document];
 
 	//query relative selector
 	else {
