@@ -5,7 +5,7 @@
  */
 
 
-var WeakMap = typeof WeakMap !== 'undefined' ? WeakMap : require('polymer-weakmap/weakmap');
+var WeakMap = typeof WeakMap !== 'undefined' ? WeakMap : require('./weakmap');
 
 var doc = typeof document === 'undefined' ? undefined : document;
 var win = typeof window === 'undefined' ? undefined : window;
@@ -18,13 +18,14 @@ function Custom() {
   Emitter.call(this);
 }
 
-Custom.prototype.__proto__ = Emitter.prototype;
+// Custom.prototype.__proto__ = Emitter.prototype;
+Custom.prototype = Object.create(Emitter.prototype);
 
 describe('Custom', function(){
   describe('with Emitter.call(this)', function(){
     it('should work', function(done){
       var emitter = new Custom;
-      emitter.on('foo', done);
+      emitter.on('foo', function(){done()});
       emitter.emit('foo');
     })
   })

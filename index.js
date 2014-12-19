@@ -56,15 +56,18 @@ var proto = Enot.prototype = Object.create(Emitter.prototype);
 
 //prototype methods
 proto['on'] = function(){
-	return on.apply(this, arguments);
+	on.apply(this, arguments);
+	return this;
 };
 
 proto['off'] = function(){
-	return off.apply(this, arguments);
+	off.apply(this, arguments);
+	return this;
 };
 
 proto['emit'] = function(){
-	return emit.apply(this, arguments);
+	emit.apply(this, arguments);
+	return this;
 };
 
 
