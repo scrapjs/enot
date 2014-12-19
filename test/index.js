@@ -3,24 +3,6 @@ var Enot = typeof Enot !== 'undefined' ? Enot : require('..');
 var assert = typeof chai !== 'undefined' ? chai.assert : require('chai').assert;
 
 
-//polyfill
-if (!Node.prototype.contains) {
-  Node.prototype.contains = function contains(node) {
-    if (!(0 in arguments)) {
-      throw new TypeError('1 argument is required');
-    }
-
-    do {
-      if (this === node) {
-        return true;
-      }
-    } while (node = node && node.parentNode);
-
-    return false;
-  };
-}
-
-
 //create testing tree
 var c = document.createElement('div');
 c.className = 'container';

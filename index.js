@@ -32,7 +32,7 @@ function Enot(target){
 	if (!target) return target;
 
 	//mixin any object passed
-	for (var meth in proto){
+	for (var meth in proto) {
 		target[meth] = proto[meth];
 	}
 
