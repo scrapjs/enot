@@ -24,15 +24,14 @@ var Emitter = require('enot');
 
 # Use
 
+Use Enot as simple emitter with optionally extended event notation:
+
 ```js
 Emitter.on('document click:pass(rightmouse)', callback);
 Emitter.emit('document click');
 ```
 
-In all regards Enot behaves as usual [Emitter](https://github.com/dfcreative/emmy). It is fully compliant with [component-emitter](https://github.com/component/emitter) and fulfills every [Emmy](https://github.com/dfcreative/emmy) use-case.
-
-
-# API
+Enot can be used the every way as [Emitter](https://github.com/dfcreative/emmy#use).
 
 Enot API consists of common Emitter methods: `on`, `off`, `emit`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`.
 
