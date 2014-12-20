@@ -51,6 +51,39 @@ Enot can be used in any [Emitter](https://github.com/dfcreative/emmy#use) use-ca
 <!-- `all` - call on any event -->
 
 
+# Event Notation
+
+Basic event notation syntax is:
+
+```js
+[<target>] <event>[<:pseudo1><:pseudo2>]...
+```
+
+| Parameter | Description |
+|----|----|
+| `target` | Regular CSS-selector (possibly extended with relative pseudos, see [query-relative](http://github.io/dfcreative/query-relative)), `document`/`window` keyword or target property accessible via `@` prefix, e.g. `@firstChild`. |
+| `event` | Event name |
+| `:pseudo` | Event modifier, see [list of pseudos](#pseudos). |
+
+
+
+
+# Pseudos
+
+Use the following pseudos for events as `click:<pseudo>`.
+
+Pseudo | Alias | Description
+---|---|---
+`:once` | `:one` | fire callback once.
+`:on(selector)` | `:delegate(selector)` | listen for bubbled event on elements mathing selector.
+`:not(selector)` | | the opposite to `delegate`—ignore bubbled event on elements matching selector.
+`:pass(codes/keynames)` | `:keypass(codes/keynames)` | filter event by `code`. Useful for keyboard/mouse events. Full list of codes can be found in [key-name](https://github.com/dfcreative/key-name). Use as `:keypass(enter, 25, 26)`.
+`:later(100)` | | invoke callback 100 ms after.
+`:throttle(20)` | | invoke callbak not more than once per 20 ms.
+
+Modifiers can be combined, e.g. `click:once:on(.inner-tag):not(.ignore):pass(rightmouse):later(50)`.
+
+
 
 # API
 
@@ -92,39 +125,6 @@ Enot.on(myPlugin, {
 
 Fire event on the target. Optionally pass `data` and `bubbles` params. `data` will be accessible as `event.detail` in callback.
 
-
-
-# Event Notation
-
-Basic event notation syntax is:
-
-```js
-[<target>] <event>[<:pseudo1><:pseudo2>]...
-```
-
-| Parameter | Description |
-|----|----|
-| `target` | Regular CSS-selector (possibly extended with relative pseudos, see [query-relative](http://github.io/dfcreative/query-relative)), `document`/`window` keyword or target property accessible via `@` prefix, e.g. `@firstChild`. |
-| `event` | Event name |
-| `:pseudo` | Event modifier, see [list of pseudos](#pseudos). |
-
-
-
-
-# Pseudos
-
-Use the following pseudos for events as `click:<pseudo>`.
-
-Pseudo | Alias | Description
----|---|---
-`:once` | `:one` | fire callback once.
-`:on(selector)` | `:delegate(selector)` | listen for bubbled event on elements mathing selector.
-`:not(selector)` | | the opposite to `delegate`—ignore bubbled event on elements matching selector.
-`:pass(codes/keynames)` | `:keypass(codes/keynames)` | filter event by `code`. Useful for keyboard/mouse events. Full list of codes can be found in [key-name](https://github.com/dfcreative/key-name). Use as `:keypass(enter, 25, 26)`.
-`:later(100)` | | invoke callback 100 ms after.
-`:throttle(20)` | | invoke callbak not more than once per 20 ms.
-
-Modifiers can be combined, e.g. `click:once:on(.inner-tag):not(.ignore):pass(rightmouse):later(50)`.
 
 
 
