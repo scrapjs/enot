@@ -62,7 +62,7 @@
     "closurecompiler": "~1.x",
     "jquery": "~2.x",
     "testling": "~1.x",
-    "polymer-weakmap": "~1.x",
+    "polymer-weakmap": "~2.0.0",
     "icicle": "~0.x",
     "mochify": "~2.1.0"
   },

@@ -5,7 +5,7 @@
  */
 
 
-var WeakMap = typeof WeakMap !== 'undefined' ? WeakMap : require('./weakmap');
+var WeakMap = typeof WeakMap !== 'undefined' ? WeakMap : require('polymer-weakmap');
 
 var doc = typeof document === 'undefined' ? undefined : document;
 var win = typeof window === 'undefined' ? undefined : window;
