@@ -31,13 +31,33 @@ Emitter.on('document click:pass(rightmouse)', callback);
 Emitter.emit('document click');
 ```
 
-Enot can be used the every way as [Emitter](https://github.com/dfcreative/emmy#use).
+Enot can be used in any [Emitter](https://github.com/dfcreative/emmy#use) use-case.
 
-Enot API consists of common Emitter methods: `on`, `off`, `emit`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`.
 
-<br/>
+# Examples
 
-#### `Enot.on(target(s)?, event(s)?, listener)`
+* `click` - call on click
+* `click:delay(100)` - call 100ms after click
+* `click:throttle(200)` - fire not more often than 200ms
+* `click:one` - fire once
+* `window message` - call on window gets message
+* `document unload` - call on user is going to leave
+* `.bad-link click` - elements matching selector click
+* `:root click:delegate(.bad-link)` - the same as above but in a delegate way
+* `.element click, document keypress:pass(enter)` - bind two callbacks
+<!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
+<!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
+<!-- `touch` - normalized crossbrowser gesture -->
+<!-- `all` - call on any event -->
+
+
+
+# API
+
+API consists of common Emitter methods: `on`, `off`, `emit`, and every inherited from Emmy. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`.
+
+
+### `Enot.on(target(s)?, event(s)?, listener)`
 
 | Parameter | Description |
 |----|----|
@@ -58,9 +78,8 @@ Enot.on(myPlugin, {
 });
 ```
 
-<br/>
 
-#### `Enot.off(target(s), event(s)?, listener?)`
+### `Enot.off(target(s), event(s)?, listener?)`
 
 | Parameter | Description |
 |----|----|
@@ -68,9 +87,8 @@ Enot.on(myPlugin, {
 | `event` | Event name. If omitted - all events for the target will be unbound. |
 | `callback` | Any _function_ or _string_ previously bound. If omitted - all events for the target will be unbound. |
 
-<br/>
 
-#### `Enot.emit(target, event, data?, bubbles?)`
+### `Enot.emit(target, event, data?, bubbles?)`
 
 Fire event on the target. Optionally pass `data` and `bubbles` params. `data` will be accessible as `event.detail` in callback.
 
@@ -108,23 +126,6 @@ Pseudo | Alias | Description
 
 Modifiers can be combined, e.g. `click:once:on(.inner-tag):not(.ignore):pass(rightmouse):later(50)`.
 
-
-
-# Common examples:
-
-* `click` - call on click
-* `click:delay(100)` - call 100ms after click
-* `click:throttle(200)` - fire not more often than 200ms
-* `click:one` - fire once
-* `window message` - call on window gets message
-* `document unload` - call on user is going to leave
-* `.bad-link click` - elements matching selector click
-* `:root click:delegate(.bad-link)` - the same as above but in a delegate way
-* `.element click, document keypress:pass(enter)` - bind two callbacks
-<!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
-<!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
-<!-- `touch` - normalized crossbrowser gesture -->
-<!-- `all` - call on any event -->
 
 
 [![NPM](https://nodei.co/npm/enot.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/enot/)
