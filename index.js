@@ -15,7 +15,7 @@ var q = require('query-relative');
 var paren = require('parenthesis');
 
 
-var _on = Emitter.on, _off= Emitter.off, _emit = Emitter.emit;
+var _on = require('emmy/on'), _off= require('emmy/off'), _emit = require('emmy/emit');
 
 
 //TODO: query multiple targets in on/off/emit - now callback is got improperly
@@ -340,32 +340,26 @@ function getCallback(target, evtStr, fn){
 
 var pseudos = {};
 
-pseudos.on =
-pseudos.delegate =
+pseudos['on'] =
+pseudos['delegate'] =
 require('emmy/delegate').wrap;
 
-pseudos.not =
+pseudos['not'] =
 require('emmy/not').wrap;
 
-pseudos.pass =
-pseudos.keypass =
+pseudos['pass'] =
+pseudos['keypass'] =
 require('emmy/keypass').wrap;
 
-pseudos.one =
-pseudos.once =
+pseudos['one'] =
+pseudos['once'] =
 require('emmy/once').wrap;
 
-pseudos.throttle =
+pseudos['throttle'] =
 require('emmy/throttle').wrap;
 
-pseudos.later =
+pseudos['later'] =
 require('emmy/later').wrap;
-
-
-pseudos.order = [
-	'one', 'once'
-];
-
 
 
 

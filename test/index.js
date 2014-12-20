@@ -1,5 +1,5 @@
 var WeakMap = typeof WeakMap !== 'undefined' ? WeakMap : require('polymer-weakmap/weakmap');
-var Enot = typeof Enot !== 'undefined' ? Enot : require('..');
+var Enot = typeof Emitter !== 'undefined' ? Emitter : require('..');
 var assert = typeof chai !== 'undefined' ? chai.assert : require('chai').assert;
 
 
