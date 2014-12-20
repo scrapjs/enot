@@ -45,6 +45,7 @@ Enot can be used in any [Emitter](https://github.com/dfcreative/emmy#use) use-ca
 * `.bad-link click` - elements matching selector click
 * `:root click:delegate(.bad-link)` - the same as above but in a delegate way
 * `.element click, document keypress:pass(enter)` - bind two callbacks
+
 <!-- `keypress:pass(ctrl + alt + del)` - catch windows task manager call -->
 <!-- `keypress:pass(/y/i) + keypress:pass(/e/i) + keypress:pass(/s/i)` - catch user’s consent. -->
 <!-- `touch` - normalized crossbrowser gesture -->
