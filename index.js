@@ -55,18 +55,21 @@ var proto = Enot.prototype = Object.create(Emitter.prototype);
 
 
 //prototype methods
-proto['on'] = function(){
-	on.apply(this, arguments);
+proto['on'] = function(a,b,c){
+	on(this, a,b,c);
 	return this;
 };
 
-proto['off'] = function(){
-	off.apply(this, arguments);
+proto['off'] = function(a,b){
+	//call super off (some fns could’ve been bound outside)
+	_off(this, a,b);
+
+	off(this, a,b);
 	return this;
 };
 
 proto['emit'] = function(){
-	emit.apply(this, arguments);
+	emit.apply(this, [this].concat(slice(arguments)));
 	return this;
 };
 

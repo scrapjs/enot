@@ -94,8 +94,11 @@ describe('Emitter', function(){
 
       function one() { calls.push('one'); }
 
+      // console.log('---once1')
       emitter.once('foo', one);
+      // console.log('---once2')
       emitter.once('fee', one);
+      // console.log('---off')
       emitter.off('foo', one);
 
       emitter.emit('foo');
