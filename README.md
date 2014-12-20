@@ -34,9 +34,7 @@ In all regards Enot behaves as usual [Emitter](https://github.com/dfcreative/emm
 
 # API
 
-Enot API consists of common Emitter methods: `on`, `off`, `once`, `emit`, `delegate`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`.
-
-Within a callback, you can return false, then action will be prevented as it is in DOM.
+Enot API consists of common Emitter methods: `on`, `off`, `emit`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`.
 
 <br/>
 
@@ -63,12 +61,6 @@ Enot.on(myPlugin, {
 
 <br/>
 
-#### `Enot.once(target(s)?, event(s)?, listener)`
-
-All the same arguments as [on](#on).
-
-<br/>
-
 #### `Enot.off(target(s), event(s)?, listener?)`
 
 | Parameter | Description |
@@ -87,17 +79,17 @@ Fire event on the target. Optionally pass `data` and `bubbles` params. `data` wi
 
 # Event Notation
 
-Basic event syntax is:
+Basic event notation syntax is:
 
 ```js
-<target>? <event><:pseudo1><:pseudo2>...
+[<target>] <event>[<:pseudo1><:pseudo2>]...
 ```
 
 | Parameter | Description |
 |----|----|
 | `target` | Regular CSS-selector (possibly extended with relative pseudos, see [query-relative](http://github.io/dfcreative/query-relative)), `document`/`window` keyword or target property accessible via `@` prefix, e.g. `@firstChild`. |
 | `event` | Event name |
-| `:modifier` | Event modifier, see [list of modifiers](#modifiers). |
+| `:pseudo` | Event modifier, see [list of pseudos](#pseudos). |
 
 
 
