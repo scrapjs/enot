@@ -37,7 +37,7 @@ Enot can be used in any [Emitter](https://github.com/dfcreative/emmy#use) use-ca
 # Examples
 
 * `click` - call on click
-* `click:delay(100)` - call 100ms after click
+* `click:later(100)` - call 100ms after click
 * `click:throttle(200)` - fire not more often than 200ms
 * `click:one` - fire once
 * `window message` - call on window gets message
