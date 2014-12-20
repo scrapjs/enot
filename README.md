@@ -7,76 +7,38 @@
 	<a href="UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
 </h1>
 
-Enot is handy events binder with humanized **e**vents **not**ation. It is like [xtags events](http://www.x-tags.org/docs#pseudos) standalone with additional [pseudos](#pseudos).
+Enot is [Emitter](https://github.com/dfcreative/emmy) with humanized **e**vents **not**ation. It is like [xtags events](http://www.x-tags.org/docs#pseudos) standalone with additional [pseudos](#pseudos).
 
 <img src="https://cdn.rawgit.com/dfcreative/enot/design/logo.png" height="140"/>
 
 
 # Install
 
-To use in browser use browserify or [build](enot.js) (_3kb gzipped_).
+To use in browser use browserify or [build](enot.js) (_4.4kb gzipped_).
 
 `$ npm install enot`
 
 ```js
-var enot = require('enot');
+var Emitter = require('enot');
 ```
-
-# Get started
-
-TODO
-
 
 # Use
 
-### Wrap objects
-
 ```js
-enot.on('document click:pass(rightmouse)', callback);
-enot.one('document click:pass(rightmouse)', callback);
-enot.off('document click:pass(rightmouse)', callback);
-enot.emit('document click:pass(rightmouse)');
+Emitter.on('document click:pass(rightmouse)', callback);
+Emitter.emit('document click');
 ```
 
-Might be useful if you want to use events "externally", not touching the initial objects — e. g. HTMLElements, jQuery objects etc.
-
-
-### Emitter class
-
-```js
-var emitter = new Enot;
-emitter.emit('something');
-```
-
-### Mixin object:
-
-```js
-var user = {name: 'Toby'};
-Emitter(user);
-
-user.emit('hello');
-```
-
-### Inherit class:
-
-```js
-var User = function(name){this.name = name};
-
-User.prototype = Object.create(Emitter.prototype);
-//or `Emitter(User.prototype);` to mixin
-
-var user = new User('George');
-
-user.emit('poo');
-```
+In all regards Enot behaves as usual [Emitter](https://github.com/dfcreative/emmy). It is fully compliant with [component-emitter](https://github.com/component/emitter) and fulfills every [Emmy](https://github.com/dfcreative/emmy) use-case.
 
 
 # API
 
-Enot API consists of common EventEmitter interface methods: `on`, `off`, `once`, `emit`, `delegate`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`.
+Enot API consists of common Emitter methods: `on`, `off`, `once`, `emit`, `delegate`. Methods are chainable, so you can compose lists of calls: `Enot.on(target, 'click', cb).emit(target, 'click').off(target, 'click');`.
 
 Within a callback, you can return false, then action will be prevented as it is in DOM.
 
+<br/>
 
 #### `Enot.on(target(s)?, event(s)?, listener)`
 
@@ -99,10 +61,13 @@ Enot.on(myPlugin, {
 });
 ```
 
+<br/>
+
 #### `Enot.once(target(s)?, event(s)?, listener)`
 
 All the same arguments as [on](#on).
 
+<br/>
 
 #### `Enot.off(target(s), event(s)?, listener?)`
 
@@ -112,6 +77,7 @@ All the same arguments as [on](#on).
 | `event` | Event name. If omitted - all events for the target will be unbound. |
 | `callback` | Any _function_ or _string_ previously bound. If omitted - all events for the target will be unbound. |
 
+<br/>
 
 #### `Enot.emit(target, event, data?, bubbles?)`
 
@@ -119,12 +85,12 @@ Fire event on the target. Optionally pass `data` and `bubbles` params. `data` wi
 
 
 
-# Event notation
+# Event Notation
 
-Basic event declaration syntax:
+Basic event syntax is:
 
 ```js
-[<target>] <event>[<:pseudo>]
+<target>? <event><:pseudo1><:pseudo2>...
 ```
 
 | Parameter | Description |
@@ -143,13 +109,13 @@ Use the following pseudos for events as `click:<pseudo>`.
 Pseudo | Alias | Description
 ---|---|---
 `:once` | `:one` | fire callback once.
-`:on(selector)` | (xtags `:delegate(selector)`) | listen for bubbled event on elements mathing selector.
+`:on(selector)` | `:delegate(selector)` | listen for bubbled event on elements mathing selector.
 `:not(selector)` | | the opposite to `delegate`—ignore bubbled event on elements matching selector.
 `:pass(codes/keynames)` | `:keypass(codes/keynames)` | filter event by `code`. Useful for keyboard/mouse events. Full list of codes can be found in [key-name](https://github.com/dfcreative/key-name). Use as `:keypass(enter, 25, 26)`.
 `:later(100)` | | invoke callback 100 ms after.
 `:throttle(20)` | | invoke callbak not more than once per 20 ms.
 
-Modifiers can be combined, e.g. `click:once:on(.inner-tag):not(.ignore):pass(rightmouse):delay(50)`.
+Modifiers can be combined, e.g. `click:once:on(.inner-tag):not(.ignore):pass(rightmouse):later(50)`.
 
 
 
