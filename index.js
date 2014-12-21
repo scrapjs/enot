@@ -111,7 +111,6 @@ var off = Enot['off'] = function(){
 	invoke(function (target, ref, fn) {
 		var parts = getParts(ref);
 		var evt = parts[1].split(':')[0];
-
 		//clean cb reference
 		if (fn) {
 			var cbSet = cbCache.get(fn);
@@ -138,7 +137,7 @@ var off = Enot['off'] = function(){
 var emit = Enot['emit'] = function(){
 	invoke(function(target, ref){
 		if (isString(ref)){
-			ref = ref.split(':')[0];
+			ref = getParts(ref)[1].split(':')[0];
 		}
 		_emit.apply(target, [target, ref].concat(slice(arguments, 2)));
 
