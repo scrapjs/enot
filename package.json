@@ -5,12 +5,7 @@
   "main": "index.js",
   "files": [
     "index.js",
-    "Emitter.js",
-    "emit.js",
-    "on.js",
-    "off.js",
-    "once.js",
-    "src"
+    "enot.js"
   ],
   "scripts": {
     "build-min": "npm run build && npm run min && npm run clean && cat enot.js | gzip-size | pretty-bytes",
