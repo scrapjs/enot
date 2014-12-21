@@ -31,7 +31,7 @@ Emitter.on('document click:pass(rightmouse)', callback);
 Emitter.emit('document click');
 ```
 
-Enot can be used in any [Emitter](https://github.com/dfcreative/emmy#use) use-case.
+Enot can be used with any [Emmy](https://github.com/dfcreative/emmy#use)/[component-emitter](https://github.com/component/emitter) use-case.
 
 
 # Examples
