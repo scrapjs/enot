@@ -15,7 +15,7 @@
   "scripts": {
     "build-min": "npm run build && npm run min && npm run clean && cat enot.js | gzip-size | pretty-bytes",
     "build": "uncommon ./index -w \";(function(){window['Emitter']=Enot;%output%;})();\" > enot.dev.js",
-    "min": "ccjs enot.dev.js --language_in=ECMASCRIPT5 --compilation_level=ADVANCED --process_jquery_primitives --externs=build/jquery-externs.js > enot.js",
+    "min": "ccjs enot.dev.js --language_in=ECMASCRIPT5 --compilation_level=ADVANCED --process_jquery_primitives --externs=build/externs.js > enot.js",
     "clean": "rm enot.dev.js",
     "test": "mochify"
   },
