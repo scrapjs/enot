@@ -4,7 +4,7 @@
 
 
 var slice = require('sliced');
-var Emitter = require('emmy');
+var emitter = require('emmy').prototype;
 var eachCSV = require('each-csv');
 var isFn = require('mutype/is-fn');
 var isObject = require('mutype/is-object');
@@ -15,7 +15,7 @@ var q = require('query-relative');
 var paren = require('parenthesis');
 
 
-var _on = require('emmy/on'), _off= require('emmy/off'), _emit = require('emmy/emit');
+var _on = require('emmy/on'), _off= require('emmy/off'), _emit = require('emmy/emit'), _once = require('emmy/once');
 
 
 //TODO: query multiple targets in on/off/emit - now callback is got improperly
@@ -40,23 +40,21 @@ function Enot(target){
 }
 
 
-/** Adopt static methods */
-for (var meth in Emitter){
-	Enot[meth] = Emitter[meth];
-}
-
-
 
 /**
  * Prototype should be instanceof Emitter
  * also fill basic event methods like `listeners`
  */
-var proto = Enot.prototype = Object.create(Emitter.prototype);
+var proto = Enot.prototype = Object.create(emitter);
 
 
 //prototype methods
 proto['on'] = function(a,b,c){
 	on(this, a,b,c);
+	return this;
+};
+proto['once'] = function(a,b,c){
+	once(this, a,b,c);
 	return this;
 };
 
@@ -145,6 +143,10 @@ var emit = Enot['emit'] = function(){
 
 	return Enot;
 };
+var once = Enot['once'] = function(){
+	_once.apply(this, arguments);
+	return Enot;
+}
 
 
 /** Redirect, parse event notations and call target method */

@@ -4,6 +4,7 @@
 	<a href="https://travis-ci.org/dfcreative/enot"><img src="https://travis-ci.org/dfcreative/enot.svg?branch=master"/></a>
 	<a href="https://codeclimate.com/github/dfcreative/emmy"><img src="https://codeclimate.com/github/dfcreative/emmy/badges/gpa.svg"/></a>
 	<img src="https://david-dm.org/dfcreative/enot.svg"/>
+	<img src="https://img.shields.io/badge/size-4.38kb-brightgreen.svg"/>
 	<a href="UNLICENSE"><img src="http://upload.wikimedia.org/wikipedia/commons/6/62/PD-icon.svg" width="20"/></a>
 </h1>
 
@@ -14,7 +15,7 @@ Enot is [Emitter](https://github.com/dfcreative/emmy) with humanized **e**vents 
 
 # Install
 
-To use in browser use browserify or [build](enot.js) (_4.4kb gzipped_).
+To use in browser use browserify or [build](enot.js).
 
 `$ npm install enot`
 
