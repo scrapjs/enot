@@ -21,7 +21,6 @@
     "mustring": "*",
     "emmy": "*",
     "query-relative": ">=1.x",
-    "muparse": ">=0.0.9",
     "sliced": "0.0.5",
     "key-name": ">=1.0.1",
     "parenthesis": ">=1.1.0"
