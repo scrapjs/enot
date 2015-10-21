@@ -24,7 +24,6 @@
     "mutype": "*",
     "parenthesis": ">=1.1.0",
     "queried": "^1.4.4",
-    "query-relative": ">=1.x",
     "sliced": "0.0.5"
   },
   "repository": {
