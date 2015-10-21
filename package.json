@@ -12,18 +12,20 @@
     "build": "uncommon ./index -w \";(function(){window['Emitter']=Enot;%output%;})();\" > enot.dev.js",
     "min": "ccjs enot.dev.js --language_in=ECMASCRIPT5 --compilation_level=ADVANCED --process_jquery_primitives --externs=build/externs.js > enot.js",
     "clean": "rm enot.dev.js",
-    "test": "mochify"
+    "test": "mochify",
+    "watch": "watchify -r ./index.js:.. -r chai -d -o ./test/bundle.js"
   },
   "dependencies": {
-    "matches-selector": ">=1.x",
     "each-csv": "*",
-    "mutype": "*",
-    "mustring": "*",
-    "emmy": "*",
-    "query-relative": ">=1.x",
-    "sliced": "0.0.5",
+    "emmy": "^5.3.3",
     "key-name": ">=1.0.1",
-    "parenthesis": ">=1.1.0"
+    "matches-selector": ">=1.x",
+    "mustring": "^1.0.0",
+    "mutype": "*",
+    "parenthesis": ">=1.1.0",
+    "queried": "^1.4.4",
+    "query-relative": ">=1.x",
+    "sliced": "0.0.5"
   },
   "repository": {
     "type": "git",
@@ -47,18 +49,18 @@
   },
   "homepage": "https://github.com/dfcreative/enot",
   "devDependencies": {
-    "chai": "~1.9.1",
-    "mocha": "~1.x",
-    "require-stub": "*",
-    "phantomjs": "~1.9.7-15",
-    "mocha-phantomjs": "~3.5.0",
     "browserify": "5.x",
+    "chai": "~1.9.1",
     "closurecompiler": "~1.x",
-    "jquery": "~2.x",
-    "testling": "~1.x",
-    "polymer-weakmap": "^2.0.0",
     "icicle": "~0.x",
-    "mochify": "~2.1.0"
+    "jquery": "~2.x",
+    "mocha": "~1.x",
+    "mocha-phantomjs": "~3.5.0",
+    "mochify": "^2.13.0",
+    "phantomjs": "~1.9.7-15",
+    "polymer-weakmap": "^2.0.0",
+    "require-stub": "*",
+    "testling": "~1.x"
   },
   "testling": {
     "files": "test/index.js",

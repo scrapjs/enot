@@ -201,7 +201,6 @@ describe("Pseudos", function(){
 		Enot.emit(document.body, "hello");
 		assert.equal(i, 0);
 
-		// console.log('---emit el hello')
 		Enot.emit(el, "hello", null, true);
 		assert.equal(i, 1);
 
@@ -228,12 +227,13 @@ describe("Pseudos", function(){
 		})
 
 		var evt = createMouseEvt("click", 1)
-		// console.log("----fire 2")
+		// console.log("----fire 1")
 		Enot.emit(el, evt);
 
 		assert.equal(i, 0);
 
 		var evt = createMouseEvt("click", 2);
+		// console.log("----fire 2")
 		Enot.emit(el, evt);
 
 		assert.equal(i, 1);
@@ -364,6 +364,7 @@ describe("Pseudos", function(){
 		});
 		// console.log('--------on .b click');
 		Enot.on('.b click:not(.c)', function(){
+			// console.log('.b callback')
 			j++
 		})
 
@@ -776,7 +777,7 @@ describe("Regression", function(){
 		document.body.appendChild(a);
 		document.body.appendChild(b);
 
-		Enot.on(a, ':root .item click', function(){
+		Enot.on(':root .item click', function(){
 			log.push(1)
 		})
 		Enot.on(a, '.item click', function(){

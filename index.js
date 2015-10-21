@@ -11,7 +11,7 @@ var isObject = require('mutype/is-object');
 var isString = require('mutype/is-string');
 var isArrayLike = require('mutype/is-array-like');
 var unprefix = require('mustring/unprefix');
-var q = require('query-relative');
+var q = require('queried');
 var paren = require('parenthesis');
 
 
@@ -28,7 +28,7 @@ var _on = require('emmy/on'), _off= require('emmy/off'), _emit = require('emmy/e
  * Implements EventEmitter interface.
  * Static methods below are useful as wrappers.
  */
-function Enot(target){
+function Enot (target) {
 	if (!target) return target;
 
 	//mixin any object passed
@@ -49,16 +49,16 @@ var proto = Enot.prototype = Object.create(emitter);
 
 
 //prototype methods
-proto['on'] = function(a,b,c){
+proto['on'] = function (a,b,c) {
 	on(this, a,b,c);
 	return this;
 };
-proto['once'] = function(a,b,c){
+proto['once'] = function (a,b,c) {
 	once(this, a,b,c);
 	return this;
 };
 
-proto['off'] = function(a,b){
+proto['off'] = function (a,b) {
 	//call super off (some fns could’ve been bound outside)
 	_off(this, a,b);
 
@@ -66,7 +66,7 @@ proto['off'] = function(a,b){
 	return this;
 };
 
-proto['emit'] = function(){
+proto['emit'] = function () {
 	emit.apply(this, [this].concat(slice(arguments)));
 	return this;
 };
@@ -84,8 +84,8 @@ var cbCache = new WeakMap;
 /**
  * Static wrapper API
  */
-var on = Enot['on'] = function(){
-	invoke(function(target, ref, fn){
+var on = Enot['on'] = function on () {
+	invoke(function (target, ref, fn) {
 		if (!fn) return;
 
 		var parts = getParts(ref);
@@ -105,7 +105,7 @@ var on = Enot['on'] = function(){
 
 	return Enot;
 };
-var off = Enot['off'] = function(){
+var off = Enot['off'] = function off () {
 	invoke(function (target, ref, fn) {
 		var parts = getParts(ref);
 		var evt = parts[1].split(':')[0];
@@ -118,7 +118,7 @@ var off = Enot['off'] = function(){
 
 			if (!cbList) return;
 
-			for (var i = cbList.length; i--;){
+			for (var i = cbList.length; i--;) {
 				_off(target, evt, cbList[i]);
 
 				//FIXME: remove reference to avoid leaks
@@ -132,9 +132,9 @@ var off = Enot['off'] = function(){
 
 	return Enot;
 };
-var emit = Enot['emit'] = function(){
-	invoke(function(target, ref){
-		if (isString(ref)){
+var emit = Enot['emit'] = function emit () {
+	invoke(function (target, ref) {
+		if (isString(ref)) {
 			ref = getParts(ref)[1].split(':')[0];
 		}
 		_emit.apply(target, [target, ref].concat(slice(arguments, 2)));
@@ -143,14 +143,14 @@ var emit = Enot['emit'] = function(){
 
 	return Enot;
 };
-var once = Enot['once'] = function(){
+var once = Enot['once'] = function once () {
 	_once.apply(this, arguments);
 	return Enot;
 }
 
 
 /** Redirect, parse event notations and call target method */
-function invoke(fn, args){
+function invoke (fn, args) {
 	var target = args[0], refs = args[1];
 
 	//if no target specified - use mediator
@@ -175,8 +175,8 @@ function invoke(fn, args){
 
 	//batch refs
 	if (isObject(refs)) {
-		for (var evtRefs in refs){
-			eachCSV(evtRefs, function(evtRef){
+		for (var evtRefs in refs) {
+			eachCSV(evtRefs, function (evtRef) {
 				invoke(fn, [target, evtRef].concat(refs[evtRef]));
 			});
 		}
@@ -187,13 +187,13 @@ function invoke(fn, args){
 
 	//string refs
 	if (isString(refs)) {
-		eachCSV(refs, function(evtRef){
+		eachCSV(refs, function (evtRef) {
 			//get targets to apply
 			var parts = getParts(evtRef);
 			var targets = getTargets(target, parts[0]);
 
 			//iterate over each target
-			for (var i = 0, l = targets.length; i < l; i++){
+			for (var i = 0, l = targets.length; i < l; i++) {
 				fn.apply(targets[i], [targets[i], evtRef].concat(args));
 			}
 		});
@@ -204,8 +204,6 @@ function invoke(fn, args){
 	//non-string refs
 	fn.apply(target, [target, refs].concat(args));
 }
-
-
 
 
 /**
@@ -230,7 +228,7 @@ function invoke(fn, args){
  *
  * @return {Array}  Result of parsing: ['<target part>', '<event part>']
  */
-function getParts(str){
+function getParts(str) {
 	var result = ['',''];
 
 	//get event name - the last token
@@ -255,14 +253,14 @@ function getParts(str){
  *
  * @return {Array}                 Resulting targets found
  */
-function getTargets(target, str) {
+function getTargets (target, str) {
 	// console.log('parseTarget `' + str + '`', target)
 
 	//no target means global target (mediator)
 	if (!target) target = [document];
 
 	//no string means self evt
-	if (!str){
+	if (!str) {
 		return isArrayLike(target) ? target : [target];
 	}
 
@@ -272,7 +270,7 @@ function getTargets(target, str) {
 
 	//query relative selector
 	else {
-		return q(target, str, true);
+		return q.all(str, target);
 	}
 }
 
@@ -289,7 +287,7 @@ function getTargets(target, str) {
  *
  * @return {function} Constructed callback for the event string
  */
-function getCallback(target, evtStr, fn){
+function getCallback (target, evtStr, fn) {
 	if (!fn) return;
 
 	var targetFn = fn;
@@ -304,12 +302,12 @@ function getCallback(target, evtStr, fn){
 	//wrap each modifier
 	pseudoList
 	//:once should go last
-	.sort(function(a, b){
+	.sort(function (a, b) {
 		if (a === 'once' || a === 'one') return -1;
 		if (b === 'once' || b === 'one') return 1;
 		return 0;
 	})
-	.forEach(function(pseudo){
+	.forEach(function (pseudo) {
 		//get pseudo name/ref parts from parenthesis token
 		var parts = pseudo.split('\\');
 
@@ -317,7 +315,7 @@ function getCallback(target, evtStr, fn){
 		var pseudoParams = paren.stringify(parens[parts[1]], parens);
 
 		//for :once method pass special `off` as param
-		if (!pseudoParams) pseudoParams = function(target, evt, cb){
+		if (!pseudoParams) pseudoParams = function (target, evt, cb) {
 			off(target, evt, cb);
 			off(target, evt, fn);
 		};
