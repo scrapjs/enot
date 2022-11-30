@@ -1,7 +1,5 @@
 <h1>
-	Enot
-
-	<a href="https://travis-ci.org/dfcreative/enot"><img src="https://travis-ci.org/dfcreative/enot.svg?branch=master"/></a>
+	Enot <a href="https://travis-ci.org/dfcreative/enot"><img src="https://travis-ci.org/dfcreative/enot.svg?branch=master"/></a>
 	<a href="https://codeclimate.com/github/dfcreative/emmy"><img src="https://codeclimate.com/github/dfcreative/emmy/badges/gpa.svg"/></a>
 	<img src="https://david-dm.org/dfcreative/enot.svg"/>
 	<img src="https://img.shields.io/badge/size-4.38kb-brightgreen.svg"/>
